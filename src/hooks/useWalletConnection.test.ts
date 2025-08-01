@@ -10,10 +10,8 @@ import {
   WIZZ,
   XVERSE,
 } from '@omnisat/lasereyes';
-import { JSDOM } from 'jsdom';
-import React from 'react';
+import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
-import { act } from 'react-dom/test-utils';
 import { AVAILABLE_WALLETS, useWalletConnection } from './useWalletConnection';
 
 // Mock the LaserEyes context
@@ -23,20 +21,7 @@ jest.mock('@/context/LaserEyesContext', () => ({
 
 const { useSharedLaserEyes } = jest.requireMock('@/context/LaserEyesContext');
 
-beforeAll(() => {
-  const dom = new JSDOM('<!doctype html><html><body></body></html>');
-  (global as unknown as { window: Window }).window =
-    dom.window as unknown as Window;
-  (global as unknown as { document: Document }).document = dom.window.document;
-  // Add MouseEvent to global for tests
-  (global as typeof globalThis).MouseEvent = dom.window.MouseEvent;
-});
-
-afterAll(() => {
-  (
-    global as unknown as { window: Window & { close: () => void } }
-  ).window.close();
-});
+// DOM environment is handled by jest-environment-jsdom
 
 function renderHook() {
   let result: ReturnType<typeof useWalletConnection>;

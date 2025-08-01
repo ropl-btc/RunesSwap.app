@@ -1,7 +1,5 @@
-import { JSDOM } from 'jsdom';
-import React from 'react';
+import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
-import { act } from 'react-dom/test-utils';
 import {
   type BorrowRangeResponse,
   type LiquidiumBorrowQuoteOffer,
@@ -47,19 +45,7 @@ const mockFetchPopularFromApi = fetchPopularFromApi as jest.MockedFunction<
   typeof fetchPopularFromApi
 >;
 
-// Setup DOM environment
-beforeAll(() => {
-  const dom = new JSDOM('<!doctype html><html><body></body></html>');
-  (global as unknown as { window: Window }).window =
-    dom.window as unknown as Window;
-  (global as unknown as { document: Document }).document = dom.window.document;
-});
-
-afterAll(() => {
-  (
-    global as unknown as { window: Window & { close: () => void } }
-  ).window.close();
-});
+// DOM environment is handled by jest-environment-jsdom
 
 // Test data
 const mockAsset: Asset = {
