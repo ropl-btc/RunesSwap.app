@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test": "NODE_OPTIONS=\"--max-old-space-size=4096\" jest",
+    "test": "NODE_OPTIONS=\"--max-old-space-size=4096\" jest --runInBand",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

@@ -194,20 +194,22 @@ describe('useBorrowQuotes', () => {
       const errorMessage = 'Network error';
       mockFetchPopularFromApi.mockRejectedValue(new Error(errorMessage));
 
-      const hook = renderHook({
-        collateralAsset: null,
-        collateralAmount: '',
-        address: null,
-        collateralRuneInfo: null,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: null,
+          collateralAmount: '',
+          address: null,
+          collateralRuneInfo: null,
+        }),
+      );
 
       await act(async () => {
         await Promise.resolve();
       });
 
-      expect(hook.result.isPopularLoading).toBe(false);
-      expect(hook.result.popularError).toBe(errorMessage);
-      expect(hook.result.popularRunes).toEqual([
+      expect(result.current.isPopularLoading).toBe(false);
+      expect(result.current.popularError).toBe(errorMessage);
+      expect(result.current.popularRunes).toEqual([
         {
           id: 'liquidiumtoken',
           name: 'LIQUIDIUM•TOKEN',
@@ -222,20 +224,22 @@ describe('useBorrowQuotes', () => {
         {} as Record<string, unknown>[],
       );
 
-      const hook = renderHook({
-        collateralAsset: null,
-        collateralAmount: '',
-        address: null,
-        collateralRuneInfo: null,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: null,
+          collateralAmount: '',
+          address: null,
+          collateralRuneInfo: null,
+        }),
+      );
 
       await act(async () => {
         await Promise.resolve();
       });
 
-      expect(hook.result.isPopularLoading).toBe(false);
-      expect(hook.result.popularError).toBeNull();
-      expect(hook.result.popularRunes).toEqual([
+      expect(result.current.isPopularLoading).toBe(false);
+      expect(result.current.popularError).toBeNull();
+      expect(result.current.popularRunes).toEqual([
         {
           id: 'liquidiumtoken',
           name: 'LIQUIDIUM•TOKEN',
@@ -251,12 +255,14 @@ describe('useBorrowQuotes', () => {
       mockFetchBorrowRangesFromApi.mockResolvedValue(mockBorrowRangeResponse);
       mockFetchPopularFromApi.mockResolvedValue([]);
 
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       await act(async () => {
         await Promise.resolve();
@@ -266,20 +272,22 @@ describe('useBorrowQuotes', () => {
         'test-rune-id:123',
         'test-address',
       );
-      expect(hook.result.minMaxRange).toBe('Min: 1.00 - Max: 100.00');
-      expect(hook.result.borrowRangeError).toBeNull();
+      expect(result.current.minMaxRange).toBe('Min: 1.00 - Max: 100.00');
+      expect(result.current.borrowRangeError).toBeNull();
     });
 
     it('should use rune info ID when it contains colon', async () => {
       mockFetchBorrowRangesFromApi.mockResolvedValue(mockBorrowRangeResponse);
       mockFetchPopularFromApi.mockResolvedValue([]);
 
-      renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       await act(async () => {
         await Promise.resolve();
@@ -294,38 +302,42 @@ describe('useBorrowQuotes', () => {
     it('should not fetch ranges for BTC asset', async () => {
       mockFetchPopularFromApi.mockResolvedValue([]);
 
-      const hook = renderHook({
-        collateralAsset: mockBtcAsset,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: null,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockBtcAsset,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: null,
+        }),
+      );
 
       await act(async () => {
         await Promise.resolve();
       });
 
       expect(mockFetchBorrowRangesFromApi).not.toHaveBeenCalled();
-      expect(hook.result.minMaxRange).toBeNull();
-      expect(hook.result.borrowRangeError).toBeNull();
+      expect(result.current.minMaxRange).toBeNull();
+      expect(result.current.borrowRangeError).toBeNull();
     });
 
     it('should not fetch ranges when required params are missing', async () => {
       mockFetchPopularFromApi.mockResolvedValue([]);
 
-      const hook = renderHook({
-        collateralAsset: null,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: null,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       await act(async () => {
         await Promise.resolve();
       });
 
       expect(mockFetchBorrowRangesFromApi).not.toHaveBeenCalled();
-      expect(hook.result.minMaxRange).toBeNull();
+      expect(result.current.minMaxRange).toBeNull();
     });
 
     it('should handle borrow range fetch error with specific error messages', async () => {
@@ -333,19 +345,21 @@ describe('useBorrowQuotes', () => {
       mockFetchBorrowRangesFromApi.mockRejectedValue(new Error(errorMessage));
       mockFetchPopularFromApi.mockResolvedValue([]);
 
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       await act(async () => {
         await Promise.resolve();
       });
 
-      expect(hook.result.minMaxRange).toBeNull();
-      expect(hook.result.borrowRangeError).toBe(
+      expect(result.current.minMaxRange).toBeNull();
+      expect(result.current.borrowRangeError).toBe(
         'This rune is not currently available for borrowing on Liquidium.',
       );
     });
@@ -357,19 +371,21 @@ describe('useBorrowQuotes', () => {
       });
       mockFetchPopularFromApi.mockResolvedValue([]);
 
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       await act(async () => {
         await Promise.resolve();
       });
 
-      expect(hook.result.minMaxRange).toBeNull();
-      expect(hook.result.borrowRangeError).toBeNull();
+      expect(result.current.minMaxRange).toBeNull();
+      expect(result.current.borrowRangeError).toBeNull();
     });
   });
 
@@ -381,15 +397,17 @@ describe('useBorrowQuotes', () => {
     it('should fetch quotes successfully', async () => {
       mockFetchBorrowQuotesFromApi.mockResolvedValue(mockBorrowQuoteResponse);
 
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       await act(async () => {
-        await hook.result.handleGetQuotes();
+        await result.current.handleGetQuotes();
       });
 
       expect(mockFetchBorrowQuotesFromApi).toHaveBeenCalledWith(
@@ -397,45 +415,49 @@ describe('useBorrowQuotes', () => {
         '100000000',
         'test-address',
       );
-      expect(hook.result.quotes).toEqual([mockQuoteOffer]);
-      expect(hook.result.quotesError).toBeNull();
-      expect(hook.result.isQuotesLoading).toBe(false);
+      expect(result.current.quotes).toEqual([mockQuoteOffer]);
+      expect(result.current.quotesError).toBeNull();
+      expect(result.current.isQuotesLoading).toBe(false);
     });
 
     it('should not fetch quotes when required params are missing', async () => {
-      const hook = renderHook({
-        collateralAsset: null,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: null,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       await act(async () => {
-        await hook.result.handleGetQuotes();
+        await result.current.handleGetQuotes();
       });
 
       expect(mockFetchBorrowQuotesFromApi).not.toHaveBeenCalled();
-      expect(hook.result.quotes).toEqual([]);
+      expect(result.current.quotes).toEqual([]);
     });
 
     it('should handle quote fetch error', async () => {
       const errorMessage = 'Failed to fetch quotes';
       mockFetchBorrowQuotesFromApi.mockRejectedValue(new Error(errorMessage));
 
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       await act(async () => {
-        await hook.result.handleGetQuotes();
+        await result.current.handleGetQuotes();
       });
 
-      expect(hook.result.quotes).toEqual([]);
-      expect(hook.result.quotesError).toBe(errorMessage);
-      expect(hook.result.isQuotesLoading).toBe(false);
+      expect(result.current.quotes).toEqual([]);
+      expect(result.current.quotesError).toBe(errorMessage);
+      expect(result.current.isQuotesLoading).toBe(false);
     });
 
     it('should handle response without rune details', async () => {
@@ -443,22 +465,24 @@ describe('useBorrowQuotes', () => {
         success: true,
       });
 
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       await act(async () => {
-        await hook.result.handleGetQuotes();
+        await result.current.handleGetQuotes();
       });
 
-      expect(hook.result.quotes).toEqual([]);
-      expect(hook.result.quotesError).toBe(
+      expect(result.current.quotes).toEqual([]);
+      expect(result.current.quotesError).toBe(
         'No loan offers found or invalid response.',
       );
-      expect(hook.result.minMaxRange).toBeNull();
+      expect(result.current.minMaxRange).toBeNull();
     });
 
     it('should handle response with no offers', async () => {
@@ -470,19 +494,21 @@ describe('useBorrowQuotes', () => {
         },
       });
 
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       await act(async () => {
-        await hook.result.handleGetQuotes();
+        await result.current.handleGetQuotes();
       });
 
-      expect(hook.result.quotes).toEqual([]);
-      expect(hook.result.quotesError).toBe(
+      expect(result.current.quotes).toEqual([]);
+      expect(result.current.quotesError).toBe(
         'No loan offers available for this amount.',
       );
     });
@@ -509,19 +535,21 @@ describe('useBorrowQuotes', () => {
         responseWithMultipleRanges,
       );
 
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       await act(async () => {
-        await hook.result.handleGetQuotes();
+        await result.current.handleGetQuotes();
       });
 
       // Should use global min (50000000) and max (1500000000)
-      expect(hook.result.minMaxRange).toBe('Min: 0.50 - Max: 15.00');
+      expect(result.current.minMaxRange).toBe('Min: 0.50 - Max: 15.00');
     });
   });
 
@@ -537,15 +565,17 @@ describe('useBorrowQuotes', () => {
         decimals: 18,
       };
 
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '1.23456789',
-        address: 'test-address',
-        collateralRuneInfo: highDecimalRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '1.23456789',
+          address: 'test-address',
+          collateralRuneInfo: highDecimalRuneInfo,
+        }),
+      );
 
       await act(async () => {
-        await hook.result.handleGetQuotes();
+        await result.current.handleGetQuotes();
       });
 
       // Should use BigInt calculation for high decimals
@@ -557,43 +587,47 @@ describe('useBorrowQuotes', () => {
     });
 
     it('should handle invalid collateral amount with validation error', async () => {
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: 'invalid-number',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: 'invalid-number',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       await act(async () => {
-        await hook.result.handleGetQuotes();
+        await result.current.handleGetQuotes();
       });
 
       // Should not call API and set validation error instead
       expect(mockFetchBorrowQuotesFromApi).not.toHaveBeenCalled();
-      expect(hook.result.quotesError).toBe(
+      expect(result.current.quotesError).toBe(
         'Please enter a valid collateral amount.',
       );
-      expect(hook.result.isQuotesLoading).toBe(false);
+      expect(result.current.isQuotesLoading).toBe(false);
     });
 
     it('should handle zero or negative collateral amount with validation error', async () => {
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       await act(async () => {
-        await hook.result.handleGetQuotes();
+        await result.current.handleGetQuotes();
       });
 
       // Should not call API and set validation error instead
       expect(mockFetchBorrowQuotesFromApi).not.toHaveBeenCalled();
-      expect(hook.result.quotesError).toBe(
+      expect(result.current.quotesError).toBe(
         'Please enter a valid collateral amount.',
       );
-      expect(hook.result.isQuotesLoading).toBe(false);
+      expect(result.current.isQuotesLoading).toBe(false);
     });
 
     it('should handle zero decimals correctly', async () => {
@@ -602,15 +636,17 @@ describe('useBorrowQuotes', () => {
         decimals: 0,
       };
 
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '123',
-        address: 'test-address',
-        collateralRuneInfo: zeroDecimalRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '123',
+          address: 'test-address',
+          collateralRuneInfo: zeroDecimalRuneInfo,
+        }),
+      );
 
       await act(async () => {
-        await hook.result.handleGetQuotes();
+        await result.current.handleGetQuotes();
       });
 
       expect(mockFetchBorrowQuotesFromApi).toHaveBeenCalledWith(
@@ -629,60 +665,66 @@ describe('useBorrowQuotes', () => {
     it('should reset quotes when resetQuotes is called', async () => {
       mockFetchBorrowQuotesFromApi.mockResolvedValue(mockBorrowQuoteResponse);
 
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       // First get some quotes
       await act(async () => {
-        await hook.result.handleGetQuotes();
+        await result.current.handleGetQuotes();
       });
 
-      expect(hook.result.quotes).toHaveLength(1);
+      expect(result.current.quotes).toHaveLength(1);
 
       // Then reset
       act(() => {
-        hook.result.resetQuotes();
+        result.current.resetQuotes();
       });
 
-      expect(hook.result.quotes).toEqual([]);
-      expect(hook.result.selectedQuoteId).toBeNull();
-      expect(hook.result.quotesError).toBeNull();
+      expect(result.current.quotes).toEqual([]);
+      expect(result.current.selectedQuoteId).toBeNull();
+      expect(result.current.quotesError).toBeNull();
     });
 
     it('should manage selectedQuoteId state', async () => {
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
-      expect(hook.result.selectedQuoteId).toBeNull();
+      expect(result.current.selectedQuoteId).toBeNull();
 
       act(() => {
-        hook.result.setSelectedQuoteId('test-quote-id');
+        result.current.setSelectedQuoteId('test-quote-id');
       });
 
-      expect(hook.result.selectedQuoteId).toBe('test-quote-id');
+      expect(result.current.selectedQuoteId).toBe('test-quote-id');
     });
 
     it('should reset quotes before fetching new ones', async () => {
       mockFetchBorrowQuotesFromApi.mockResolvedValue(mockBorrowQuoteResponse);
 
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       // Set some initial state
       act(() => {
-        hook.result.setSelectedQuoteId('old-quote-id');
+        result.current.setSelectedQuoteId('old-quote-id');
       });
 
       // Mock an error to set quotesError
@@ -690,21 +732,21 @@ describe('useBorrowQuotes', () => {
         new Error('Test error'),
       );
       await act(async () => {
-        await hook.result.handleGetQuotes();
+        await result.current.handleGetQuotes();
       });
 
-      expect(hook.result.quotesError).toBe('Test error');
+      expect(result.current.quotesError).toBe('Test error');
 
       // Now fetch successfully
       mockFetchBorrowQuotesFromApi.mockResolvedValue(mockBorrowQuoteResponse);
       await act(async () => {
-        await hook.result.handleGetQuotes();
+        await result.current.handleGetQuotes();
       });
 
       // Should have reset the state
-      expect(hook.result.selectedQuoteId).toBeNull();
-      expect(hook.result.quotesError).toBeNull();
-      expect(hook.result.quotes).toEqual([mockQuoteOffer]);
+      expect(result.current.selectedQuoteId).toBeNull();
+      expect(result.current.quotesError).toBeNull();
+      expect(result.current.quotes).toEqual([mockQuoteOffer]);
     });
   });
 
@@ -716,19 +758,21 @@ describe('useBorrowQuotes', () => {
     it('should format amounts correctly with BigInt', async () => {
       mockFetchBorrowRangesFromApi.mockResolvedValue(mockBorrowRangeResponse);
 
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       await act(async () => {
         await Promise.resolve();
       });
 
       // The formatRuneAmount function should format the ranges correctly
-      expect(hook.result.minMaxRange).toBe('Min: 1.00 - Max: 100.00');
+      expect(result.current.minMaxRange).toBe('Min: 1.00 - Max: 100.00');
     });
 
     it('should handle zero decimals in formatting', async () => {
@@ -746,32 +790,36 @@ describe('useBorrowQuotes', () => {
         },
       });
 
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: zeroDecimalRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: zeroDecimalRuneInfo,
+        }),
+      );
 
       await act(async () => {
         await Promise.resolve();
       });
 
-      expect(hook.result.minMaxRange).toBe('Min: 100 - Max: 1000');
+      expect(result.current.minMaxRange).toBe('Min: 100 - Max: 1000');
     });
 
     it('should fallback to Number conversion on BigInt error', async () => {
       // This would happen with invalid string inputs in real scenarios
-      const hook = renderHook({
-        collateralAsset: mockAsset,
-        collateralAmount: '1.0',
-        address: 'test-address',
-        collateralRuneInfo: mockRuneInfo,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: mockAsset,
+          collateralAmount: '1.0',
+          address: 'test-address',
+          collateralRuneInfo: mockRuneInfo,
+        }),
+      );
 
       // We can't easily test the BigInt fallback without mocking BigInt itself,
       // but the test structure is here for completeness
-      expect(hook.result.minMaxRange).toBeNull();
+      expect(result.current.minMaxRange).toBeNull();
     });
   });
 });
