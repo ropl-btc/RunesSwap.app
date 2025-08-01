@@ -23,9 +23,6 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.70.0
         version: 5.73.3(react@19.1.0)
-      '@types/lodash.debounce':
-        specifier: ^4.0.9
-        version: 4.0.9
       '@vercel/analytics':
         specifier: ^1.5.0
         version: 1.5.0(next@15.2.4(@babel/core@7.27.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)
@@ -81,6 +78,9 @@ importers:
       '@types/jsdom':
         specifier: ^21.1.7
         version: 21.1.7
+      '@types/lodash.debounce':
+        specifier: ^4.0.9
+        version: 4.0.9
       '@types/node':
         specifier: ^20
         version: 20.17.30
