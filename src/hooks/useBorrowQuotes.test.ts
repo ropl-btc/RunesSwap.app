@@ -1,5 +1,4 @@
-import React, { act } from 'react';
-import { createRoot } from 'react-dom/client';
+import { act, renderHook } from '@testing-library/react';
 import {
   type BorrowRangeResponse,
   type LiquidiumBorrowQuoteOffer,
@@ -44,8 +43,6 @@ const mockFetchBorrowRangesFromApi =
 const mockFetchPopularFromApi = fetchPopularFromApi as jest.MockedFunction<
   typeof fetchPopularFromApi
 >;
-
-// DOM environment is handled by jest-environment-jsdom
 
 // Test data
 const mockAsset: Asset = {
@@ -151,35 +148,8 @@ const mockPopularRunes = [
   },
 ];
 
-type HookProps = Parameters<typeof useBorrowQuotes>[0];
-
-function renderHook(props: HookProps) {
-  let result: ReturnType<typeof useBorrowQuotes>;
-  function TestComponent(p: HookProps) {
-    result = useBorrowQuotes(p);
-    return null;
-  }
-  const container = document.createElement('div');
-  const root = createRoot(container);
-  act(() => {
-    root.render(React.createElement(TestComponent, props));
-  });
-  return {
-    get result() {
-      return result!;
-    },
-    rerender(newProps: HookProps) {
-      act(() => {
-        root.render(React.createElement(TestComponent, newProps));
-      });
-    },
-    unmount() {
-      act(() => {
-        root.unmount();
-      });
-    },
-  };
-}
+// Type for hook parameters (kept for potential future use)
+// type HookProps = Parameters<typeof useBorrowQuotes>[0];
 
 describe('useBorrowQuotes', () => {
   beforeEach(() => {
@@ -190,27 +160,29 @@ describe('useBorrowQuotes', () => {
     it('should fetch popular runes on mount and include LIQUIDIUM•TOKEN', async () => {
       mockFetchPopularFromApi.mockResolvedValue(mockPopularRunes);
 
-      const hook = renderHook({
-        collateralAsset: null,
-        collateralAmount: '',
-        address: null,
-        collateralRuneInfo: null,
-      });
+      const { result } = renderHook(() =>
+        useBorrowQuotes({
+          collateralAsset: null,
+          collateralAmount: '',
+          address: null,
+          collateralRuneInfo: null,
+        }),
+      );
 
-      expect(hook.result.isPopularLoading).toBe(true);
-      expect(hook.result.popularRunes).toEqual([]);
+      expect(result.current.isPopularLoading).toBe(true);
+      expect(result.current.popularRunes).toEqual([]);
 
       await act(async () => {
         await Promise.resolve();
       });
 
       expect(mockFetchPopularFromApi).toHaveBeenCalledTimes(1);
-      expect(hook.result.isPopularLoading).toBe(false);
-      expect(hook.result.popularError).toBeNull();
+      expect(result.current.isPopularLoading).toBe(false);
+      expect(result.current.popularError).toBeNull();
 
       // Should include LIQUIDIUM•TOKEN first, then fetched runes
-      expect(hook.result.popularRunes).toHaveLength(3);
-      expect(hook.result.popularRunes[0]).toEqual({
+      expect(result.current.popularRunes).toHaveLength(3);
+      expect(result.current.popularRunes[0]).toEqual({
         id: 'liquidiumtoken',
         name: 'LIQUIDIUM•TOKEN',
         imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
