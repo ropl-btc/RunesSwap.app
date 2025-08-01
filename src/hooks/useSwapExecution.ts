@@ -415,6 +415,19 @@ export default function useSwapExecution({
           type: 'SET_GENERIC_ERROR',
           error: 'User canceled the request',
         });
+      } else if (
+        errorMessage.includes('Not enough confirmed spendable funds') ||
+        errorMessage.includes('ERR0W25K')
+      ) {
+        // Insufficient funds error with helpful guidance
+        const enhancedMessage = `Not enough confirmed spendable funds!
+
+Possible solutions:
+1. You might have pending Bitcoin transactions. Check your pending transactions on mempool.space or in your wallet and wait for them to confirm.
+2. Your Bitcoin might be on a different address type. Verify which address type you're connected with (Native SegWit, Nested SegWit, Taproot, or Legacy) and ensure your funds are on that address.`;
+
+        dispatchSwap({ type: 'SET_GENERIC_ERROR', error: enhancedMessage });
+        dispatchSwap({ type: 'SWAP_ERROR', error: enhancedMessage });
       } else {
         // Other swap errors
         dispatchSwap({ type: 'SET_GENERIC_ERROR', error: errorMessage });
