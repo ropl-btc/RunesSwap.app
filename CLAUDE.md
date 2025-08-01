@@ -11,6 +11,7 @@ RunesSwap.app is a Next.js application written in **TypeScript**. It offers a sw
 * **Liquidium** for borrowing and loan management
 * **Supabase** for storage of rune information and market data
 * **CoinGecko** for BTC price data
+* **mempool.space** for fetching recommended Bitcoin fee rates
 
 The main source code lives in `src/` and uses the Next.js App Router.
 API routes under `src/app/api` act as a thin backend to proxy and cache requests to the above services. Server data is fetched with React Query, and client state is handled by Zustand. Type definitions are organised under `src/types`.
@@ -97,8 +98,7 @@ The pre‑commit hook runs `lint-staged`, the test suite, and a production build
 ### Typical Data Flow
 
 1. A UI component fetches data using React Query.
-2. The query calls a helper method exported from `src/lib/apiClient.ts` (which
-   re-exports functions from modules under `src/lib/api/`).
+2. The query calls a helper method from `src/lib/api/` modules (re-exported by `src/lib/apiClient.ts`).
 3. The client sends a request to a Next.js API route under `src/app/api`.
 4. The API route fetches data from Ordiscan, SatsTerminal, or Liquidium, optionally caching results in Supabase, and returns a standardized JSON response.
 5. The UI updates based on the React Query result.
@@ -107,7 +107,7 @@ The pre‑commit hook runs `lint-staged`, the test suite, and a production build
 
 1. User selects input/output assets and amount.
 2. A quote is fetched from SatsTerminal.
-3. The user confirms and signs the PSBT with the Laser Eyes wallet.
+3. The user confirms and signs the PSBT with the LaserEyes wallet.
 4. The transaction is broadcast to the Bitcoin network.
 
 ### Borrow Flow
