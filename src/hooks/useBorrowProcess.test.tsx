@@ -1,7 +1,5 @@
-import { JSDOM } from 'jsdom';
-import React from 'react';
+import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
-import { act } from 'react-dom/test-utils';
 import type { RuneData } from '@/lib/runesData';
 import { useBorrowProcess } from './useBorrowProcess';
 
@@ -14,19 +12,7 @@ jest.mock('@/lib/api', () => ({
 const { prepareLiquidiumBorrow, submitLiquidiumBorrow } =
   jest.requireMock('@/lib/api');
 
-// Setup DOM environment for React testing
-beforeAll(() => {
-  const dom = new JSDOM('<!doctype html><html><body></body></html>');
-  (global as unknown as { window: Window }).window =
-    dom.window as unknown as Window;
-  (global as unknown as { document: Document }).document = dom.window.document;
-});
-
-afterAll(() => {
-  (
-    global as unknown as { window: Window & { close: () => void } }
-  ).window.close();
-});
+// DOM environment is handled by jest-environment-jsdom
 
 // Type definitions for hook parameters
 type HookProps = Parameters<typeof useBorrowProcess>[0];

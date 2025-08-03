@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   LiquidiumBorrowQuoteOffer,
   LiquidiumBorrowQuoteResponse,
@@ -41,6 +41,12 @@ export function useBorrowQuotes({
   const [minMaxRange, setMinMaxRange] = useState<string | null>(null);
   const [borrowRangeError, setBorrowRangeError] = useState<string | null>(null);
 
+  // Memoize the cached popular runes to prevent infinite loops
+  const stableCachedPopularRunes = useMemo(
+    () => cachedPopularRunes,
+    [cachedPopularRunes?.length, cachedPopularRunes?.[0]?.rune_id],
+  );
+
   // Fetch popular runes on mount or when cached data updates
   useEffect(() => {
     const fetchPopular = async () => {
@@ -55,14 +61,14 @@ export function useBorrowQuotes({
         return;
       }
 
-      if (cachedPopularRunes && cachedPopularRunes.length > 0) {
+      if (stableCachedPopularRunes && stableCachedPopularRunes.length > 0) {
         const liquidiumToken: Asset = {
           id: 'liquidiumtoken',
           name: 'LIQUIDIUM•TOKEN',
           imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
           isBTC: false,
         };
-        const fetchedRunes: Asset[] = cachedPopularRunes
+        const fetchedRunes: Asset[] = stableCachedPopularRunes
           .map((collection: Record<string, unknown>) => ({
             id: (collection?.rune_id as string) || `unknown_${Math.random()}`,
             name: (
@@ -142,7 +148,7 @@ export function useBorrowQuotes({
       }
     };
     fetchPopular();
-  }, [cachedPopularRunes, isPopularRunesLoading, popularRunesError]);
+  }, [stableCachedPopularRunes, isPopularRunesLoading, popularRunesError]);
 
   // Fetch min-max borrow range when collateral asset changes
   useEffect(() => {
