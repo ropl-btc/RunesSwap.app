@@ -44,14 +44,16 @@ export function useBorrowQuotes({
   // Memoize the cached popular runes to prevent infinite loops
   const stableCachedPopularRunes = useMemo(
     () => cachedPopularRunes,
-    [cachedPopularRunes],
+    [cachedPopularRunes?.length], // Use length as dependency instead of the array itself
   );
 
   // Fetch popular runes on mount or when cached data updates
   useEffect(() => {
     const fetchPopular = async () => {
+      // Use external loading/error states directly instead of duplicating
       if (isPopularRunesLoading) {
         setIsPopularLoading(true);
+        setPopularError(null);
         return;
       }
 
@@ -148,7 +150,7 @@ export function useBorrowQuotes({
       }
     };
     fetchPopular();
-  }, [stableCachedPopularRunes, isPopularRunesLoading, popularRunesError]);
+  }, [stableCachedPopularRunes, isPopularRunesLoading, popularRunesError]); // Clean dependencies without memoization hacks
 
   // Fetch min-max borrow range when collateral asset changes
   useEffect(() => {

@@ -21,6 +21,7 @@ describe('InputArea', () => {
           label: 'Label',
           inputId: 'input',
           inputValue: '',
+          onInputChange: () => {}, // Add mock onChange to prevent React warning
           assetSelectorEnabled: true,
           selectedAsset: BTC_ASSET,
           availableAssets: [BTC_ASSET],
