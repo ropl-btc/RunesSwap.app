@@ -1,4 +1,5 @@
 'use client';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useSharedLaserEyes } from '@/context/LaserEyesContext';
 import { useLiquidiumAuth } from '@/hooks/useLiquidiumAuth';
@@ -7,8 +8,11 @@ import { useRepayModal } from '@/hooks/useRepayModal';
 import type { Asset } from '@/types/common';
 import LiquidiumLoansSection from './LiquidiumLoansSection';
 import styles from './PortfolioTab.module.css';
-import RepayModal from './RepayModal';
 import RunesPortfolioTable from './RunesPortfolioTable';
+
+const RepayModal = dynamic(() => import('./RepayModal'), {
+  ssr: false,
+});
 
 export default function PortfolioTab() {
   const router = useRouter();

@@ -25,6 +25,25 @@
   margin: 0;
 }
 
+/* Loading states for dynamic imports */
+.tabLoading {
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.chartLoading {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* Typography */
 .title {
   font-size: var(--font-size-large);

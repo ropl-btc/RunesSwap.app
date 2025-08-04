@@ -25,7 +25,7 @@ export async function getRuneMarketData(
       .gt('last_updated_at', tenMinutesAgo.toISOString())
       .single();
 
-    if (dbError) {
+    if (dbError && dbError.code !== 'PGRST116') {
       console.error('[DEBUG] Error fetching from DB:', dbError);
     }
 
@@ -63,13 +63,7 @@ export async function getRuneMarketData(
       .upsert(upsertData);
 
     if (upsertError) {
-      console.error('[DEBUG] Error storing market data:', upsertError);
-      console.error('[DEBUG] Upsert error details:', {
-        code: upsertError.code,
-        message: upsertError.message,
-        details: upsertError.details,
-        hint: upsertError.hint,
-      });
+      console.error('Error storing market data:', upsertError);
     }
 
     return marketData as RuneMarketData;

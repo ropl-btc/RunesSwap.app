@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import Big from 'big.js';
 import React from 'react';
 import { fetchRuneInfoFromApi } from '@/lib/api';
 import type { RuneData } from '@/lib/runesData';
@@ -58,36 +59,36 @@ export function FormattedRuneAmount({
 
   const decimals = runeInfo.decimals;
 
-  // Handle case where decimals are 0
-  if (decimals === 0) {
-    try {
-      // Format even if 0 decimals for consistency (e.g., add commas)
-      const amountNum = BigInt(rawAmount); // Use BigInt for potentially large raw amounts
-      return <span>{amountNum.toLocaleString()}</span>;
-    } catch {
-      return <span>{rawAmount} (Invalid Raw)</span>; // Fallback for invalid rawAmount
-    }
-  }
-
-  // Calculate and format with decimals
+  // Calculate and format with decimals using Big.js for precision
   try {
-    // Use BigInt for precision with large numbers before converting to Number for division
-    const rawAmountBigInt = BigInt(rawAmount);
-    // Perform exponentiation entirely with BigInt to avoid precision loss for large decimals
-    const divisor = BigInt(10) ** BigInt(decimals);
+    // Use Big.js for precise decimal calculations
+    const rawAmountBig = new Big(rawAmount);
 
-    // Perform division carefully to handle potential floating point issues
-    // For display, Number should be sufficient after scaling down
-    const formattedAmount = Number(rawAmountBigInt) / Number(divisor);
+    if (decimals === 0) {
+      // No decimal places needed, just format for display
+      return <span>{rawAmountBig.toFixed(0)}</span>;
+    }
 
-    if (isNaN(formattedAmount)) {
+    // Create divisor using Big.js to maintain precision
+    const divisor = new Big(10).pow(decimals);
+
+    // Perform precise division
+    const formattedAmountBig = rawAmountBig.div(divisor);
+
+    // Format with appropriate decimal places, removing trailing zeros
+    const formattedString = formattedAmountBig.toFixed();
+
+    // Convert to number for toLocaleString formatting if safe
+    const formattedNumber = parseFloat(formattedString);
+
+    if (isNaN(formattedNumber)) {
       throw new Error('Calculated amount is NaN');
     }
 
     // Format the number with appropriate decimal places
     return (
       <span>
-        {formattedAmount.toLocaleString(undefined, {
+        {formattedNumber.toLocaleString(undefined, {
           maximumFractionDigits: decimals,
         })}
       </span>

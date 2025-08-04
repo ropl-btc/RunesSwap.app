@@ -1,5 +1,5 @@
-import debounce from 'lodash.debounce';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
 import { fetchRunesFromApi } from '@/lib/api';
 import { Asset } from '@/types/common';
 import type { Rune } from '@/types/satsTerminal';
@@ -20,37 +20,33 @@ export function useAssetSearch({
   const [searchResults, setSearchResults] = useState<Asset[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
 
-  const debouncedSearch = useMemo(
-    () =>
-      debounce(async (query: string) => {
-        if (!query.trim()) {
-          setSearchResults([]);
-          setIsSearching(false);
-          setSearchError(null);
-          return;
-        }
-        setIsSearching(true);
-        setSearchError(null);
-        try {
-          const results: Rune[] = await fetchRunesFromApi(query);
-          const mapped: Asset[] = results.map((rune) => ({
-            id: rune.id,
-            name: rune.name,
-            imageURI: rune.imageURI,
-            isBTC: false,
-          }));
-          setSearchResults(mapped);
-        } catch (error: unknown) {
-          setSearchError(
-            error instanceof Error ? error.message : 'Failed to search',
-          );
-          setSearchResults([]);
-        } finally {
-          setIsSearching(false);
-        }
-      }, 300),
-    [],
-  );
+  const debouncedSearch = useDebouncedCallback(async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      setSearchError(null);
+      return;
+    }
+    setIsSearching(true);
+    setSearchError(null);
+    try {
+      const results: Rune[] = await fetchRunesFromApi(query);
+      const mapped: Asset[] = results.map((rune) => ({
+        id: rune.id,
+        name: rune.name,
+        imageURI: rune.imageURI,
+        isBTC: false,
+      }));
+      setSearchResults(mapped);
+    } catch (error: unknown) {
+      setSearchError(
+        error instanceof Error ? error.message : 'Failed to search',
+      );
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, 300);
 
   useEffect(() => () => debouncedSearch.cancel(), [debouncedSearch]);
 

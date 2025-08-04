@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import Big from 'big.js';
 import { useEffect, useMemo, useState } from 'react';
 import { QUERY_KEYS, fetchPortfolioDataFromApi } from '@/lib/api';
 import { safeArrayAccess } from '@/utils/typeGuards';
@@ -86,12 +87,25 @@ export function usePortfolioData(address: string | null) {
         const marketInfo = portfolioData.marketData?.[rune.name];
         const runeInfo = portfolioData.runeInfos?.[rune.name];
         const decimals = runeInfo?.decimals || 0;
-        const actualBalance = Number(rune.balance) / Math.pow(10, decimals);
+
+        // Use Big.js for precise balance calculations
+        const balanceBig = new Big(rune.balance);
+        const divisor = new Big(10).pow(decimals);
+        const actualBalance = parseFloat(balanceBig.div(divisor).toFixed());
+
         const btcValue = marketInfo?.price_in_sats
-          ? (actualBalance * marketInfo.price_in_sats) / 1e8
+          ? parseFloat(
+              balanceBig
+                .div(divisor)
+                .times(marketInfo.price_in_sats)
+                .div(1e8)
+                .toFixed(),
+            )
           : 0;
         const usdValue = marketInfo?.price_in_usd
-          ? actualBalance * marketInfo.price_in_usd
+          ? parseFloat(
+              balanceBig.div(divisor).times(marketInfo.price_in_usd).toFixed(),
+            )
           : 0;
         const imageURI = `https://icon.unisat.io/icon/runes/${encodeURIComponent(
           rune.name,

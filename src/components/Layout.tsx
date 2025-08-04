@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import React, { useRef, useState } from 'react';
 import { useBackground } from '@/context/BackgroundContext';
 import useBtcPrice from '@/hooks/useBtcPrice';
@@ -13,6 +14,7 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
+  const router = useRouter();
   const { backgroundImage, setBackgroundImage, clearBackgroundImage } =
     useBackground();
   const { btcPriceUsd, isBtcPriceLoading, btcPriceError } = useBtcPrice();
@@ -101,8 +103,12 @@ export function Layout({ children }: LayoutProps) {
               alt="RunesSwap.app Logo"
               width={18}
               height={18}
-              style={{ imageRendering: 'pixelated' }}
+              style={{
+                imageRendering: 'pixelated',
+                cursor: 'pointer',
+              }}
               priority
+              onClick={() => router.push('/?tab=swap')}
             />
             <TitleText />
           </span>

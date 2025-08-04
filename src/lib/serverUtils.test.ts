@@ -80,7 +80,7 @@ describe('serverUtils', () => {
   });
 
   describe('getSatsTerminalClient', () => {
-    it('should create SatsTerminal client with API key only', () => {
+    it('should create enhanced SatsTerminal client with API key', () => {
       // Set up environment variable
       process.env.SATS_TERMINAL_API_KEY = 'test-sats-terminal-key';
 
@@ -93,7 +93,9 @@ describe('serverUtils', () => {
       expect(MockedSatsTerminal).toHaveBeenCalledWith({
         apiKey: 'test-sats-terminal-key',
       });
-      expect(client).toBe(mockSatsTerminalInstance);
+      // Client should be the enhanced proxy wrapper, not the original instance
+      expect(client).not.toBe(mockSatsTerminalInstance);
+      expect(typeof client).toBe('object');
     });
 
     it('should throw error when SATS_TERMINAL_API_KEY is missing', () => {

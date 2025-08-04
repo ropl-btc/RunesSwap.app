@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { useSharedLaserEyes } from '@/context/LaserEyesContext';
@@ -9,13 +10,31 @@ import { QUERY_KEYS, fetchPopularFromApi } from '@/lib/api';
 import type { Asset } from '@/types/common';
 import styles from './AppInterface.module.css';
 
-// Import the tab components
-import BorrowTab from './BorrowTab'; // <-- Import BorrowTab
-import PortfolioTab from './PortfolioTab';
-import PriceChart from './PriceChart';
-import RunesInfoTab from './RunesInfoTab';
-import SwapTab from './SwapTab';
-import YourTxsTab from './YourTxsTab';
+// Dynamic imports for tab components (performance optimization)
+
+const BorrowTab = dynamic(() => import('./BorrowTab'), {
+  loading: () => <div className={styles.tabLoading}>Loading...</div>,
+});
+
+const PortfolioTab = dynamic(() => import('./PortfolioTab'), {
+  loading: () => <div className={styles.tabLoading}>Loading...</div>,
+});
+
+const PriceChart = dynamic(() => import('./PriceChart'), {
+  loading: () => <div className={styles.chartLoading}>Loading chart...</div>,
+});
+
+const RunesInfoTab = dynamic(() => import('./RunesInfoTab'), {
+  loading: () => <div className={styles.tabLoading}>Loading...</div>,
+});
+
+const SwapTab = dynamic(() => import('./SwapTab'), {
+  loading: () => <div className={styles.tabLoading}>Loading...</div>,
+});
+
+const YourTxsTab = dynamic(() => import('./YourTxsTab'), {
+  loading: () => <div className={styles.tabLoading}>Loading...</div>,
+});
 
 // --- Props Interface --- Update the activeTab type
 interface AppInterfaceProps {

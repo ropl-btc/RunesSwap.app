@@ -1,7 +1,18 @@
 import type { NextConfig } from "next";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
 
 const nextConfig: NextConfig = {
   reactStrictMode: false, // Temporarily disable Strict Mode for testing
+  experimental: {
+    optimizePackageImports: [
+      '@heroicons/react',
+      '@headlessui/react',
+      'recharts'
+    ],
+  },
   images: {
     remotePatterns: [
       {
@@ -32,4 +43,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

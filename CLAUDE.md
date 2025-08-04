@@ -50,6 +50,27 @@ A `.env.example` file shows all environment variables needed for development. Im
 
 **Security Note:** Never use `NEXT_PUBLIC_` prefix for sensitive API keys as it exposes them to the client-side. Use server-side environment variables for authentication tokens.
 
+## Numeric Precision
+
+For precise financial calculations involving Bitcoin runes and large token amounts, use **big.js**:
+
+* **When to use**: Any calculations involving token amounts, prices, or financial values that require decimal precision
+* **Where to use**: Token amount formatting, price calculations, portfolio calculations
+* **Import**: `import Big from 'big.js';`
+* **Basic usage**:
+  ```typescript
+  // Creating Big numbers
+  const amount = new Big('500000000.123456789');
+  const divisor = new Big(10).pow(8); // 10^8 for 8 decimal places
+  
+  // Precise division
+  const formatted = amount.div(divisor);
+  
+  // Convert to string for display
+  const displayValue = formatted.toFixed();
+  ```
+* **Examples**: `FormattedRuneAmount.tsx`, portfolio calculations, swap amount processing
+
 ## Development
 
 Install dependencies and start the development server with **pnpm**:

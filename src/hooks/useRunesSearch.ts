@@ -1,5 +1,5 @@
-import debounce from 'lodash.debounce';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
 import { fetchPopularFromApi, fetchRunesFromApi } from '@/lib/apiClient';
 import { useRunesInfoStore } from '@/store/runesInfoStore';
 import type { Rune } from '@/types/satsTerminal';
@@ -129,31 +129,27 @@ export function useRunesSearch({
     fetchPopular();
   }, [cachedPopularRunes, isPopularRunesLoading, popularRunesError]);
 
-  const debouncedSearch = useMemo(
-    () =>
-      debounce(async (query: string) => {
-        if (!query) {
-          setSearchResults([]);
-          setIsSearching(false);
-          setSearchError(null);
-          return;
-        }
-        setIsSearching(true);
-        setSearchError(null);
-        try {
-          const results: Rune[] = await fetchRunesFromApi(query);
-          setSearchResults(results);
-        } catch (error: unknown) {
-          setSearchError(
-            error instanceof Error ? error.message : 'Failed to search',
-          );
-          setSearchResults([]);
-        } finally {
-          setIsSearching(false);
-        }
-      }, 300),
-    [],
-  );
+  const debouncedSearch = useDebouncedCallback(async (query: string) => {
+    if (!query) {
+      setSearchResults([]);
+      setIsSearching(false);
+      setSearchError(null);
+      return;
+    }
+    setIsSearching(true);
+    setSearchError(null);
+    try {
+      const results: Rune[] = await fetchRunesFromApi(query);
+      setSearchResults(results);
+    } catch (error: unknown) {
+      setSearchError(
+        error instanceof Error ? error.message : 'Failed to search',
+      );
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, 300);
 
   useEffect(() => () => debouncedSearch.cancel(), [debouncedSearch]);
 

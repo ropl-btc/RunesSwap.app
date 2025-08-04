@@ -44,7 +44,7 @@ export function useBorrowQuotes({
   // Memoize the cached popular runes to prevent infinite loops
   const stableCachedPopularRunes = useMemo(
     () => cachedPopularRunes,
-    [cachedPopularRunes?.length, cachedPopularRunes?.[0]?.rune_id],
+    [cachedPopularRunes],
   );
 
   // Fetch popular runes on mount or when cached data updates
