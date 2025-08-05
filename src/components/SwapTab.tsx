@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 import { type QuoteResponse } from 'satsterminal-sdk';
-import useSwapAssets from '@/hooks/useSwapAssets';
 
 // Import our new components
+import { useRuneBalance } from '@/hooks/useRuneBalance';
+import useSwapAssets from '@/hooks/useSwapAssets';
 import useSwapExecution from '@/hooks/useSwapExecution';
 import useSwapQuote from '@/hooks/useSwapQuote';
 import useSwapRunes from '@/hooks/useSwapRunes';
@@ -309,7 +310,7 @@ export function SwapTab({
         return; // No balance available
       }
     } else {
-      const rawBalance = getSpecificRuneBalance(assetIn.name);
+      const rawBalance = getSpecificRuneBalance(assetIn.name, runeBalances);
       if (rawBalance === null) return;
 
       try {
@@ -334,16 +335,8 @@ export function SwapTab({
     setInputAmount(newAmount.toString());
   };
 
-  // --- Find specific rune balance --- (Helper Function)
-  const getSpecificRuneBalance = (
-    runeName: string | undefined,
-  ): string | null => {
-    if (!runeName || !runeBalances) return null;
-    // Ordiscan returns names without spacers, so compare without them
-    const formattedRuneName = normalizeRuneName(runeName);
-    const found = runeBalances?.find((rb) => rb.name === formattedRuneName);
-    return found ? found.balance : '0'; // Return '0' if not found, assuming 0 balance
-  };
+  // Use centralized balance calculation hook
+  const getSpecificRuneBalance = useRuneBalance;
 
   const availableBalanceNode =
     connected && assetIn ? (
@@ -363,7 +356,7 @@ export function SwapTab({
         <span className={styles.errorText}>Error loading balance</span>
       ) : (
         (() => {
-          const rawBalance = getSpecificRuneBalance(assetIn.name);
+          const rawBalance = getSpecificRuneBalance(assetIn.name, runeBalances);
           if (rawBalance === null) return 'N/A';
           try {
             const balanceNum = parseFloat(rawBalance);

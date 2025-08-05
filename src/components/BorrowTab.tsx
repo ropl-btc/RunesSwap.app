@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { useBorrowProcess } from '@/hooks/useBorrowProcess';
 import useBorrowQuotes from '@/hooks/useBorrowQuotes';
 import { useLiquidiumAuth } from '@/hooks/useLiquidiumAuth';
+import { useRuneBalance } from '@/hooks/useRuneBalance';
 import {
   QUERY_KEYS,
   fetchRuneBalancesFromApi,
@@ -19,7 +20,6 @@ import {
   type RuneBalance as OrdiscanRuneBalance,
   type RuneMarketInfo as OrdiscanRuneMarketInfo,
 } from '@/types/ordiscan';
-import { normalizeRuneName } from '@/utils/runeUtils';
 import BorrowQuotesList from './BorrowQuotesList';
 import BorrowSuccessMessage from './BorrowSuccessMessage';
 import styles from './BorrowTab.module.css';
@@ -156,14 +156,8 @@ export function BorrowTab({
     collateralRuneInfo: collateralRuneInfo ?? null,
   });
 
-  const getSpecificRuneBalance = (
-    runeName: string | undefined,
-  ): string | null => {
-    if (!runeName || !runeBalances) return null;
-    const formattedRuneName = normalizeRuneName(runeName);
-    const found = runeBalances.find((rb) => rb.name === formattedRuneName);
-    return found ? found.balance : '0';
-  };
+  // Use centralized balance calculation hook
+  const getSpecificRuneBalance = useRuneBalance;
 
   const handleSelectCollateral = (asset: Asset) => {
     setCollateralAsset(asset);
@@ -189,7 +183,7 @@ export function BorrowTab({
       ) : (
         <FormattedRuneAmount
           runeName={collateralAsset.name}
-          rawAmount={getSpecificRuneBalance(collateralAsset.name)}
+          rawAmount={getSpecificRuneBalance(collateralAsset.name, runeBalances)}
         />
       )
     ) : null;
@@ -231,7 +225,10 @@ export function BorrowTab({
         minMaxRange={minMaxRange || undefined}
         onPercentageClick={(percentage) => {
           if (!connected || !collateralAsset) return;
-          const rawBalance = getSpecificRuneBalance(collateralAsset.name);
+          const rawBalance = getSpecificRuneBalance(
+            collateralAsset.name,
+            runeBalances,
+          );
           if (!rawBalance) return;
           const balanceNum = parseFloat(rawBalance);
           if (isNaN(balanceNum)) return;
