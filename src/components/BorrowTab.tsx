@@ -156,8 +156,11 @@ export function BorrowTab({
     collateralRuneInfo: collateralRuneInfo ?? null,
   });
 
-  // Use centralized balance calculation hook
-  const getSpecificRuneBalance = useRuneBalance;
+  // Use centralized balance calculation hook at top level
+  const collateralRawBalance = useRuneBalance(
+    collateralAsset?.name,
+    runeBalances,
+  );
 
   const handleSelectCollateral = (asset: Asset) => {
     setCollateralAsset(asset);
@@ -183,7 +186,7 @@ export function BorrowTab({
       ) : (
         <FormattedRuneAmount
           runeName={collateralAsset.name}
-          rawAmount={getSpecificRuneBalance(collateralAsset.name, runeBalances)}
+          rawAmount={collateralRawBalance}
         />
       )
     ) : null;
@@ -225,10 +228,7 @@ export function BorrowTab({
         minMaxRange={minMaxRange || undefined}
         onPercentageClick={(percentage) => {
           if (!connected || !collateralAsset) return;
-          const rawBalance = getSpecificRuneBalance(
-            collateralAsset.name,
-            runeBalances,
-          );
+          const rawBalance = collateralRawBalance;
           if (!rawBalance) return;
           const balanceNum = parseFloat(rawBalance);
           if (isNaN(balanceNum)) return;

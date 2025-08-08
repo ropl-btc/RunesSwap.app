@@ -211,6 +211,9 @@ export function SwapTab({
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  // Compute input rune raw balance at top level to follow Rules of Hooks
+  const inputRuneRawBalance = useRuneBalance(assetIn?.name, runeBalances);
+
   const { inputUsdValue, outputUsdValue } = useUsdValues({
     inputAmount,
     outputAmount,
@@ -310,7 +313,7 @@ export function SwapTab({
         return; // No balance available
       }
     } else {
-      const rawBalance = getSpecificRuneBalance(assetIn.name, runeBalances);
+      const rawBalance = inputRuneRawBalance;
       if (rawBalance === null) return;
 
       try {
@@ -335,9 +338,6 @@ export function SwapTab({
     setInputAmount(newAmount.toString());
   };
 
-  // Use centralized balance calculation hook
-  const getSpecificRuneBalance = useRuneBalance;
-
   const availableBalanceNode =
     connected && assetIn ? (
       assetIn.isBTC ? (
@@ -356,7 +356,7 @@ export function SwapTab({
         <span className={styles.errorText}>Error loading balance</span>
       ) : (
         (() => {
-          const rawBalance = getSpecificRuneBalance(assetIn.name, runeBalances);
+          const rawBalance = inputRuneRawBalance;
           if (rawBalance === null) return 'N/A';
           try {
             const balanceNum = parseFloat(rawBalance);
