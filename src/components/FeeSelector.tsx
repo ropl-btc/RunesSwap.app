@@ -6,9 +6,15 @@ export type FeeOption = 'slow' | 'medium' | 'fast' | 'custom';
 
 interface FeeSelectorProps {
   onChange: (rate: number) => void;
+  availableOptions?: FeeOption[];
 }
 
-const FeeSelector: React.FC<FeeSelectorProps> = ({ onChange }) => {
+const ALL_OPTIONS: FeeOption[] = ['slow', 'medium', 'fast', 'custom'];
+
+const FeeSelector: React.FC<FeeSelectorProps> = ({
+  onChange,
+  availableOptions = ALL_OPTIONS,
+}) => {
   const { data: fees } = useFeeRates();
   const [option, setOption] = useState<FeeOption>('medium');
   const [custom, setCustom] = useState('');
@@ -17,6 +23,14 @@ const FeeSelector: React.FC<FeeSelectorProps> = ({ onChange }) => {
   const low = fees?.hourFee ?? 1;
   const medium = fees?.halfHourFee ?? low;
   const high = fees?.fastestFee ?? medium;
+
+  // Ensure current option is allowed; if not, fall back to first available
+  useEffect(() => {
+    if (!availableOptions.includes(option)) {
+      setOption(availableOptions[0] ?? 'medium');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [availableOptions.join('|')]);
 
   useEffect(() => {
     if (!fees) return;
@@ -60,12 +74,14 @@ const FeeSelector: React.FC<FeeSelectorProps> = ({ onChange }) => {
   return (
     <div className={styles.container}>
       <div className={styles.buttonRow}>
-        <button
-          className={`${styles.feeButton} ${option === 'slow' ? styles.feeButtonActive : ''}`}
-          onClick={() => setOption('slow')}
-        >
-          Slow ({low} sats/vb)
-        </button>
+        {availableOptions.includes('slow') && (
+          <button
+            className={`${styles.feeButton} ${option === 'slow' ? styles.feeButtonActive : ''}`}
+            onClick={() => setOption('slow')}
+          >
+            Slow ({low} sats/vb)
+          </button>
+        )}
         <button
           className={`${styles.feeButton} ${option === 'medium' ? styles.feeButtonActive : ''}`}
           onClick={() => setOption('medium')}
@@ -78,12 +94,14 @@ const FeeSelector: React.FC<FeeSelectorProps> = ({ onChange }) => {
         >
           Fast ({high} sats/vb)
         </button>
-        <button
-          className={`${styles.feeButton} ${option === 'custom' ? styles.feeButtonActive : ''}`}
-          onClick={() => setOption('custom')}
-        >
-          Custom
-        </button>
+        {availableOptions.includes('custom') && (
+          <button
+            className={`${styles.feeButton} ${option === 'custom' ? styles.feeButtonActive : ''}`}
+            onClick={() => setOption('custom')}
+          >
+            Custom
+          </button>
+        )}
       </div>
       {option === 'custom' && (
         <div className={styles.customInputContainer}>

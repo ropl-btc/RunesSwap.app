@@ -3,13 +3,12 @@ import { GET } from './route';
 
 // Mock the cache functions
 jest.mock('@/lib/popularRunesCache');
-const mockGetCachedPopularRunesWithMetadata = jest.fn();
+const mockGetCachedPopularRunes = jest.fn();
 const mockUpdateLastRefreshAttempt = jest.fn();
 const mockCachePopularRunes = jest.fn();
 
 const mockedPopularRunesCache = jest.mocked(popularRunesCache);
-mockedPopularRunesCache.getCachedPopularRunesWithMetadata =
-  mockGetCachedPopularRunesWithMetadata;
+mockedPopularRunesCache.getCachedPopularRunes = mockGetCachedPopularRunes;
 mockedPopularRunesCache.updateLastRefreshAttempt = mockUpdateLastRefreshAttempt;
 mockedPopularRunesCache.cachePopularRunes = mockCachePopularRunes;
 
@@ -63,10 +62,9 @@ describe('/api/cached-popular-runes', () => {
 
   describe('when cached data exists and is fresh', () => {
     it('should return cached data immediately without refresh', async () => {
-      mockGetCachedPopularRunesWithMetadata.mockResolvedValue({
-        cachedData: mockCachedData,
+      mockGetCachedPopularRunes.mockResolvedValue({
+        data: mockCachedData,
         isExpired: false,
-        shouldAttemptRefresh: false,
         isStale: false,
         lastRefreshAttempt: Date.now() - 1000,
       });
@@ -94,10 +92,9 @@ describe('/api/cached-popular-runes', () => {
   describe('when cached data exists but should refresh', () => {
     it('should return cached data and trigger background refresh', async () => {
       const lastRefreshTime = Date.now() - 1000;
-      mockGetCachedPopularRunesWithMetadata.mockResolvedValue({
-        cachedData: mockCachedData,
+      mockGetCachedPopularRunes.mockResolvedValue({
+        data: mockCachedData,
         isExpired: true,
-        shouldAttemptRefresh: true,
         isStale: false,
         lastRefreshAttempt: lastRefreshTime,
       });
@@ -128,10 +125,9 @@ describe('/api/cached-popular-runes', () => {
     });
 
     it('should handle background refresh failure gracefully', async () => {
-      mockGetCachedPopularRunesWithMetadata.mockResolvedValue({
-        cachedData: mockCachedData,
+      mockGetCachedPopularRunes.mockResolvedValue({
+        data: mockCachedData,
         isExpired: true,
-        shouldAttemptRefresh: true,
         isStale: false,
         lastRefreshAttempt: Date.now() - 1000,
       });
@@ -154,10 +150,9 @@ describe('/api/cached-popular-runes', () => {
 
   describe('when no cached data exists (first run)', () => {
     it('should fetch data synchronously and cache it', async () => {
-      mockGetCachedPopularRunesWithMetadata.mockResolvedValue({
-        cachedData: null,
+      mockGetCachedPopularRunes.mockResolvedValue({
+        data: [],
         isExpired: true,
-        shouldAttemptRefresh: true,
         isStale: false,
         lastRefreshAttempt: null,
       });
@@ -180,10 +175,9 @@ describe('/api/cached-popular-runes', () => {
     });
 
     it('should handle invalid API response format', async () => {
-      mockGetCachedPopularRunesWithMetadata.mockResolvedValue({
-        cachedData: null,
+      mockGetCachedPopularRunes.mockResolvedValue({
+        data: [],
         isExpired: true,
-        shouldAttemptRefresh: true,
         isStale: false,
         lastRefreshAttempt: null,
       });
@@ -203,10 +197,9 @@ describe('/api/cached-popular-runes', () => {
     });
 
     it('should handle null API response', async () => {
-      mockGetCachedPopularRunesWithMetadata.mockResolvedValue({
-        cachedData: null,
+      mockGetCachedPopularRunes.mockResolvedValue({
+        data: [],
         isExpired: true,
-        shouldAttemptRefresh: true,
         isStale: false,
         lastRefreshAttempt: null,
       });
@@ -237,19 +230,17 @@ describe('/api/cached-popular-runes', () => {
       ];
 
       // First call returns no cache
-      mockGetCachedPopularRunesWithMetadata.mockResolvedValueOnce({
-        cachedData: null,
+      mockGetCachedPopularRunes.mockResolvedValueOnce({
+        data: [],
         isExpired: true,
-        shouldAttemptRefresh: true,
         isStale: false,
         lastRefreshAttempt: null,
       });
 
       // Second call (after API failure) returns fallback data
-      mockGetCachedPopularRunesWithMetadata.mockResolvedValueOnce({
-        cachedData: fallbackData,
+      mockGetCachedPopularRunes.mockResolvedValueOnce({
+        data: fallbackData,
         isExpired: true,
-        shouldAttemptRefresh: true,
         isStale: false,
         lastRefreshAttempt: null,
       });
@@ -270,7 +261,7 @@ describe('/api/cached-popular-runes', () => {
 
   describe('error handling', () => {
     it('should handle cache metadata fetch errors', async () => {
-      mockGetCachedPopularRunesWithMetadata.mockRejectedValue(
+      mockGetCachedPopularRunes.mockRejectedValue(
         new Error('Database connection failed'),
       );
 
@@ -284,10 +275,9 @@ describe('/api/cached-popular-runes', () => {
     });
 
     it('should handle updateLastRefreshAttempt errors gracefully', async () => {
-      mockGetCachedPopularRunesWithMetadata.mockResolvedValue({
-        cachedData: mockCachedData,
+      mockGetCachedPopularRunes.mockResolvedValue({
+        data: mockCachedData,
         isExpired: true,
-        shouldAttemptRefresh: true,
         isStale: false,
         lastRefreshAttempt: Date.now() - 1000,
       });
@@ -309,10 +299,9 @@ describe('/api/cached-popular-runes', () => {
 
   describe('background refresh behavior', () => {
     it('should not trigger background refresh when cache is stale', async () => {
-      mockGetCachedPopularRunesWithMetadata.mockResolvedValue({
-        cachedData: mockCachedData,
+      mockGetCachedPopularRunes.mockResolvedValue({
+        data: mockCachedData,
         isExpired: true,
-        shouldAttemptRefresh: true,
         isStale: true, // Stale data should not trigger background refresh
         lastRefreshAttempt: Date.now() - 1000,
       });
@@ -327,10 +316,9 @@ describe('/api/cached-popular-runes', () => {
     });
 
     it('should handle caching errors during background refresh', async () => {
-      mockGetCachedPopularRunesWithMetadata.mockResolvedValue({
-        cachedData: mockCachedData,
+      mockGetCachedPopularRunes.mockResolvedValue({
+        data: mockCachedData,
         isExpired: true,
-        shouldAttemptRefresh: true,
         isStale: false,
         lastRefreshAttempt: Date.now() - 1000,
       });
@@ -354,10 +342,9 @@ describe('/api/cached-popular-runes', () => {
   describe('response format validation', () => {
     it('should return correct response format for fresh cache', async () => {
       const lastRefreshTime = Date.now() - 5000;
-      mockGetCachedPopularRunesWithMetadata.mockResolvedValue({
-        cachedData: mockCachedData,
+      mockGetCachedPopularRunes.mockResolvedValue({
+        data: mockCachedData,
         isExpired: false,
-        shouldAttemptRefresh: false,
         isStale: false,
         lastRefreshAttempt: lastRefreshTime,
       });
@@ -374,10 +361,9 @@ describe('/api/cached-popular-runes', () => {
     });
 
     it('should return correct response format for expired cache', async () => {
-      mockGetCachedPopularRunesWithMetadata.mockResolvedValue({
-        cachedData: mockCachedData,
+      mockGetCachedPopularRunes.mockResolvedValue({
+        data: mockCachedData,
         isExpired: true,
-        shouldAttemptRefresh: true,
         isStale: false,
         lastRefreshAttempt: Date.now() - 1000,
       });
@@ -393,10 +379,9 @@ describe('/api/cached-popular-runes', () => {
     });
 
     it('should handle null lastRefreshAttempt', async () => {
-      mockGetCachedPopularRunesWithMetadata.mockResolvedValue({
-        cachedData: mockCachedData,
+      mockGetCachedPopularRunes.mockResolvedValue({
+        data: mockCachedData,
         isExpired: false,
-        shouldAttemptRefresh: false,
         isStale: false,
         lastRefreshAttempt: null,
       });

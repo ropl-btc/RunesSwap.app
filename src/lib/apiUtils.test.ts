@@ -129,11 +129,19 @@ describe('createErrorResponse', () => {
     );
   });
 
-  it('logs error to console', () => {
+  it('logs error to console in non-test env', () => {
     const message = 'Error message';
+    const originalEnv = process.env.NODE_ENV;
+    Object.defineProperty(process.env, 'NODE_ENV', {
+      value: 'development',
+      configurable: true,
+    });
     createErrorResponse(message);
-
     expect(console.error).toHaveBeenCalledWith('[API Error] Error message');
+    Object.defineProperty(process.env, 'NODE_ENV', {
+      value: originalEnv,
+      configurable: true,
+    });
   });
 });
 

@@ -83,6 +83,8 @@ if (typeof global.Headers === 'undefined') {
 // Mock console.warn to reduce noise in tests
 global.console.warn = jest.fn();
 
+// Keep console.error intact; tests should properly await async updates
+
 // Setup cleanup after each test
 afterEach(() => {
   jest.clearAllMocks();

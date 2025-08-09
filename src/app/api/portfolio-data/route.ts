@@ -69,11 +69,15 @@ export async function GET(request: NextRequest) {
     const marketError = marketDataResult.error;
 
     if (runeInfoError) {
-      console.error('Error fetching rune infos:', runeInfoError);
+      if (process.env.NODE_ENV !== 'test') {
+        console.error('Error fetching rune infos:', runeInfoError);
+      }
     }
 
     if (marketError) {
-      console.error('Error fetching market data:', marketError);
+      if (process.env.NODE_ENV !== 'test') {
+        console.error('Error fetching market data:', marketError);
+      }
     }
 
     // Convert array data to maps for easy client-side lookup

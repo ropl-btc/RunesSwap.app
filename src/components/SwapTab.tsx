@@ -22,8 +22,8 @@ import {
   type RuneMarketInfo as OrdiscanRuneMarketInfo,
 } from '@/types/ordiscan';
 import { normalizeRuneName } from '@/utils/runeUtils';
+import FeeSelector from './FeeSelector';
 import { SwapTabForm, useSwapProcessManager } from './swap';
-import SwapFeeSelector from './SwapFeeSelector';
 import styles from './SwapTab.module.css';
 
 interface SwapTabProps {
@@ -406,7 +406,12 @@ export function SwapTab({
       onShowPriceChart={onShowPriceChart}
       isPreselectedRuneLoading={isPreselectedRuneLoading}
       feeSelector={
-        quote && !quoteError ? <SwapFeeSelector onChange={setFeeRate} /> : null
+        quote && !quoteError ? (
+          <FeeSelector
+            onChange={setFeeRate}
+            availableOptions={['medium', 'fast', 'custom']}
+          />
+        ) : null
       }
     />
   );

@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import {
   type BorrowRangeResponse,
   type LiquidiumBorrowQuoteOffer,
@@ -6,11 +6,11 @@ import {
   fetchBorrowQuotesFromApi,
   fetchBorrowRangesFromApi,
   fetchPopularFromApi,
-} from '@/lib/apiClient';
+} from '@/lib/api';
 import type { RuneData } from '@/lib/runesData';
 
 // Mock the API client functions
-jest.mock('@/lib/apiClient', () => ({
+jest.mock('@/lib/api', () => ({
   fetchBorrowQuotesFromApi: jest.fn(),
   fetchBorrowRangesFromApi: jest.fn(),
   fetchPopularFromApi: jest.fn(),
@@ -172,8 +172,8 @@ describe('useBorrowQuotes', () => {
       expect(result.current.isPopularLoading).toBe(true);
       expect(result.current.popularRunes).toEqual([]);
 
-      await act(async () => {
-        await Promise.resolve();
+      await waitFor(() => {
+        expect(result.current.isPopularLoading).toBe(false);
       });
 
       expect(mockFetchPopularFromApi).toHaveBeenCalledTimes(1);
@@ -203,8 +203,8 @@ describe('useBorrowQuotes', () => {
         }),
       );
 
-      await act(async () => {
-        await Promise.resolve();
+      await waitFor(() => {
+        expect(result.current.isPopularLoading).toBe(false);
       });
 
       expect(result.current.isPopularLoading).toBe(false);
@@ -233,8 +233,8 @@ describe('useBorrowQuotes', () => {
         }),
       );
 
-      await act(async () => {
-        await Promise.resolve();
+      await waitFor(() => {
+        expect(result.current.isPopularLoading).toBe(false);
       });
 
       expect(result.current.isPopularLoading).toBe(false);
@@ -264,15 +264,17 @@ describe('useBorrowQuotes', () => {
         }),
       );
 
-      await act(async () => {
-        await Promise.resolve();
+      await waitFor(() => {
+        expect(mockFetchBorrowRangesFromApi).toHaveBeenCalled();
       });
 
       expect(mockFetchBorrowRangesFromApi).toHaveBeenCalledWith(
         'test-rune-id:123',
         'test-address',
       );
-      expect(result.current.minMaxRange).toBe('Min: 1.00 - Max: 100.00');
+      await waitFor(() => {
+        expect(result.current.minMaxRange).toBe('Min: 1.00 - Max: 100.00');
+      });
       expect(result.current.borrowRangeError).toBeNull();
     });
 
@@ -289,8 +291,8 @@ describe('useBorrowQuotes', () => {
         }),
       );
 
-      await act(async () => {
-        await Promise.resolve();
+      await waitFor(() => {
+        expect(mockFetchBorrowRangesFromApi).toHaveBeenCalled();
       });
 
       expect(mockFetchBorrowRangesFromApi).toHaveBeenCalledWith(
@@ -311,8 +313,8 @@ describe('useBorrowQuotes', () => {
         }),
       );
 
-      await act(async () => {
-        await Promise.resolve();
+      await waitFor(() => {
+        expect(result.current.minMaxRange).toBeNull();
       });
 
       expect(mockFetchBorrowRangesFromApi).not.toHaveBeenCalled();
@@ -332,8 +334,8 @@ describe('useBorrowQuotes', () => {
         }),
       );
 
-      await act(async () => {
-        await Promise.resolve();
+      await waitFor(() => {
+        expect(result.current.minMaxRange).toBeNull();
       });
 
       expect(mockFetchBorrowRangesFromApi).not.toHaveBeenCalled();
@@ -409,6 +411,9 @@ describe('useBorrowQuotes', () => {
       await act(async () => {
         await result.current.handleGetQuotes();
       });
+      await waitFor(() => {
+        expect(result.current.isQuotesLoading).toBe(false);
+      });
 
       expect(mockFetchBorrowQuotesFromApi).toHaveBeenCalledWith(
         'test-rune-id:123',
@@ -433,6 +438,9 @@ describe('useBorrowQuotes', () => {
       await act(async () => {
         await result.current.handleGetQuotes();
       });
+      await waitFor(() => {
+        expect(result.current.quotes).toEqual([]);
+      });
 
       expect(mockFetchBorrowQuotesFromApi).not.toHaveBeenCalled();
       expect(result.current.quotes).toEqual([]);
@@ -453,6 +461,9 @@ describe('useBorrowQuotes', () => {
 
       await act(async () => {
         await result.current.handleGetQuotes();
+      });
+      await waitFor(() => {
+        expect(result.current.isQuotesLoading).toBe(false);
       });
 
       expect(result.current.quotes).toEqual([]);
@@ -476,6 +487,9 @@ describe('useBorrowQuotes', () => {
 
       await act(async () => {
         await result.current.handleGetQuotes();
+      });
+      await waitFor(() => {
+        expect(result.current.isQuotesLoading).toBe(false);
       });
 
       expect(result.current.quotes).toEqual([]);
@@ -505,6 +519,9 @@ describe('useBorrowQuotes', () => {
 
       await act(async () => {
         await result.current.handleGetQuotes();
+      });
+      await waitFor(() => {
+        expect(result.current.isQuotesLoading).toBe(false);
       });
 
       expect(result.current.quotes).toEqual([]);
@@ -546,6 +563,9 @@ describe('useBorrowQuotes', () => {
 
       await act(async () => {
         await result.current.handleGetQuotes();
+      });
+      await waitFor(() => {
+        expect(result.current.isQuotesLoading).toBe(false);
       });
 
       // Should use global min (50000000) and max (1500000000)
@@ -767,8 +787,8 @@ describe('useBorrowQuotes', () => {
         }),
       );
 
-      await act(async () => {
-        await Promise.resolve();
+      await waitFor(() => {
+        expect(result.current.minMaxRange).toBe('Min: 1.00 - Max: 100.00');
       });
 
       // The formatRuneAmount function should format the ranges correctly

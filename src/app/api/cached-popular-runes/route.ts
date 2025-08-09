@@ -5,7 +5,7 @@ import {
 } from '@/lib/apiUtils';
 import {
   cachePopularRunes,
-  getCachedPopularRunesWithMetadata,
+  getCachedPopularRunes,
   updateLastRefreshAttempt,
 } from '@/lib/popularRunesCache';
 import { getSatsTerminalClient } from '@/lib/serverUtils';
@@ -20,20 +20,15 @@ import { getSatsTerminalClient } from '@/lib/serverUtils';
 export async function GET() {
   try {
     // Get cached data with detailed metadata
-    const {
-      cachedData,
-      isExpired,
-      shouldAttemptRefresh,
-      isStale,
-      lastRefreshAttempt,
-    } = await getCachedPopularRunesWithMetadata();
+    const { data, isExpired, isStale, lastRefreshAttempt } =
+      await getCachedPopularRunes();
 
     // CRITICAL: We ALWAYS return cached data immediately when available
     // Even if it's expired, we use the stale-while-revalidate pattern
-    if (cachedData) {
+    if (data && Array.isArray(data)) {
       // If cache is not completely stale and we should attempt to refresh,
       // start a background refresh without awaiting the result
-      if (!isStale && shouldAttemptRefresh) {
+      if (!isStale && isExpired) {
         // Update the last refresh attempt timestamp immediately
         // This prevents multiple concurrent refresh attempts
         updateLastRefreshAttempt().catch(console.error);
@@ -46,7 +41,7 @@ export async function GET() {
 
       // Return the cached data with a flag indicating if it's stale
       return createSuccessResponse({
-        data: cachedData,
+        data,
         isStale: isExpired,
         cacheAge: lastRefreshAttempt
           ? new Date(lastRefreshAttempt).toISOString()
@@ -73,12 +68,12 @@ export async function GET() {
       }
     } catch (error) {
       // Something went wrong, but we have fallbacks in the cache module
-      const { cachedData } = await getCachedPopularRunesWithMetadata();
+      const { data: fallbackData } = await getCachedPopularRunes();
 
       // Log the error but return whatever we have (which would be at least the fallback list)
       console.error('Failed to fetch initial popular runes:', error);
       return createSuccessResponse({
-        data: cachedData,
+        data: fallbackData,
         isStale: true,
         error: 'Failed to fetch fresh data',
       });

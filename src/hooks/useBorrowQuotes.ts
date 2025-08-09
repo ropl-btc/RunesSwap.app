@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   LiquidiumBorrowQuoteOffer,
   LiquidiumBorrowQuoteResponse,
   fetchBorrowQuotesFromApi,
   fetchBorrowRangesFromApi,
   fetchPopularFromApi,
-} from '@/lib/apiClient';
+} from '@/lib/api';
 import type { RuneData } from '@/lib/runesData';
 import { Asset } from '@/types/common';
 import { normalizeRuneName } from '@/utils/runeUtils';
@@ -41,11 +41,7 @@ export function useBorrowQuotes({
   const [minMaxRange, setMinMaxRange] = useState<string | null>(null);
   const [borrowRangeError, setBorrowRangeError] = useState<string | null>(null);
 
-  // Memoize the cached popular runes to prevent infinite loops
-  const stableCachedPopularRunes = useMemo(
-    () => cachedPopularRunes,
-    [cachedPopularRunes?.length], // Use length as dependency instead of the array itself
-  );
+  // Use cached popular runes directly; effect depends on the array reference
 
   // Fetch popular runes on mount or when cached data updates
   useEffect(() => {
@@ -63,14 +59,14 @@ export function useBorrowQuotes({
         return;
       }
 
-      if (stableCachedPopularRunes && stableCachedPopularRunes.length > 0) {
+      if (cachedPopularRunes && cachedPopularRunes.length > 0) {
         const liquidiumToken: Asset = {
           id: 'liquidiumtoken',
           name: 'LIQUIDIUM•TOKEN',
           imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
           isBTC: false,
         };
-        const fetchedRunes: Asset[] = stableCachedPopularRunes
+        const fetchedRunes: Asset[] = cachedPopularRunes
           .map((collection: Record<string, unknown>) => ({
             id: (collection?.rune_id as string) || `unknown_${Math.random()}`,
             name: (
@@ -150,7 +146,7 @@ export function useBorrowQuotes({
       }
     };
     fetchPopular();
-  }, [stableCachedPopularRunes, isPopularRunesLoading, popularRunesError]); // Clean dependencies without memoization hacks
+  }, [cachedPopularRunes, isPopularRunesLoading, popularRunesError]);
 
   // Fetch min-max borrow range when collateral asset changes
   useEffect(() => {

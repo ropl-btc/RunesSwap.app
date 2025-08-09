@@ -30,7 +30,12 @@ export function createErrorResponse(
   details?: string,
   status = 500,
 ): NextResponse {
-  console.error(`[API Error] ${message}${details ? `: ${details}` : ''}`);
+  // Avoid noisy logs during tests; still log in dev/prod
+  if (process.env.NODE_ENV !== 'test') {
+    console.error(
+      `[API Error] ${message}${details ? `: ${details}` : ''}`,
+    );
+  }
 
   return NextResponse.json(
     {

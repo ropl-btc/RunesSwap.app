@@ -50,22 +50,22 @@ export interface CachedPopularRune {
   icon_content_url_data?: string;
   last_updated_at?: string;
 }
-
-interface CacheMetadata {
-  cachedData: Record<string, unknown>[] | null;
+export interface PopularRunesCacheState {
+  data: Record<string, unknown>[];
   isExpired: boolean;
-  shouldAttemptRefresh: boolean;
   isStale: boolean;
   lastRefreshAttempt: number | null;
 }
 
 /**
- * Fetch popular runes from cache with detailed metadata
- * @returns Object containing cached data and metadata about cache status
+ * Fetch popular runes from cache with minimal metadata.
+ * - Always returns data (falls back to a small static list on errors)
+ * - Exposes only what's needed by the API route to decide on refresh
  */
-export async function getCachedPopularRunesWithMetadata(): Promise<CacheMetadata> {
+export async function getCachedPopularRunes(): Promise<
+  PopularRunesCacheState
+> {
   try {
-    // Check for cached popular runes
     const { data } = await supabase
       .from('popular_runes_cache')
       .select('*')
@@ -73,99 +73,39 @@ export async function getCachedPopularRunesWithMetadata(): Promise<CacheMetadata
       .limit(1)
       .maybeSingle();
 
-    const now = new Date().getTime();
+    const now = Date.now();
 
     if (!data) {
       return {
-        cachedData: FALLBACK_POPULAR_RUNES,
+        data: FALLBACK_POPULAR_RUNES,
         isExpired: true,
-        shouldAttemptRefresh: true,
         isStale: false,
         lastRefreshAttempt: null,
       };
     }
 
-    // Parse timestamps
     const cacheDate = new Date(data.created_at).getTime();
     const lastRefreshAttempt = data.last_refresh_attempt
       ? new Date(data.last_refresh_attempt).getTime()
       : null;
 
-    // Check various cache states
     const isExpired = now - cacheDate > CACHE_CONFIG.EXPIRY;
     const isStale = now - cacheDate > CACHE_CONFIG.STALE_WHILE_REVALIDATE;
 
-    // Only attempt refresh if:
-    // 1. Cache is expired AND
-    // 2. It's been long enough since last refresh attempt
-    const shouldAttemptRefresh =
-      isExpired &&
-      (!lastRefreshAttempt ||
-        now - lastRefreshAttempt > CACHE_CONFIG.REFRESH_ATTEMPT_INTERVAL);
-
     return {
-      cachedData: data.runes_data as Record<string, unknown>[],
+      data: (data.runes_data as Record<string, unknown>[]) ?? [],
       isExpired,
-      shouldAttemptRefresh,
       isStale,
       lastRefreshAttempt,
     };
   } catch (error) {
     console.error('Error fetching popular runes cache:', error);
     return {
-      cachedData: FALLBACK_POPULAR_RUNES,
+      data: FALLBACK_POPULAR_RUNES,
       isExpired: true,
-      shouldAttemptRefresh: true,
       isStale: false,
       lastRefreshAttempt: null,
     };
-  }
-}
-
-/**
- * Fetch popular runes from cache
- * @returns Cached popular runes, even if expired (stale-while-revalidate pattern)
- */
-export async function getCachedPopularRunesWithExpiry(): Promise<{
-  cachedData: Record<string, unknown>[] | null;
-  isExpired: boolean;
-}> {
-  try {
-    const { cachedData, isExpired, isStale } =
-      await getCachedPopularRunesWithMetadata();
-
-    // If we have no data or it's completely stale, use fallback
-    if (!cachedData || isStale) {
-      return {
-        cachedData: FALLBACK_POPULAR_RUNES,
-        isExpired: true,
-      };
-    }
-
-    return {
-      cachedData,
-      isExpired,
-    };
-  } catch {
-    return {
-      cachedData: FALLBACK_POPULAR_RUNES,
-      isExpired: true,
-    };
-  }
-}
-
-/**
- * Fetch popular runes from cache
- * @returns Cached popular runes if present, falling back to defaults
- */
-export async function getCachedPopularRunes(): Promise<
-  Record<string, unknown>[]
-> {
-  try {
-    const { cachedData } = await getCachedPopularRunesWithExpiry();
-    return cachedData || FALLBACK_POPULAR_RUNES;
-  } catch {
-    return FALLBACK_POPULAR_RUNES;
   }
 }
 

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useDebouncedCallback } from 'use-debounce';
-import { fetchPopularFromApi, fetchRunesFromApi } from '@/lib/apiClient';
+import { fetchPopularFromApi, fetchRunesFromApi } from '@/lib/api';
 import { useRunesInfoStore } from '@/store/runesInfoStore';
 import type { Rune } from '@/types/satsTerminal';
+import { useDebouncedSearch } from './useDebouncedSearch';
 
 interface UseRunesSearchOptions {
   cachedPopularRunes?: Record<string, unknown>[];
@@ -21,9 +21,10 @@ export function useRunesSearch({
   const [searchQuery, setSearchQuery] = useState(persistedQuery);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<Rune[]>([]);
-  const [searchError, setSearchError] = useState<string | null>(null);
+  const search = useDebouncedSearch<Rune>(async (q) => {
+    const results: Rune[] = await fetchRunesFromApi(q);
+    return results;
+  }, 300, persistedQuery);
 
   const [isPopularLoading, setIsPopularLoading] = useState(
     isPopularRunesLoading,
@@ -129,35 +130,10 @@ export function useRunesSearch({
     fetchPopular();
   }, [cachedPopularRunes, isPopularRunesLoading, popularRunesError]);
 
-  const debouncedSearch = useDebouncedCallback(async (query: string) => {
-    if (!query) {
-      setSearchResults([]);
-      setIsSearching(false);
-      setSearchError(null);
-      return;
-    }
-    setIsSearching(true);
-    setSearchError(null);
-    try {
-      const results: Rune[] = await fetchRunesFromApi(query);
-      setSearchResults(results);
-    } catch (error: unknown) {
-      setSearchError(
-        error instanceof Error ? error.message : 'Failed to search',
-      );
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
-  }, 300);
-
-  useEffect(() => () => debouncedSearch.cancel(), [debouncedSearch]);
-
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     setRuneSearchQuery(query);
-    setIsSearching(true);
-    debouncedSearch(query);
+    search.onQueryChange(query);
   };
 
   const handleSearchFocus = () => {
@@ -172,9 +148,11 @@ export function useRunesSearch({
     }, 200);
   };
 
-  const availableRunes = searchQuery.trim() ? searchResults : popularRunes;
-  const isLoadingRunes = searchQuery.trim() ? isSearching : isPopularLoading;
-  const currentRunesError = searchQuery.trim() ? searchError : popularError;
+  const availableRunes = searchQuery.trim() ? search.results : popularRunes;
+  const isLoadingRunes = searchQuery.trim()
+    ? search.isSearching
+    : isPopularLoading;
+  const currentRunesError = searchQuery.trim() ? search.error : popularError;
 
   return {
     searchQuery,

@@ -1,8 +1,9 @@
-import React, { act } from 'react';
+import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { act } from 'react-dom/test-utils';
 import useRunesSearch from './useRunesSearch';
 
-jest.mock('@/lib/apiClient', () => ({
+jest.mock('@/lib/api', () => ({
   fetchRunesFromApi: jest.fn(),
   fetchPopularFromApi: jest.fn(),
 }));

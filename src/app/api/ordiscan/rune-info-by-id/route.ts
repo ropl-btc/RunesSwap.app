@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getOrdiscanClient } from '@/lib/serverUtils';
 import { supabase } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
@@ -42,67 +41,15 @@ export async function GET(request: NextRequest) {
       // Error handled by continuing to next lookup method
     }
 
-    if (existingRune && existingRune.length > 0) {
-      return NextResponse.json(existingRune[0]);
-    }
+  if (existingRune && existingRune.length > 0) {
+    return NextResponse.json(existingRune[0]);
+  }
 
-    // If not found in DB, try to fetch from Ordiscan
-    // Since Ordiscan doesn't have a direct endpoint to search by ID,
-    // we'll try to find a rune with a matching name pattern
-    try {
-      const ordiscan = getOrdiscanClient();
-
-      // First, try to get all runes from our database to see if we can find a match
-      const { data: allRunes, error: allRunesError } = await supabase
-        .from('runes')
-        .select('name, id')
-        .limit(1000);
-
-      if (allRunesError) {
-        // Error handled by continuing with empty array
-      }
-
-      // Try to find a matching rune by ID pattern
-      let matchingRune = null;
-
-      // First try exact match
-      matchingRune = allRunes?.find((rune) => rune.id === prefix);
-
-      // If no exact match, try prefix match
-      if (!matchingRune && prefix.includes(':')) {
-        const prefixPart = prefix.split(':')[0];
-        matchingRune = allRunes?.find((rune) =>
-          rune.id.startsWith(prefixPart + ':'),
-        );
-      }
-
-      if (matchingRune) {
-        // Fetch the rune data from Ordiscan
-        const runeData = await ordiscan.rune.getInfo({
-          name: matchingRune.name,
-        });
-
-        if (runeData) {
-          // Store in Supabase for future use
-          const dataToInsert = {
-            ...runeData,
-            last_updated_at: new Date().toISOString(),
-          };
-
-          await supabase.from('runes').upsert([dataToInsert]);
-
-          return NextResponse.json(runeData);
-        }
-      }
-    } catch {
-      // Error handled by returning not found
-    }
-
-    // If all attempts fail, return not found
-    return NextResponse.json(
-      { error: 'Rune not found with the given prefix' },
-      { status: 404 },
-    );
+  // Not found after exact and prefix DB lookups
+  return NextResponse.json(
+    { error: 'Rune not found with the given prefix' },
+    { status: 404 },
+  );
   } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
