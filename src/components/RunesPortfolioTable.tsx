@@ -105,11 +105,11 @@ const RunesPortfolioTable: React.FC<RunesPortfolioTableProps> = ({
       <div style={{ fontWeight: 'bold' }}>Action</div>
     </div>
     <div className={styles.listContent}>
-      {balances.map((rune, i) => {
+      {balances.map((rune) => {
         const usdValue = rune.usdValue.toFixed(2);
         return (
           <div
-            key={`${rune.name}-${i}`}
+            key={rune.name}
             className={`${styles.listItem} ${styles.grid4col}`}
           >
             <div className={styles.runeName}>
@@ -121,7 +121,6 @@ const RunesPortfolioTable: React.FC<RunesPortfolioTableProps> = ({
                     className={styles.runeImage}
                     width={24}
                     height={24}
-                    unoptimized
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       if (target) target.style.display = 'none';

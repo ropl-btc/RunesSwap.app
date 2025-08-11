@@ -99,3 +99,4 @@ Use `big.js` for financial math (quotes, USD conversions, portfolio):
 - For API routes, use the helpers and Zod validation.
 - Prefer small, focused hooks/components; keep business logic out of UI.
 - Run `pnpm ai-check` locally before proposing a commit.
+ - Rune names are globally unique; prefer `rune.name` as a stable React key.
