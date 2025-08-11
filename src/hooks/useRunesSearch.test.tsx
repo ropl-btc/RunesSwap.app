@@ -1,6 +1,4 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { act } from 'react-dom/test-utils';
+import { act, renderHook } from '@testing-library/react';
 import useRunesSearch from './useRunesSearch';
 
 jest.mock('@/lib/api', () => ({
@@ -19,34 +17,6 @@ jest.mock('@/store/runesInfoStore', () => ({
 
 type HookProps = Parameters<typeof useRunesSearch>[0];
 
-function renderHook(props?: HookProps) {
-  let result: ReturnType<typeof useRunesSearch>;
-  function TestComponent(p: HookProps) {
-    result = useRunesSearch(p);
-    return null;
-  }
-  const container = document.createElement('div');
-  const root = createRoot(container);
-  act(() => {
-    root.render(<TestComponent {...(props || {})} />);
-  });
-  return {
-    get result() {
-      return result!;
-    },
-    rerender(newProps?: HookProps) {
-      act(() => {
-        root.render(<TestComponent {...(newProps || {})} />);
-      });
-    },
-    unmount() {
-      act(() => {
-        root.unmount();
-      });
-    },
-  };
-}
-
 describe('useRunesSearch', () => {
   it('updates when props change', async () => {
     const cachedA = [
@@ -64,25 +34,27 @@ describe('useRunesSearch', () => {
       },
     ];
 
-    const hook = renderHook({ cachedPopularRunes: cachedA });
+    const initialProps: HookProps = { cachedPopularRunes: cachedA };
+    const { result, rerender } = renderHook(
+      (props: HookProps = {}) => useRunesSearch(props),
+      { initialProps },
+    );
 
     await act(async () => {
       await Promise.resolve();
     });
-    expect(hook.result.availableRunes.map((r) => r.id)).toEqual([
+    expect(result.current.availableRunes.map((r) => r.id)).toEqual([
       'liquidiumtoken',
       'AAA',
     ]);
 
-    hook.rerender({ cachedPopularRunes: cachedB });
+    rerender({ cachedPopularRunes: cachedB });
     await act(async () => {
       await Promise.resolve();
     });
-    expect(hook.result.availableRunes.map((r) => r.id)).toEqual([
+    expect(result.current.availableRunes.map((r) => r.id)).toEqual([
       'liquidiumtoken',
       'BBB',
     ]);
-
-    hook.unmount();
   });
 });

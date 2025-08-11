@@ -25,7 +25,17 @@ export async function GET() {
 
     // CRITICAL: We ALWAYS return cached data immediately when available
     // Even if it's expired, we use the stale-while-revalidate pattern
-    if (data && Array.isArray(data)) {
+    // However, if we only have fallback data (detected by specific fallback IDs
+    // and null lastRefreshAttempt), we should fetch fresh data synchronously
+    const isFallbackData =
+      data &&
+      Array.isArray(data) &&
+      lastRefreshAttempt === null &&
+      data.some(
+        (item: Record<string, unknown>) =>
+          item?.id === 'liquidiumtoken' || item?.id === 'ordinals_ethtoken',
+      );
+    if (data && Array.isArray(data) && data.length > 0 && !isFallbackData) {
       // If cache is not completely stale and we should attempt to refresh,
       // start a background refresh without awaiting the result
       if (!isStale && isExpired) {

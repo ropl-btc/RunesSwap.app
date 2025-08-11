@@ -59,7 +59,6 @@ export const repayLiquidiumLoan = async (
   return data;
 };
 
-
 export const submitRepayPsbt = async (
   loanId: string,
   signedPsbt: string,

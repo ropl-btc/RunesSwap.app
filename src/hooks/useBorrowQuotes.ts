@@ -21,12 +21,14 @@ interface UseBorrowQuotesArgs {
   popularRunesError?: Error | null;
 }
 
+const EMPTY_ARRAY: Record<string, unknown>[] = [];
+
 export function useBorrowQuotes({
   collateralAsset,
   collateralAmount,
   address,
   collateralRuneInfo,
-  cachedPopularRunes = [],
+  cachedPopularRunes,
   isPopularRunesLoading = false,
   popularRunesError = null,
 }: UseBorrowQuotesArgs) {
@@ -59,14 +61,15 @@ export function useBorrowQuotes({
         return;
       }
 
-      if (cachedPopularRunes && cachedPopularRunes.length > 0) {
+      const runesData = cachedPopularRunes || EMPTY_ARRAY;
+      if (runesData.length > 0) {
         const liquidiumToken: Asset = {
           id: 'liquidiumtoken',
           name: 'LIQUIDIUM•TOKEN',
           imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
           isBTC: false,
         };
-        const fetchedRunes: Asset[] = cachedPopularRunes
+        const fetchedRunes: Asset[] = runesData
           .map((collection: Record<string, unknown>) => ({
             id: (collection?.rune_id as string) || `unknown_${Math.random()}`,
             name: (

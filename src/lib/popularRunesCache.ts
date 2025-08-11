@@ -62,9 +62,7 @@ export interface PopularRunesCacheState {
  * - Always returns data (falls back to a small static list on errors)
  * - Exposes only what's needed by the API route to decide on refresh
  */
-export async function getCachedPopularRunes(): Promise<
-  PopularRunesCacheState
-> {
+export async function getCachedPopularRunes(): Promise<PopularRunesCacheState> {
   try {
     const { data } = await supabase
       .from('popular_runes_cache')

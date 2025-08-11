@@ -41,15 +41,15 @@ export async function GET(request: NextRequest) {
       // Error handled by continuing to next lookup method
     }
 
-  if (existingRune && existingRune.length > 0) {
-    return NextResponse.json(existingRune[0]);
-  }
+    if (existingRune && existingRune.length > 0) {
+      return NextResponse.json(existingRune[0]);
+    }
 
-  // Not found after exact and prefix DB lookups
-  return NextResponse.json(
-    { error: 'Rune not found with the given prefix' },
-    { status: 404 },
-  );
+    // Not found after exact and prefix DB lookups
+    return NextResponse.json(
+      { error: 'Rune not found with the given prefix' },
+      { status: 404 },
+    );
   } catch {
     return NextResponse.json(
       { error: 'Internal server error' },

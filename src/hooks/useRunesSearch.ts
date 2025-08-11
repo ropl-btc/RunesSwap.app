@@ -21,10 +21,14 @@ export function useRunesSearch({
   const [searchQuery, setSearchQuery] = useState(persistedQuery);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  const search = useDebouncedSearch<Rune>(async (q) => {
-    const results: Rune[] = await fetchRunesFromApi(q);
-    return results;
-  }, 300, persistedQuery);
+  const search = useDebouncedSearch<Rune>(
+    async (q) => {
+      const results: Rune[] = await fetchRunesFromApi(q);
+      return results;
+    },
+    300,
+    persistedQuery,
+  );
 
   const [isPopularLoading, setIsPopularLoading] = useState(
     isPopularRunesLoading,

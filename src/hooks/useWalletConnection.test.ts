@@ -10,8 +10,7 @@ import {
   WIZZ,
   XVERSE,
 } from '@omnisat/lasereyes';
-import React, { act } from 'react';
-import { createRoot } from 'react-dom/client';
+import { act, renderHook } from '@testing-library/react';
 import { AVAILABLE_WALLETS, useWalletConnection } from './useWalletConnection';
 
 // Mock the LaserEyes context
@@ -22,29 +21,6 @@ jest.mock('@/context/LaserEyesContext', () => ({
 const { useSharedLaserEyes } = jest.requireMock('@/context/LaserEyesContext');
 
 // DOM environment is handled by jest-environment-jsdom
-
-function renderHook() {
-  let result: ReturnType<typeof useWalletConnection>;
-  function TestComponent() {
-    result = useWalletConnection();
-    return null;
-  }
-  const container = document.createElement('div');
-  const root = createRoot(container);
-  act(() => {
-    root.render(React.createElement(TestComponent));
-  });
-  return {
-    get result() {
-      return result!;
-    },
-    unmount() {
-      act(() => {
-        root.unmount();
-      });
-    },
-  };
-}
 
 function mockLaserEyes(
   overrides: Partial<ReturnType<typeof useSharedLaserEyes>> = {},
@@ -81,17 +57,15 @@ afterEach(() => {
 describe('useWalletConnection', () => {
   describe('initial state', () => {
     it('returns correct initial state', () => {
-      const hook = renderHook();
+      const { result } = renderHook(() => useWalletConnection());
 
-      expect(hook.result.isDropdownOpen).toBe(false);
-      expect(hook.result.connectionError).toBe(null);
-      expect(hook.result.installLink).toBe(null);
-      expect(hook.result.connected).toBe(false);
-      expect(hook.result.isConnecting).toBe(false);
-      expect(hook.result.address).toBe(null);
-      expect(hook.result.provider).toBe(null);
-
-      hook.unmount();
+      expect(result.current.isDropdownOpen).toBe(false);
+      expect(result.current.connectionError).toBe(null);
+      expect(result.current.installLink).toBe(null);
+      expect(result.current.connected).toBe(false);
+      expect(result.current.isConnecting).toBe(false);
+      expect(result.current.address).toBe(null);
+      expect(result.current.provider).toBe(null);
     });
 
     it('passes through LaserEyes state correctly', () => {
@@ -102,56 +76,52 @@ describe('useWalletConnection', () => {
         provider: 'unisat',
       });
 
-      const hook = renderHook();
+      const { result } = renderHook(() => useWalletConnection());
 
-      expect(hook.result.connected).toBe(true);
-      expect(hook.result.isConnecting).toBe(false);
-      expect(hook.result.address).toBe('bc1test123');
-      expect(hook.result.provider).toBe('unisat');
-
-      hook.unmount();
+      expect(result.current.connected).toBe(true);
+      expect(result.current.isConnecting).toBe(false);
+      expect(result.current.address).toBe('bc1test123');
+      expect(result.current.provider).toBe('unisat');
     });
   });
 
   describe('toggleDropdown', () => {
     it('toggles dropdown state', () => {
-      const hook = renderHook();
+      const { result } = renderHook(() => useWalletConnection());
 
-      expect(hook.result.isDropdownOpen).toBe(false);
-
-      act(() => {
-        hook.result.toggleDropdown();
-      });
-
-      expect(hook.result.isDropdownOpen).toBe(true);
+      expect(result.current.isDropdownOpen).toBe(false);
 
       act(() => {
-        hook.result.toggleDropdown();
+        result.current.toggleDropdown();
       });
 
-      expect(hook.result.isDropdownOpen).toBe(false);
+      expect(result.current.isDropdownOpen).toBe(true);
 
-      hook.unmount();
+      act(() => {
+        result.current.toggleDropdown();
+      });
+
+      expect(result.current.isDropdownOpen).toBe(false);
     });
 
     it('clears errors when toggling dropdown', () => {
-      const hook = renderHook();
+      const { result } = renderHook(() => useWalletConnection());
 
       // Set some error state first
       act(() => {
-        hook.result.handleConnect(UNISAT);
+        result.current.handleConnect(UNISAT);
       });
 
-      expect(hook.result.connectionError).toBe('Unisat wallet not installed.');
+      expect(result.current.connectionError).toBe(
+        'Unisat wallet not installed.',
+      );
 
       act(() => {
-        hook.result.toggleDropdown();
+        result.current.toggleDropdown();
       });
 
-      expect(hook.result.connectionError).toBe(null);
-      expect(hook.result.installLink).toBe(null);
-
-      hook.unmount();
+      expect(result.current.connectionError).toBe(null);
+      expect(result.current.installLink).toBe(null);
     });
   });
 
@@ -162,18 +132,16 @@ describe('useWalletConnection', () => {
       });
       mockConnect.mockResolvedValue(undefined);
 
-      const hook = renderHook();
+      const { result } = renderHook(() => useWalletConnection());
 
       await act(async () => {
-        await hook.result.handleConnect(UNISAT);
+        await result.current.handleConnect(UNISAT);
       });
 
       expect(mockConnect).toHaveBeenCalledWith(UNISAT);
-      expect(hook.result.connectionError).toBe(null);
-      expect(hook.result.installLink).toBe(null);
-      expect(hook.result.isDropdownOpen).toBe(false);
-
-      hook.unmount();
+      expect(result.current.connectionError).toBe(null);
+      expect(result.current.installLink).toBe(null);
+      expect(result.current.isDropdownOpen).toBe(false);
     });
 
     it('handles wallet not installed (Unisat specific check)', async () => {
@@ -181,16 +149,16 @@ describe('useWalletConnection', () => {
         hasUnisat: false,
       });
 
-      const hook = renderHook();
+      const { result } = renderHook(() => useWalletConnection());
 
       await act(async () => {
-        await hook.result.handleConnect(UNISAT);
+        await result.current.handleConnect(UNISAT);
       });
 
-      expect(hook.result.connectionError).toBe('Unisat wallet not installed.');
-      expect(hook.result.installLink).toBe('https://unisat.io/download');
-
-      hook.unmount();
+      expect(result.current.connectionError).toBe(
+        'Unisat wallet not installed.',
+      );
+      expect(result.current.installLink).toBe('https://unisat.io/download');
     });
 
     it('handles connection error with wallet-specific patterns', async () => {
@@ -199,66 +167,68 @@ describe('useWalletConnection', () => {
       });
       mockConnect.mockRejectedValue(new Error('not detected'));
 
-      const hook = renderHook();
+      const { result } = renderHook(() => useWalletConnection());
 
       await act(async () => {
-        await hook.result.handleConnect(UNISAT);
+        await result.current.handleConnect(UNISAT);
       });
 
-      expect(hook.result.connectionError).toBe('Unisat wallet not installed.');
-      expect(hook.result.installLink).toBe('https://unisat.io/download');
-
-      hook.unmount();
+      expect(result.current.connectionError).toBe(
+        'Unisat wallet not installed.',
+      );
+      expect(result.current.installLink).toBe('https://unisat.io/download');
     });
 
     it('handles connection error with common patterns', async () => {
       const { mockConnect } = mockLaserEyes();
       mockConnect.mockRejectedValue(new Error('provider not available'));
 
-      const hook = renderHook();
+      const { result } = renderHook(() => useWalletConnection());
 
       await act(async () => {
-        await hook.result.handleConnect(XVERSE);
+        await result.current.handleConnect(XVERSE);
       });
 
-      expect(hook.result.connectionError).toBe('Xverse wallet not installed.');
-      expect(hook.result.installLink).toBe('https://www.xverse.app/download');
-
-      hook.unmount();
+      expect(result.current.connectionError).toBe(
+        'Xverse wallet not installed.',
+      );
+      expect(result.current.installLink).toBe(
+        'https://www.xverse.app/download',
+      );
     });
 
     it('handles generic connection error', async () => {
       const { mockConnect } = mockLaserEyes();
       mockConnect.mockRejectedValue(new Error('Connection failed'));
 
-      const hook = renderHook();
+      const { result } = renderHook(() => useWalletConnection());
 
       await act(async () => {
-        await hook.result.handleConnect(XVERSE);
+        await result.current.handleConnect(XVERSE);
       });
 
-      expect(hook.result.connectionError).toBe(
+      expect(result.current.connectionError).toBe(
         'Failed to connect to Xverse: Connection failed',
       );
-      expect(hook.result.installLink).toBe(null);
-
-      hook.unmount();
+      expect(result.current.installLink).toBe(null);
     });
 
     it('handles non-Error exceptions', async () => {
       const { mockConnect } = mockLaserEyes();
       mockConnect.mockRejectedValue('string error');
 
-      const hook = renderHook();
+      const { result } = renderHook(() => useWalletConnection());
 
       await act(async () => {
-        await hook.result.handleConnect(XVERSE);
+        await result.current.handleConnect(XVERSE);
       });
 
-      expect(hook.result.connectionError).toBe('Xverse wallet not installed.');
-      expect(hook.result.installLink).toBe('https://www.xverse.app/download');
-
-      hook.unmount();
+      expect(result.current.connectionError).toBe(
+        'Xverse wallet not installed.',
+      );
+      expect(result.current.installLink).toBe(
+        'https://www.xverse.app/download',
+      );
     });
 
     it('returns early if already connecting', async () => {
@@ -266,53 +236,47 @@ describe('useWalletConnection', () => {
         isConnecting: true,
       });
 
-      const hook = renderHook();
+      const { result } = renderHook(() => useWalletConnection());
 
       await act(async () => {
-        await hook.result.handleConnect(UNISAT);
+        await result.current.handleConnect(UNISAT);
       });
 
       expect(mockConnect).not.toHaveBeenCalled();
-
-      hook.unmount();
     });
 
     it('clears previous errors before connecting', async () => {
       const { mockConnect } = mockLaserEyes();
       mockConnect.mockResolvedValue(undefined);
 
-      const hook = renderHook();
+      const { result } = renderHook(() => useWalletConnection());
 
       // Set some error state first
       act(() => {
-        hook.result.toggleDropdown();
+        result.current.toggleDropdown();
       });
 
       await act(async () => {
-        await hook.result.handleConnect(XVERSE);
+        await result.current.handleConnect(XVERSE);
       });
 
-      expect(hook.result.connectionError).toBe(null);
-      expect(hook.result.installLink).toBe(null);
-
-      hook.unmount();
+      expect(result.current.connectionError).toBe(null);
+      expect(result.current.installLink).toBe(null);
     });
 
     it('uses provider name as fallback for unknown wallets', async () => {
       const { mockConnect } = mockLaserEyes();
       mockConnect.mockRejectedValue(new Error('Connection failed'));
 
-      const hook = renderHook();
+      const { result } = renderHook(() => useWalletConnection());
 
       await act(async () => {
-        await hook.result.handleConnect(WIZZ);
+        await result.current.handleConnect(WIZZ);
       });
 
-      expect(hook.result.connectionError).toBe(
+      expect(result.current.connectionError).toBe(
         'Failed to connect to Wizz: Connection failed',
       );
-
-      hook.unmount();
     });
   });
 
@@ -320,39 +284,37 @@ describe('useWalletConnection', () => {
     it('disconnects wallet and clears errors', () => {
       const { mockDisconnect } = mockLaserEyes();
 
-      const hook = renderHook();
+      const { result } = renderHook(() => useWalletConnection());
 
       // Set some error state first
       act(() => {
-        hook.result.toggleDropdown();
+        result.current.toggleDropdown();
       });
 
       act(() => {
-        hook.result.handleDisconnect();
+        result.current.handleDisconnect();
       });
 
       expect(mockDisconnect).toHaveBeenCalled();
-      expect(hook.result.connectionError).toBe(null);
-      expect(hook.result.installLink).toBe(null);
-
-      hook.unmount();
+      expect(result.current.connectionError).toBe(null);
+      expect(result.current.installLink).toBe(null);
     });
   });
 
   describe('click outside functionality', () => {
     it('closes dropdown when clicking outside', () => {
-      const hook = renderHook();
+      const { result } = renderHook(() => useWalletConnection());
 
       // Open dropdown
       act(() => {
-        hook.result.toggleDropdown();
+        result.current.toggleDropdown();
       });
 
-      expect(hook.result.isDropdownOpen).toBe(true);
+      expect(result.current.isDropdownOpen).toBe(true);
 
       // Mock the dropdownRef to not contain the target (click outside)
       const mockContains = jest.fn().mockReturnValue(false);
-      hook.result.dropdownRef.current = {
+      result.current.dropdownRef.current = {
         contains: mockContains,
       } as unknown as HTMLDivElement;
 
@@ -365,24 +327,22 @@ describe('useWalletConnection', () => {
         document.dispatchEvent(event);
       });
 
-      expect(hook.result.isDropdownOpen).toBe(false);
-
-      hook.unmount();
+      expect(result.current.isDropdownOpen).toBe(false);
     });
 
     it('does not close dropdown when clicking inside', () => {
-      const hook = renderHook();
+      const { result } = renderHook(() => useWalletConnection());
 
       // Open dropdown
       act(() => {
-        hook.result.toggleDropdown();
+        result.current.toggleDropdown();
       });
 
-      expect(hook.result.isDropdownOpen).toBe(true);
+      expect(result.current.isDropdownOpen).toBe(true);
 
       // Mock the dropdownRef to contain the target
       const mockContains = jest.fn().mockReturnValue(true);
-      hook.result.dropdownRef.current = {
+      result.current.dropdownRef.current = {
         contains: mockContains,
       } as unknown as HTMLDivElement;
 
@@ -395,9 +355,7 @@ describe('useWalletConnection', () => {
         document.dispatchEvent(event);
       });
 
-      expect(hook.result.isDropdownOpen).toBe(true);
-
-      hook.unmount();
+      expect(result.current.isDropdownOpen).toBe(true);
     });
 
     it('removes event listener on unmount', () => {
@@ -406,9 +364,15 @@ describe('useWalletConnection', () => {
         'removeEventListener',
       );
 
-      const hook = renderHook();
-      hook.unmount();
+      const { unmount } = renderHook(() => useWalletConnection());
 
+      // Event listener should not be removed yet
+      expect(removeEventListenerSpy).not.toHaveBeenCalled();
+
+      // Unmount the hook to trigger cleanup
+      unmount();
+
+      // Now the event listener should be removed
       expect(removeEventListenerSpy).toHaveBeenCalledWith(
         'mousedown',
         expect.any(Function),
@@ -459,21 +423,19 @@ describe('useWalletConnection', () => {
         const { mockConnect } = mockLaserEyes();
         mockConnect.mockRejectedValue(new Error(errorMessage));
 
-        const hook = renderHook();
+        const { result } = renderHook(() => useWalletConnection());
 
         await act(async () => {
-          await hook.result.handleConnect(provider as ProviderType);
+          await result.current.handleConnect(provider as ProviderType);
         });
 
         const walletName =
           AVAILABLE_WALLETS.find((w) => w.provider === provider)?.name ||
           provider;
-        expect(hook.result.connectionError).toBe(
+        expect(result.current.connectionError).toBe(
           `${walletName} wallet not installed.`,
         );
-        expect(hook.result.installLink).toBe(expectedLink);
-
-        hook.unmount();
+        expect(result.current.installLink).toBe(expectedLink);
       },
     );
   });

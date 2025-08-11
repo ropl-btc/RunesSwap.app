@@ -1,6 +1,8 @@
 // Jest setup for React testing
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 require('@testing-library/jest-dom');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { cleanup } = require('@testing-library/react');
 
 // Configure React environment for concurrent features
 global.IS_REACT_ACT_ENVIRONMENT = true;
@@ -87,5 +89,6 @@ global.console.warn = jest.fn();
 
 // Setup cleanup after each test
 afterEach(() => {
+  cleanup();
   jest.clearAllMocks();
 });

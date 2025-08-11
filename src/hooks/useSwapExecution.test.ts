@@ -1,5 +1,4 @@
-import React, { act } from 'react';
-import { createRoot } from 'react-dom/client';
+import { act, renderHook } from '@testing-library/react';
 import { QuoteResponse } from 'satsterminal-sdk';
 import { initialSwapProcessState } from '@/components/swap/SwapProcessManager';
 import { BTC_ASSET } from '@/types/common';
@@ -22,29 +21,6 @@ const { useQuery } = jest.requireMock('@tanstack/react-query');
 // DOM environment is handled by jest-environment-jsdom
 
 type HookProps = Parameters<typeof useSwapExecution>[0];
-
-function renderHook(props: HookProps) {
-  let result: ReturnType<typeof useSwapExecution>;
-  function TestComponent(p: HookProps) {
-    result = useSwapExecution(p);
-    return null;
-  }
-  const container = document.createElement('div');
-  const root = createRoot(container);
-  act(() => {
-    root.render(React.createElement(TestComponent, props));
-  });
-  return {
-    get result() {
-      return result!;
-    },
-    unmount() {
-      act(() => {
-        root.unmount();
-      });
-    },
-  };
-}
 
 function baseProps(overrides: Partial<HookProps> = {}): HookProps {
   return {
@@ -91,25 +67,24 @@ describe('useSwapExecution', () => {
     (confirmPsbtViaApi as jest.Mock).mockResolvedValue({ txid: 'tx123' });
 
     const props = baseProps();
-    const hook = renderHook(props);
+    const { result } = renderHook(() => useSwapExecution(props));
 
     await act(async () => {
-      await hook.result.handleSwap();
+      await result.current.handleSwap();
     });
 
     expect(props.dispatchSwap).toHaveBeenCalledWith({
       type: 'SWAP_SUCCESS',
       txId: 'tx123',
     });
-    hook.unmount();
   });
 
   it('handles quote expiry', async () => {
     const props = baseProps({ quoteTimestamp: Date.now() - 61000 });
-    const hook = renderHook(props);
+    const { result } = renderHook(() => useSwapExecution(props));
 
     await act(async () => {
-      await hook.result.handleSwap();
+      await result.current.handleSwap();
     });
 
     expect(props.dispatchSwap).toHaveBeenCalledWith({ type: 'QUOTE_EXPIRED' });
@@ -118,7 +93,6 @@ describe('useSwapExecution', () => {
       error: 'Quote expired. Please fetch a new one.',
     });
     expect(getPsbtFromApi).not.toHaveBeenCalled();
-    hook.unmount();
   });
 
   it('retries with higher fee rate on fee error', async () => {
@@ -133,10 +107,10 @@ describe('useSwapExecution', () => {
     (confirmPsbtViaApi as jest.Mock).mockResolvedValue({ txid: 'tx456' });
 
     const props = baseProps();
-    const hook = renderHook(props);
+    const { result } = renderHook(() => useSwapExecution(props));
 
     await act(async () => {
-      await hook.result.handleSwap();
+      await result.current.handleSwap();
     });
 
     expect(getPsbtFromApi).toHaveBeenCalledTimes(2);
@@ -149,6 +123,5 @@ describe('useSwapExecution', () => {
       type: 'SWAP_SUCCESS',
       txId: 'tx456',
     });
-    hook.unmount();
   });
 });

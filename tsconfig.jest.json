@@ -1,7 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "allowJs": false,
+    "isolatedModules": true
   },
   "exclude": ["src/sdk/liquidium"]
 }

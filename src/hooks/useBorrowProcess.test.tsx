@@ -1,5 +1,4 @@
-import React, { act } from 'react';
-import { createRoot } from 'react-dom/client';
+import { act, renderHook } from '@testing-library/react';
 import type { RuneData } from '@/lib/runesData';
 import { useBorrowProcess } from './useBorrowProcess';
 
@@ -16,38 +15,6 @@ const { prepareLiquidiumBorrow, submitLiquidiumBorrow } =
 
 // Type definitions for hook parameters
 type HookProps = Parameters<typeof useBorrowProcess>[0];
-
-// Helper function to render the hook in a test component
-function renderHook(props: HookProps) {
-  let result: ReturnType<typeof useBorrowProcess> | undefined;
-  function TestComponent(p: HookProps) {
-    result = useBorrowProcess(p);
-    return null;
-  }
-  const container = document.createElement('div');
-  const root = createRoot(container);
-  act(() => {
-    root.render(<TestComponent {...props} />);
-  });
-  return {
-    get result() {
-      if (!result) {
-        throw new Error('Hook not initialized - ensure component has rendered');
-      }
-      return result;
-    },
-    rerender(newProps: HookProps) {
-      act(() => {
-        root.render(<TestComponent {...newProps} />);
-      });
-    },
-    unmount() {
-      act(() => {
-        root.unmount();
-      });
-    },
-  };
-}
 
 // Helper function to create base props with defaults
 function baseProps(overrides: Partial<HookProps> = {}): HookProps {
@@ -93,83 +60,73 @@ describe('useBorrowProcess', () => {
   describe('initial state', () => {
     it('should initialize with correct default state', () => {
       const props = baseProps();
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
-      expect(hook.result.isPreparing).toBe(false);
-      expect(hook.result.isSigning).toBe(false);
-      expect(hook.result.isSubmitting).toBe(false);
-      expect(hook.result.loanProcessError).toBe(null);
-      expect(hook.result.loanTxId).toBe(null);
-      expect(typeof hook.result.startLoan).toBe('function');
-      expect(typeof hook.result.reset).toBe('function');
-
-      hook.unmount();
+      expect(result.current.isPreparing).toBe(false);
+      expect(result.current.isSigning).toBe(false);
+      expect(result.current.isSubmitting).toBe(false);
+      expect(result.current.loanProcessError).toBe(null);
+      expect(result.current.loanTxId).toBe(null);
+      expect(typeof result.current.startLoan).toBe('function');
+      expect(typeof result.current.reset).toBe('function');
     });
   });
 
   describe('startLoan validation', () => {
     it('should set error for missing quote ID', async () => {
       const props = baseProps();
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan(null, '100', 5);
+        await result.current.startLoan(null, '100', 5);
       });
 
-      expect(hook.result.loanProcessError).toBe(
+      expect(result.current.loanProcessError).toBe(
         'Missing required information (quote or amount).',
       );
       expect(prepareLiquidiumBorrow).not.toHaveBeenCalled();
-
-      hook.unmount();
     });
 
     it('should set error for empty collateral amount', async () => {
       const props = baseProps();
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', '  ', 5);
+        await result.current.startLoan('quote-123', '  ', 5);
       });
 
-      expect(hook.result.loanProcessError).toBe(
+      expect(result.current.loanProcessError).toBe(
         'Missing required information (quote or amount).',
       );
       expect(prepareLiquidiumBorrow).not.toHaveBeenCalled();
-
-      hook.unmount();
     });
 
     it('should set error for invalid collateral amount (NaN)', async () => {
       const props = baseProps();
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', 'invalid-number', 5);
+        await result.current.startLoan('quote-123', 'invalid-number', 5);
       });
 
-      expect(hook.result.loanProcessError).toBe(
+      expect(result.current.loanProcessError).toBe(
         'Missing required information (quote or amount).',
       );
       expect(prepareLiquidiumBorrow).not.toHaveBeenCalled();
-
-      hook.unmount();
     });
 
     it('should set error for zero or negative collateral amount', async () => {
       const props = baseProps();
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', '0', 5);
+        await result.current.startLoan('quote-123', '0', 5);
       });
 
-      expect(hook.result.loanProcessError).toBe(
+      expect(result.current.loanProcessError).toBe(
         'Missing required information (quote or amount).',
       );
       expect(prepareLiquidiumBorrow).not.toHaveBeenCalled();
-
-      hook.unmount();
     });
   });
 
@@ -192,18 +149,18 @@ describe('useBorrowProcess', () => {
       });
 
       const props = baseProps();
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', '100.5', 10);
+        await result.current.startLoan('quote-123', '100.5', 10);
       });
 
       // Verify the loan completed successfully
-      expect(hook.result.loanTxId).toBe('loan-tx-123');
-      expect(hook.result.loanProcessError).toBe(null);
-      expect(hook.result.isPreparing).toBe(false);
-      expect(hook.result.isSigning).toBe(false);
-      expect(hook.result.isSubmitting).toBe(false);
+      expect(result.current.loanTxId).toBe('loan-tx-123');
+      expect(result.current.loanProcessError).toBe(null);
+      expect(result.current.isPreparing).toBe(false);
+      expect(result.current.isSigning).toBe(false);
+      expect(result.current.isSubmitting).toBe(false);
 
       // Verify API calls were made with correct parameters
       expect(prepareLiquidiumBorrow).toHaveBeenCalledWith({
@@ -224,8 +181,6 @@ describe('useBorrowProcess', () => {
         prepare_offer_id: 'prepare-offer-123',
         address: 'test-ordinal-address',
       });
-
-      hook.unmount();
     });
 
     it('should handle different decimal places correctly', async () => {
@@ -249,10 +204,10 @@ describe('useBorrowProcess', () => {
       });
 
       const props = baseProps({ collateralRuneInfo: runeDataNoDecimals });
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', '150', 5);
+        await result.current.startLoan('quote-123', '150', 5);
       });
 
       expect(prepareLiquidiumBorrow).toHaveBeenCalledWith(
@@ -260,8 +215,6 @@ describe('useBorrowProcess', () => {
           token_amount: '150', // No decimal scaling for 0 decimals
         }),
       );
-
-      hook.unmount();
     });
 
     it('should handle high decimal places correctly', async () => {
@@ -285,10 +238,10 @@ describe('useBorrowProcess', () => {
       });
 
       const props = baseProps({ collateralRuneInfo: runeDataHighDecimals });
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', '1.5', 5);
+        await result.current.startLoan('quote-123', '1.5', 5);
       });
 
       // 1.5 * 10^18 = 1500000000000000000
@@ -297,8 +250,6 @@ describe('useBorrowProcess', () => {
           token_amount: '1500000000000000000',
         }),
       );
-
-      hook.unmount();
     });
   });
 
@@ -310,19 +261,17 @@ describe('useBorrowProcess', () => {
       });
 
       const props = baseProps();
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', '100', 5);
+        await result.current.startLoan('quote-123', '100', 5);
       });
 
-      expect(hook.result.loanProcessError).toBe('Insufficient collateral');
-      expect(hook.result.loanTxId).toBe(null);
-      expect(hook.result.isPreparing).toBe(false);
-      expect(hook.result.isSigning).toBe(false);
-      expect(hook.result.isSubmitting).toBe(false);
-
-      hook.unmount();
+      expect(result.current.loanProcessError).toBe('Insufficient collateral');
+      expect(result.current.loanTxId).toBe(null);
+      expect(result.current.isPreparing).toBe(false);
+      expect(result.current.isSigning).toBe(false);
+      expect(result.current.isSubmitting).toBe(false);
     });
 
     it('should handle missing prepare response data', async () => {
@@ -332,17 +281,15 @@ describe('useBorrowProcess', () => {
       });
 
       const props = baseProps();
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', '100', 5);
+        await result.current.startLoan('quote-123', '100', 5);
       });
 
-      expect(hook.result.loanProcessError).toBe(
+      expect(result.current.loanProcessError).toBe(
         'Failed to prepare loan transaction.',
       );
-
-      hook.unmount();
     });
 
     it('should handle user canceling PSBT signing', async () => {
@@ -357,16 +304,14 @@ describe('useBorrowProcess', () => {
       const props = baseProps({
         signPsbt: jest.fn().mockResolvedValue(undefined),
       });
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', '100', 5);
+        await result.current.startLoan('quote-123', '100', 5);
       });
 
-      expect(hook.result.loanProcessError).toBe('User canceled the request');
-      expect(hook.result.loanTxId).toBe(null);
-
-      hook.unmount();
+      expect(result.current.loanProcessError).toBe('User canceled the request');
+      expect(result.current.loanTxId).toBe(null);
     });
 
     it('should handle PSBT signing returning no base64', async () => {
@@ -384,15 +329,13 @@ describe('useBorrowProcess', () => {
           signedPsbtBase64: undefined,
         }),
       });
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', '100', 5);
+        await result.current.startLoan('quote-123', '100', 5);
       });
 
-      expect(hook.result.loanProcessError).toBe('User canceled the request');
-
-      hook.unmount();
+      expect(result.current.loanProcessError).toBe('User canceled the request');
     });
 
     it('should handle submit borrow API failure', async () => {
@@ -410,18 +353,16 @@ describe('useBorrowProcess', () => {
       });
 
       const props = baseProps();
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', '100', 5);
+        await result.current.startLoan('quote-123', '100', 5);
       });
 
-      expect(hook.result.loanProcessError).toBe(
+      expect(result.current.loanProcessError).toBe(
         'Network error during submission',
       );
-      expect(hook.result.loanTxId).toBe(null);
-
-      hook.unmount();
+      expect(result.current.loanTxId).toBe(null);
     });
 
     it('should handle network errors during API calls', async () => {
@@ -430,30 +371,26 @@ describe('useBorrowProcess', () => {
       );
 
       const props = baseProps();
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', '100', 5);
+        await result.current.startLoan('quote-123', '100', 5);
       });
 
-      expect(hook.result.loanProcessError).toBe('Network connection failed');
-
-      hook.unmount();
+      expect(result.current.loanProcessError).toBe('Network connection failed');
     });
 
     it('should handle unexpected errors with fallback message', async () => {
       prepareLiquidiumBorrow.mockRejectedValue('Unexpected error type');
 
       const props = baseProps();
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', '100', 5);
+        await result.current.startLoan('quote-123', '100', 5);
       });
 
-      expect(hook.result.loanProcessError).toBe('Failed to start loan.');
-
-      hook.unmount();
+      expect(result.current.loanProcessError).toBe('Failed to start loan.');
     });
   });
 
@@ -474,26 +411,24 @@ describe('useBorrowProcess', () => {
       });
 
       const props = baseProps();
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       // Initial state should be idle
-      expect(hook.result.isPreparing).toBe(false);
-      expect(hook.result.isSigning).toBe(false);
-      expect(hook.result.isSubmitting).toBe(false);
+      expect(result.current.isPreparing).toBe(false);
+      expect(result.current.isSigning).toBe(false);
+      expect(result.current.isSubmitting).toBe(false);
 
       // Complete the loan process
       await act(async () => {
-        await hook.result.startLoan('quote-123', '100', 5);
+        await result.current.startLoan('quote-123', '100', 5);
       });
 
       // After completion, should be back to idle state with success
-      expect(hook.result.isPreparing).toBe(false);
-      expect(hook.result.isSigning).toBe(false);
-      expect(hook.result.isSubmitting).toBe(false);
-      expect(hook.result.loanTxId).toBe('tx-123');
-      expect(hook.result.loanProcessError).toBe(null);
-
-      hook.unmount();
+      expect(result.current.isPreparing).toBe(false);
+      expect(result.current.isSigning).toBe(false);
+      expect(result.current.isSubmitting).toBe(false);
+      expect(result.current.loanTxId).toBe('tx-123');
+      expect(result.current.loanProcessError).toBe(null);
     });
   });
 
@@ -506,25 +441,23 @@ describe('useBorrowProcess', () => {
       });
 
       const props = baseProps();
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', '100', 5);
+        await result.current.startLoan('quote-123', '100', 5);
       });
 
       // Verify error state
-      expect(hook.result.loanProcessError).toBe('Test error');
+      expect(result.current.loanProcessError).toBe('Test error');
 
       // Now reset
       act(() => {
-        hook.result.reset();
+        result.current.reset();
       });
 
       // Verify reset state
-      expect(hook.result.loanProcessError).toBe(null);
-      expect(hook.result.loanTxId).toBe(null);
-
-      hook.unmount();
+      expect(result.current.loanProcessError).toBe(null);
+      expect(result.current.loanTxId).toBe(null);
     });
 
     it('should reset successful loan state', async () => {
@@ -543,25 +476,23 @@ describe('useBorrowProcess', () => {
       });
 
       const props = baseProps();
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', '100', 5);
+        await result.current.startLoan('quote-123', '100', 5);
       });
 
       // Verify successful state
-      expect(hook.result.loanTxId).toBe('tx-123');
+      expect(result.current.loanTxId).toBe('tx-123');
 
       // Now reset
       act(() => {
-        hook.result.reset();
+        result.current.reset();
       });
 
       // Verify reset state
-      expect(hook.result.loanTxId).toBe(null);
-      expect(hook.result.loanProcessError).toBe(null);
-
-      hook.unmount();
+      expect(result.current.loanTxId).toBe(null);
+      expect(result.current.loanProcessError).toBe(null);
     });
   });
 
@@ -581,10 +512,10 @@ describe('useBorrowProcess', () => {
       });
 
       const props = baseProps({ collateralRuneInfo: null });
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', '100', 5);
+        await result.current.startLoan('quote-123', '100', 5);
       });
 
       // Should use 0 decimals as fallback
@@ -593,8 +524,6 @@ describe('useBorrowProcess', () => {
           token_amount: '100', // No decimal scaling
         }),
       );
-
-      hook.unmount();
     });
 
     it('should handle decimal conversion errors gracefully', async () => {
@@ -620,10 +549,10 @@ describe('useBorrowProcess', () => {
       });
 
       const props = baseProps();
-      const hook = renderHook(props);
+      const { result } = renderHook(() => useBorrowProcess(props));
 
       await act(async () => {
-        await hook.result.startLoan('quote-123', '100.5', 5);
+        await result.current.startLoan('quote-123', '100.5', 5);
       });
 
       // Should fall back to simple multiplication
@@ -635,8 +564,6 @@ describe('useBorrowProcess', () => {
 
       // Restore original BigInt
       global.BigInt = originalBigInt;
-
-      hook.unmount();
     });
   });
 });

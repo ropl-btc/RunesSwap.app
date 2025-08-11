@@ -150,11 +150,22 @@ describe('/api/cached-popular-runes', () => {
 
   describe('when no cached data exists (first run)', () => {
     it('should fetch data synchronously and cache it', async () => {
+      // First run: only fallback data available (indicated by lastRefreshAttempt: null)
+      const fallbackData = [
+        {
+          id: 'liquidiumtoken',
+          rune: 'LIQUIDIUM•TOKEN',
+          name: 'LIQUIDIUM•TOKEN',
+          imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
+          etching: { runeName: 'LIQUIDIUM•TOKEN' },
+        },
+      ];
+
       mockGetCachedPopularRunes.mockResolvedValue({
-        data: [],
+        data: fallbackData,
         isExpired: true,
         isStale: false,
-        lastRefreshAttempt: null,
+        lastRefreshAttempt: null, // This indicates first run
       });
 
       mockPopularTokens.mockResolvedValue(mockFreshData);
@@ -175,8 +186,19 @@ describe('/api/cached-popular-runes', () => {
     });
 
     it('should handle invalid API response format', async () => {
+      // First run scenario: only fallback data available
+      const fallbackData = [
+        {
+          id: 'liquidiumtoken',
+          rune: 'LIQUIDIUM•TOKEN',
+          name: 'LIQUIDIUM•TOKEN',
+          imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
+          etching: { runeName: 'LIQUIDIUM•TOKEN' },
+        },
+      ];
+
       mockGetCachedPopularRunes.mockResolvedValue({
-        data: [],
+        data: fallbackData,
         isExpired: true,
         isStale: false,
         lastRefreshAttempt: null,
@@ -190,6 +212,7 @@ describe('/api/cached-popular-runes', () => {
       const data = await response.json();
 
       expect(data.success).toBe(true);
+      expect(data.data.data).toEqual(fallbackData);
       expect(data.data.isStale).toBe(true);
       expect(data.data.error).toBe('Failed to fetch fresh data');
 
@@ -197,8 +220,19 @@ describe('/api/cached-popular-runes', () => {
     });
 
     it('should handle null API response', async () => {
+      // First run scenario: only fallback data available
+      const fallbackData = [
+        {
+          id: 'liquidiumtoken',
+          rune: 'LIQUIDIUM•TOKEN',
+          name: 'LIQUIDIUM•TOKEN',
+          imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
+          etching: { runeName: 'LIQUIDIUM•TOKEN' },
+        },
+      ];
+
       mockGetCachedPopularRunes.mockResolvedValue({
-        data: [],
+        data: fallbackData,
         isExpired: true,
         isStale: false,
         lastRefreshAttempt: null,
@@ -212,6 +246,7 @@ describe('/api/cached-popular-runes', () => {
       const data = await response.json();
 
       expect(data.success).toBe(true);
+      expect(data.data.data).toEqual(fallbackData);
       expect(data.data.isStale).toBe(true);
       expect(data.data.error).toBe('Failed to fetch fresh data');
 
@@ -229,9 +264,9 @@ describe('/api/cached-popular-runes', () => {
         },
       ];
 
-      // First call returns no cache
+      // First call returns only fallback data (first run scenario)
       mockGetCachedPopularRunes.mockResolvedValueOnce({
-        data: [],
+        data: fallbackData,
         isExpired: true,
         isStale: false,
         lastRefreshAttempt: null,
