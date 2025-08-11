@@ -32,6 +32,27 @@ const FALLBACK_POPULAR_RUNES = [
   },
 ];
 
+/**
+ * Determine if the provided data originates from the built-in fallback set.
+ * Uses internal fallback IDs and a null lastRefreshAttempt marker.
+ */
+export function isFallbackPopularRunesData(
+  data: unknown,
+  lastRefreshAttempt: number | null,
+): boolean {
+  if (!Array.isArray(data) || lastRefreshAttempt !== null) return false;
+  const fallbackIds = new Set(
+    FALLBACK_POPULAR_RUNES.map((r) => (r as { id: string }).id),
+  );
+  return (data as unknown[]).some(
+    (item) =>
+      item !== null &&
+      typeof item === 'object' &&
+      'id' in (item as Record<string, unknown>) &&
+      fallbackIds.has((item as { id?: string }).id ?? ''),
+  );
+}
+
 // Cache configuration
 const CACHE_CONFIG = {
   EXPIRY: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
@@ -91,7 +112,7 @@ export async function getCachedPopularRunes(): Promise<PopularRunesCacheState> {
     const isStale = now - cacheDate > CACHE_CONFIG.STALE_WHILE_REVALIDATE;
 
     return {
-      data: (data.runes_data as Record<string, unknown>[]) ?? [],
+      data: Array.isArray(data.runes_data) ? data.runes_data : [],
       isExpired,
       isStale,
       lastRefreshAttempt,

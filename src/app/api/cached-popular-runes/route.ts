@@ -60,34 +60,44 @@ export async function GET() {
     }
 
     // If we have no cached data at all (first run), we need to fetch synchronously
-    try {
-      const terminal = getSatsTerminalClient();
-      const popularResponse = await terminal.popularTokens({});
+    if (!data || !Array.isArray(data) || data.length === 0 || isFallbackData) {
+      try {
+        const terminal = getSatsTerminalClient();
+        const popularResponse = await terminal.popularTokens({});
 
-      // Validate response
-      if (!popularResponse || typeof popularResponse !== 'object') {
-        throw new Error('Invalid response from SatsTerminal API');
-      }
+        // Validate response
+        if (!popularResponse || typeof popularResponse !== 'object') {
+          throw new Error('Invalid response from SatsTerminal API');
+        }
 
-      // Cache the fresh data and return it
-      if (Array.isArray(popularResponse)) {
-        await cachePopularRunes(popularResponse);
-        return createSuccessResponse(popularResponse);
-      } else {
+        // Cache the fresh data and return it
+        if (Array.isArray(popularResponse)) {
+          await cachePopularRunes(popularResponse);
+          return createSuccessResponse(popularResponse);
+        }
         throw new Error('Unexpected response format from SatsTerminal API');
-      }
-    } catch (error) {
-      // Something went wrong, but we have fallbacks in the cache module
-      const { data: fallbackData } = await getCachedPopularRunes();
+      } catch (error) {
+        // Something went wrong, but we have fallbacks in the cache module
+        const { data: fallbackData } = await getCachedPopularRunes();
 
-      // Log the error but return whatever we have (which would be at least the fallback list)
-      console.error('Failed to fetch initial popular runes:', error);
-      return createSuccessResponse({
-        data: fallbackData,
-        isStale: true,
-        error: 'Failed to fetch fresh data',
-      });
+        // Log the error but return whatever we have (which would be at least the fallback list)
+        console.error('Failed to fetch initial popular runes:', error);
+        return createSuccessResponse({
+          data: fallbackData,
+          isStale: true,
+          error: 'Failed to fetch fresh data',
+        });
+      }
     }
+
+    // Fallback: return the cached payload shape (should be unreachable)
+    return createSuccessResponse({
+      data,
+      isStale: isExpired,
+      cacheAge: lastRefreshAttempt
+        ? new Date(lastRefreshAttempt).toISOString()
+        : null,
+    });
   } catch (error) {
     const errorInfo = handleApiError(
       error,

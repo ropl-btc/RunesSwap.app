@@ -11,6 +11,7 @@ const mockedPopularRunesCache = jest.mocked(popularRunesCache);
 mockedPopularRunesCache.getCachedPopularRunes = mockGetCachedPopularRunes;
 mockedPopularRunesCache.updateLastRefreshAttempt = mockUpdateLastRefreshAttempt;
 mockedPopularRunesCache.cachePopularRunes = mockCachePopularRunes;
+// Provide default mock for new helper used in route
 
 // Mock the SatsTerminal client
 const mockPopularTokens = jest.fn();
@@ -161,6 +162,7 @@ describe('/api/cached-popular-runes', () => {
         },
       ];
 
+      // First run identified by lastRefreshAttempt: null
       mockGetCachedPopularRunes.mockResolvedValue({
         data: fallbackData,
         isExpired: true,
@@ -197,6 +199,7 @@ describe('/api/cached-popular-runes', () => {
         },
       ];
 
+      // First run identified by lastRefreshAttempt: null
       mockGetCachedPopularRunes.mockResolvedValue({
         data: fallbackData,
         isExpired: true,
@@ -231,6 +234,7 @@ describe('/api/cached-popular-runes', () => {
         },
       ];
 
+      // First run identified by lastRefreshAttempt: null
       mockGetCachedPopularRunes.mockResolvedValue({
         data: fallbackData,
         isExpired: true,

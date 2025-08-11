@@ -32,7 +32,9 @@ export function createErrorResponse(
 ): NextResponse {
   // Avoid noisy logs during tests; still log in dev/prod
   if (process.env.NODE_ENV !== 'test') {
-    console.error(`[API Error] ${message}${details ? `: ${details}` : ''}`);
+    const includeDetails = process.env.NODE_ENV !== 'production';
+    const detailsPart = includeDetails && details ? `: ${details}` : '';
+    console.error(`[API Error] ${message}${detailsPart}`);
   }
 
   return NextResponse.json(

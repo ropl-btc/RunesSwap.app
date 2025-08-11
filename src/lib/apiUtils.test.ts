@@ -131,17 +131,17 @@ describe('createErrorResponse', () => {
 
   it('logs error to console in non-test env', () => {
     const message = 'Error message';
-    const originalEnv = process.env.NODE_ENV;
-    Object.defineProperty(process.env, 'NODE_ENV', {
-      value: 'development',
-      configurable: true,
-    });
-    createErrorResponse(message);
-    expect(console.error).toHaveBeenCalledWith('[API Error] Error message');
-    Object.defineProperty(process.env, 'NODE_ENV', {
-      value: originalEnv,
-      configurable: true,
-    });
+    const prevEnv = process.env;
+    try {
+      process.env = {
+        ...prevEnv,
+        NODE_ENV: 'development',
+      } as NodeJS.ProcessEnv;
+      createErrorResponse(message);
+      expect(console.error).toHaveBeenCalledWith('[API Error] Error message');
+    } finally {
+      process.env = prevEnv;
+    }
   });
 });
 
