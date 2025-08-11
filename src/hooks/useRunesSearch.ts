@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchPopularFromApi, fetchRunesFromApi } from '@/lib/api';
 import { useRunesInfoStore } from '@/store/runesInfoStore';
 import type { Rune } from '@/types/satsTerminal';
+import { dedupeById, mapPopularToRune } from '@/utils/popularRunes';
 import { useDebouncedSearch } from './useDebouncedSearch';
 
 interface UseRunesSearchOptions {
@@ -57,23 +58,13 @@ export function useRunesSearch({
           name: 'LIQUIDIUM•TOKEN',
           imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
         };
-        const fetchedRunes: Rune[] = cachedPopularRunes
-          .map((collection: Record<string, unknown>) => ({
-            id: (collection?.rune as string) || `unknown_${Math.random()}`,
-            name:
-              ((collection?.etching as Record<string, unknown>)
-                ?.runeName as string) ||
-              (collection?.rune as string) ||
-              'Unknown',
-            imageURI:
-              (collection?.icon_content_url_data as string) ||
-              (collection?.imageURI as string),
-          }))
-          .filter(
-            (rune) =>
-              rune.id !== liquidiumToken.id &&
-              rune.name !== liquidiumToken.name,
-          );
+        const fetchedRunesRaw: Rune[] = mapPopularToRune(
+          cachedPopularRunes,
+        ).filter(
+          (rune) =>
+            rune.id !== liquidiumToken.id && rune.name !== liquidiumToken.name,
+        );
+        const fetchedRunes = dedupeById(fetchedRunesRaw);
         setPopularRunes([liquidiumToken, ...fetchedRunes]);
         setPopularError(null);
         setIsPopularLoading(false);
@@ -94,23 +85,12 @@ export function useRunesSearch({
         if (!Array.isArray(response)) {
           mappedRunes = [liquidiumToken];
         } else {
-          const fetchedRunes: Rune[] = response
-            .map((collection: Record<string, unknown>) => ({
-              id: (collection?.rune as string) || `unknown_${Math.random()}`,
-              name:
-                ((collection?.etching as Record<string, unknown>)
-                  ?.runeName as string) ||
-                (collection?.rune as string) ||
-                'Unknown',
-              imageURI:
-                (collection?.icon_content_url_data as string) ||
-                (collection?.imageURI as string),
-            }))
-            .filter(
-              (rune) =>
-                rune.id !== liquidiumToken.id &&
-                rune.name !== liquidiumToken.name,
-            );
+          const fetchedRunesRaw: Rune[] = mapPopularToRune(response).filter(
+            (rune) =>
+              rune.id !== liquidiumToken.id &&
+              rune.name !== liquidiumToken.name,
+          );
+          const fetchedRunes = dedupeById(fetchedRunesRaw);
           mappedRunes = [liquidiumToken, ...fetchedRunes];
         }
         setPopularRunes(mappedRunes);

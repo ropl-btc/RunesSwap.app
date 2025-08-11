@@ -105,6 +105,7 @@ const RuneSearchBar: React.FC<RuneSearchBarProps> = ({
                       className={styles.runeImage}
                       width={24}
                       height={24}
+                      unoptimized
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         if (target) {

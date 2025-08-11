@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { fetchPopularFromApi, fetchRunesFromApi } from '@/lib/api';
 import { Asset, BTC_ASSET } from '@/types/common';
+import { dedupeById, mapPopularToAsset } from '@/utils/popularRunes';
 import { normalizeRuneName } from '@/utils/runeUtils';
 import { safeArrayFirst } from '@/utils/typeGuards';
 
@@ -63,28 +64,15 @@ export function useSwapRunes({
           isBTC: false,
         };
 
-        const fetchedRunes: Asset[] = cachedPopularRunes
-          .map((collection: Record<string, unknown>) => {
-            const runeName =
-              ((collection?.etching as Record<string, unknown>)
-                ?.runeName as string) ||
-              (collection?.rune as string) ||
-              'Unknown';
-            return {
-              id: (collection?.rune as string) || `unknown_${Math.random()}`,
-              name: runeName,
-              imageURI:
-                (collection?.icon_content_url_data as string) ||
-                (collection?.imageURI as string),
-              isBTC: false,
-            };
-          })
-          .filter(
-            (rune) =>
-              rune.id !== liquidiumToken.id &&
-              normalizeRuneName(rune.name) !==
-                normalizeRuneName(liquidiumToken.name),
-          );
+        const fetchedRunesRaw: Asset[] = mapPopularToAsset(
+          cachedPopularRunes,
+        ).filter(
+          (rune) =>
+            rune.id !== liquidiumToken.id &&
+            normalizeRuneName(rune.name) !==
+              normalizeRuneName(liquidiumToken.name),
+        );
+        const fetchedRunes = dedupeById(fetchedRunesRaw);
 
         let mappedRunes = preSelectedRune
           ? fetchedRunes
@@ -128,26 +116,13 @@ export function useSwapRunes({
         if (!Array.isArray(response)) {
           mappedRunes = [liquidiumToken];
         } else {
-          const fetchedRunes: Asset[] = response
-            .map((collection: Record<string, unknown>) => ({
-              id: (collection?.rune as string) || `unknown_${Math.random()}`,
-              name:
-                ((collection?.etching as Record<string, unknown>)
-                  ?.runeName as string) ||
-                (collection?.rune as string) ||
-                'Unknown',
-              imageURI:
-                (collection?.icon_content_url_data as string) ||
-                (collection?.imageURI as string),
-              isBTC: false,
-            }))
-            .filter(
-              (rune) =>
-                rune.id !== liquidiumToken.id &&
-                normalizeRuneName(rune.name) !==
-                  normalizeRuneName(liquidiumToken.name),
-            );
-
+          const fetchedRunesRaw: Asset[] = mapPopularToAsset(response).filter(
+            (rune) =>
+              rune.id !== liquidiumToken.id &&
+              normalizeRuneName(rune.name) !==
+                normalizeRuneName(liquidiumToken.name),
+          );
+          const fetchedRunes = dedupeById(fetchedRunesRaw);
           mappedRunes = [liquidiumToken, ...fetchedRunes];
         }
 

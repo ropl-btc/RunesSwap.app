@@ -85,11 +85,14 @@ export function AppInterface({ activeTab }: AppInterfaceProps) {
   } = useQuery<Record<string, unknown>[], Error>({
     queryKey: [QUERY_KEYS.POPULAR_RUNES],
     queryFn: () => fetchPopularFromApi(),
-    staleTime: Infinity, // Data never goes stale, so React Query won't refetch
-    gcTime: 365 * 24 * 60 * 60 * 1000, // Keep in cache for a year
-    refetchOnMount: false, // Don't refetch when component mounts
-    refetchOnWindowFocus: false, // Don't refetch when window regains focus
-    refetchOnReconnect: false, // Don't refetch on reconnect
+    // Allow the list to refresh after background cache updates
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 2 * 60 * 1000, // 2 minutes passive refresh
+    // Keep cache for 7 days to avoid Timer warnings and retain data
+    gcTime: 7 * 24 * 60 * 60 * 1000,
     retry: false, // Don't retry on failure
   });
 

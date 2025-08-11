@@ -11,6 +11,18 @@ const mockedPopularRunesCache = jest.mocked(popularRunesCache);
 mockedPopularRunesCache.getCachedPopularRunes = mockGetCachedPopularRunes;
 mockedPopularRunesCache.updateLastRefreshAttempt = mockUpdateLastRefreshAttempt;
 mockedPopularRunesCache.cachePopularRunes = mockCachePopularRunes;
+// Helper used by route for detecting fallback data
+mockedPopularRunesCache.isFallbackPopularRunesData = jest
+  .fn()
+  .mockImplementation(
+    (data: unknown, lastRefreshAttempt: number | null) =>
+      Array.isArray(data) &&
+      lastRefreshAttempt === null &&
+      (data as Record<string, unknown>[]).some(
+        (item) =>
+          item?.id === 'liquidiumtoken' || item?.id === 'ordinals_ethtoken',
+      ),
+  );
 // Provide default mock for new helper used in route
 
 // Mock the SatsTerminal client

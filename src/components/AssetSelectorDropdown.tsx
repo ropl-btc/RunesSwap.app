@@ -62,6 +62,7 @@ const AssetSelectorDropdown: React.FC<AssetSelectorDropdownProps> = ({
                       className={styles.assetButtonImage}
                       width={24}
                       height={24}
+                      unoptimized
                       aria-hidden="true"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
@@ -161,6 +162,7 @@ const AssetSelectorDropdown: React.FC<AssetSelectorDropdownProps> = ({
                               className={styles.runeImage}
                               width={24}
                               height={24}
+                              unoptimized
                               aria-hidden="true"
                             />
                           ) : null}
@@ -203,6 +205,7 @@ const AssetSelectorDropdown: React.FC<AssetSelectorDropdownProps> = ({
                               className={styles.runeImage}
                               width={24}
                               height={24}
+                              unoptimized
                               aria-hidden="true"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
