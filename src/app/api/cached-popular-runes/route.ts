@@ -19,6 +19,7 @@ let inMemoryInFlight: Promise<void> | null = null;
 // Longer in development to avoid rate limits during HMR/StrictMode remounts.
 const IN_MEMORY_MIN_REFRESH_MS =
   process.env.NODE_ENV === 'development' ? 15 * 60 * 1000 : 5 * 60 * 1000;
+const IS_TEST_ENV = process.env.NODE_ENV === 'test';
 
 /**
  * Optimized popular runes endpoint with improved caching strategy
@@ -83,7 +84,8 @@ export async function GET() {
 
       // If we recently attempted or another request is in flight, skip
       // upstream call and return whatever cache/fallback we have.
-      if (tooSoon || inMemoryInFlight) {
+      // Skip throttling in tests to keep deterministic behavior.
+      if (!IS_TEST_ENV && (tooSoon || inMemoryInFlight)) {
         return createSuccessResponse({
           data,
           isStale: true,
@@ -166,9 +168,10 @@ async function refreshPopularRunesInBackground(): Promise<void> {
   try {
     const now = Date.now();
     if (
-      inMemoryInFlight ||
-      (inMemoryLastAttemptAt !== null &&
-        now - inMemoryLastAttemptAt < IN_MEMORY_MIN_REFRESH_MS)
+      !IS_TEST_ENV &&
+      (inMemoryInFlight ||
+        (inMemoryLastAttemptAt !== null &&
+          now - inMemoryLastAttemptAt < IN_MEMORY_MIN_REFRESH_MS))
     ) {
       return;
     }
