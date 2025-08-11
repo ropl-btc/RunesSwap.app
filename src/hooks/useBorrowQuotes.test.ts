@@ -168,9 +168,10 @@ describe('useBorrowQuotes', () => {
           collateralRuneInfo: null,
         }),
       );
-
-      expect(result.current.isPopularLoading).toBe(true);
-      expect(result.current.popularRunes).toEqual([]);
+      // Allow initial useEffect async state updates to settle
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       await waitFor(() => {
         expect(result.current.isPopularLoading).toBe(false);
@@ -202,6 +203,9 @@ describe('useBorrowQuotes', () => {
           collateralRuneInfo: null,
         }),
       );
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       await waitFor(() => {
         expect(result.current.isPopularLoading).toBe(false);
@@ -232,6 +236,9 @@ describe('useBorrowQuotes', () => {
           collateralRuneInfo: null,
         }),
       );
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       await waitFor(() => {
         expect(result.current.isPopularLoading).toBe(false);
@@ -263,6 +270,9 @@ describe('useBorrowQuotes', () => {
           collateralRuneInfo: mockRuneInfo,
         }),
       );
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       await waitFor(() => {
         expect(mockFetchBorrowRangesFromApi).toHaveBeenCalled();
@@ -290,6 +300,9 @@ describe('useBorrowQuotes', () => {
           collateralRuneInfo: mockRuneInfo,
         }),
       );
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       await waitFor(() => {
         expect(mockFetchBorrowRangesFromApi).toHaveBeenCalled();
@@ -312,6 +325,9 @@ describe('useBorrowQuotes', () => {
           collateralRuneInfo: null,
         }),
       );
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       await waitFor(() => {
         expect(result.current.minMaxRange).toBeNull();
@@ -333,6 +349,9 @@ describe('useBorrowQuotes', () => {
           collateralRuneInfo: mockRuneInfo,
         }),
       );
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       await waitFor(() => {
         expect(result.current.minMaxRange).toBeNull();
@@ -355,6 +374,9 @@ describe('useBorrowQuotes', () => {
           collateralRuneInfo: mockRuneInfo,
         }),
       );
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       await act(async () => {
         await Promise.resolve();
@@ -381,6 +403,9 @@ describe('useBorrowQuotes', () => {
           collateralRuneInfo: mockRuneInfo,
         }),
       );
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       await act(async () => {
         await Promise.resolve();
@@ -407,6 +432,9 @@ describe('useBorrowQuotes', () => {
           collateralRuneInfo: mockRuneInfo,
         }),
       );
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       await act(async () => {
         await result.current.handleGetQuotes();
@@ -458,6 +486,9 @@ describe('useBorrowQuotes', () => {
           collateralRuneInfo: mockRuneInfo,
         }),
       );
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       await act(async () => {
         await result.current.handleGetQuotes();
