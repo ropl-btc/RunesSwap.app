@@ -11,6 +11,15 @@ import {
 } from '@/lib/popularRunesCache';
 import { getSatsTerminalClient } from '@/lib/serverUtils';
 
+// Simple in-memory guard to prevent spamming SatsTerminal in dev when
+// Supabase cache is empty/unavailable. This complements DB throttling.
+let inMemoryLastAttemptAt: number | null = null;
+let inMemoryInFlight: Promise<void> | null = null;
+// Minimum interval between upstream refresh attempts when only fallback exists
+// Longer in development to avoid rate limits during HMR/StrictMode remounts.
+const IN_MEMORY_MIN_REFRESH_MS =
+  process.env.NODE_ENV === 'development' ? 15 * 60 * 1000 : 5 * 60 * 1000;
+
 /**
  * Optimized popular runes endpoint with improved caching strategy
  * - Always returns cached data when available
@@ -64,11 +73,44 @@ export async function GET() {
       });
     }
 
-    // If we have no cached data at all (first run), we need to fetch synchronously
+    // If we have no cached data at all (first run), we need to fetch
+    // synchronously — but guard with in-memory throttling to avoid bursts.
     if (!data || !Array.isArray(data) || data.length === 0 || isFallbackData) {
+      const now = Date.now();
+      const tooSoon =
+        inMemoryLastAttemptAt !== null &&
+        now - inMemoryLastAttemptAt < IN_MEMORY_MIN_REFRESH_MS;
+
+      // If we recently attempted or another request is in flight, skip
+      // upstream call and return whatever cache/fallback we have.
+      if (tooSoon || inMemoryInFlight) {
+        return createSuccessResponse({
+          data,
+          isStale: true,
+          cacheAge: lastRefreshAttempt
+            ? new Date(lastRefreshAttempt).toISOString()
+            : null,
+          skippedRefresh: true,
+        });
+      }
+
       try {
+        inMemoryLastAttemptAt = now;
         const terminal = getSatsTerminalClient();
-        const popularResponse = await terminal.popularTokens({});
+        const doFetch = async () => {
+          const resp = await terminal.popularTokens({});
+          return resp;
+        };
+        const promise = doFetch();
+        inMemoryInFlight = promise.then(
+          () => {
+            inMemoryInFlight = null;
+          },
+          () => {
+            inMemoryInFlight = null;
+          },
+        ) as unknown as Promise<void>;
+        const popularResponse = await promise;
 
         // Validate response
         if (!popularResponse || typeof popularResponse !== 'object') {
@@ -122,8 +164,27 @@ export async function GET() {
  */
 async function refreshPopularRunesInBackground(): Promise<void> {
   try {
+    const now = Date.now();
+    if (
+      inMemoryInFlight ||
+      (inMemoryLastAttemptAt !== null &&
+        now - inMemoryLastAttemptAt < IN_MEMORY_MIN_REFRESH_MS)
+    ) {
+      return;
+    }
+    inMemoryLastAttemptAt = now;
     const terminal = getSatsTerminalClient();
-    const popularResponse = await terminal.popularTokens({});
+    const doFetch = async () => terminal.popularTokens({});
+    const promise = doFetch();
+    inMemoryInFlight = promise.then(
+      () => {
+        inMemoryInFlight = null;
+      },
+      () => {
+        inMemoryInFlight = null;
+      },
+    ) as unknown as Promise<void>;
+    const popularResponse = await promise;
 
     // Validate and cache if valid
     if (

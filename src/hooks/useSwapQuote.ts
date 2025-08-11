@@ -115,21 +115,8 @@ export function useSwapQuote({
         sell: isSell,
       };
 
-      let attempts = 0;
-      let quoteResponse: QuoteResponse | undefined;
-
-      while (attempts < 2) {
-        try {
-          quoteResponse = await fetchQuoteFromApi(params);
-          break;
-        } catch (fetchError) {
-          attempts++;
-          if (attempts >= 2) {
-            throw fetchError;
-          }
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-      }
+      // Single attempt to avoid doubling upstream load on transient errors
+      const quoteResponse = await fetchQuoteFromApi(params);
 
       if (requestId === latestQuoteRequestId.current) {
         setQuote(quoteResponse ?? null);

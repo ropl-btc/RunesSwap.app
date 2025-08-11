@@ -85,12 +85,11 @@ export function AppInterface({ activeTab }: AppInterfaceProps) {
   } = useQuery<Record<string, unknown>[], Error>({
     queryKey: [QUERY_KEYS.POPULAR_RUNES],
     queryFn: () => fetchPopularFromApi(),
-    // Allow the list to refresh after background cache updates
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-    refetchOnReconnect: true,
-    refetchInterval: 2 * 60 * 1000, // 2 minutes passive refresh
+    // Be conservative to avoid duplicate fetches during dev/HMR
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     // Keep cache for 7 days to avoid Timer warnings and retain data
     gcTime: 7 * 24 * 60 * 60 * 1000,
     retry: false, // Don't retry on failure

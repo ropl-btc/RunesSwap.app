@@ -7,10 +7,12 @@ import type { Rune } from '@/types/satsTerminal';
 import { handleApiResponse } from './utils';
 
 export const fetchRunesFromApi = async (query: string): Promise<Rune[]> => {
-  if (!query) return [];
+  const trimmed = query.trim();
+  // Guard: avoid spamming search for very short queries
+  if (trimmed.length < 2) return [];
 
   const response = await fetch(
-    `/api/sats-terminal/search?query=${encodeURIComponent(query)}`,
+    `/api/sats-terminal/search?query=${encodeURIComponent(trimmed)}`,
   );
   let data;
   try {

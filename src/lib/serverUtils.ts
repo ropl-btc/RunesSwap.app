@@ -33,6 +33,8 @@ export function getOrdiscanClient(): Ordiscan {
  * @throws Error if SATS_TERMINAL_API_KEY is not set.
  * @returns Enhanced SatsTerminal client instance.
  */
+let cachedTerminalClient: SatsTerminal | null = null;
+
 export function getSatsTerminalClient(): SatsTerminal {
   const apiKey = process.env.SATS_TERMINAL_API_KEY;
 
@@ -43,10 +45,11 @@ export function getSatsTerminalClient(): SatsTerminal {
     throw new Error('Server configuration error: Missing SatsTerminal API Key');
   }
 
-  const terminal = new SatsTerminal({ apiKey });
-
-  // Create enhanced wrapper with better error handling
-  return createEnhancedSatsTerminalClient(terminal);
+  if (!cachedTerminalClient) {
+    const terminal = new SatsTerminal({ apiKey });
+    cachedTerminalClient = createEnhancedSatsTerminalClient(terminal);
+  }
+  return cachedTerminalClient;
 }
 
 /**
