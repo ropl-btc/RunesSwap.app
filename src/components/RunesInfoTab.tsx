@@ -1,14 +1,10 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
-import { fetchRuneInfoFromApi, fetchRuneMarketFromApi } from '@/lib/api';
-import type { RuneData } from '@/lib/runesData';
+import { useRuneInfo } from '@/hooks/useRuneInfo';
+import { useRuneMarketData } from '@/hooks/useRuneMarketData';
 import { useRunesInfoStore } from '@/store/runesInfoStore';
-import {
-  type RuneInfo as OrdiscanRuneInfo,
-  type RuneMarketInfo as OrdiscanRuneMarketInfo,
-} from '@/types/ordiscan';
+import { type RuneInfo as OrdiscanRuneInfo } from '@/types/ordiscan';
 import type { Rune } from '@/types/satsTerminal';
 import RuneDetails from './RuneDetails';
 import RuneSearchBar from './RuneSearchBar';
@@ -36,30 +32,20 @@ export function RunesInfoTab({
     useState<OrdiscanRuneInfo | null>(persistedSelectedRuneInfo);
   const [showLoading, setShowLoading] = useState(false);
 
+  // Use shared hooks for rune data
   const {
     data: detailedRuneInfo,
     isLoading: isDetailedRuneInfoLoading,
     error: detailedRuneInfoError,
-  } = useQuery<RuneData | null, Error>({
-    queryKey: ['runeInfoApi', selectedRuneForInfo?.name],
-    queryFn: () =>
-      selectedRuneForInfo
-        ? fetchRuneInfoFromApi(selectedRuneForInfo.name)
-        : Promise.resolve(null),
+  } = useRuneInfo(selectedRuneForInfo?.name, {
     enabled: !!selectedRuneForInfo,
-    staleTime: Infinity,
   });
 
   const {
     data: runeMarketInfo,
     isLoading: isRuneMarketInfoLoading,
     error: runeMarketInfoError,
-  } = useQuery<OrdiscanRuneMarketInfo | null, Error>({
-    queryKey: ['runeMarketApi', selectedRuneForInfo?.name],
-    queryFn: () =>
-      selectedRuneForInfo
-        ? fetchRuneMarketFromApi(selectedRuneForInfo.name)
-        : Promise.resolve(null),
+  } = useRuneMarketData(selectedRuneForInfo?.name, {
     enabled: !!selectedRuneForInfo,
     staleTime: 5 * 60 * 1000,
   });

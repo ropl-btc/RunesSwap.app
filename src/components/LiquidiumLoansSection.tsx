@@ -1,5 +1,6 @@
 import React from 'react';
 import { LiquidiumLoanOffer } from '@/types/liquidium';
+import { formatSatsToBtc } from '@/utils/formatters';
 import Button from './Button';
 import { FormattedLiquidiumCollateral } from './FormattedLiquidiumCollateral';
 import styles from './PortfolioTab.module.css';
@@ -69,7 +70,7 @@ const LiquidiumLoansSection: React.FC<LiquidiumLoansSectionProps> = ({
             </div>
             <div className={styles.btcValueContainer}>
               <div className={styles.btcAmount}>
-                {(loan.loan_details.principal_amount_sats / 1e8).toFixed(8)}
+                {formatSatsToBtc(loan.loan_details.principal_amount_sats)}
               </div>
               <div className={styles.btcLabel}>BTC</div>
             </div>
@@ -87,11 +88,11 @@ const LiquidiumLoansSection: React.FC<LiquidiumLoansSectionProps> = ({
             </div>
             <div className={styles.btcValueContainer}>
               <div className={styles.btcAmount}>
-                {(
-                  (loan.loan_details.total_repayment_sats ??
+                {formatSatsToBtc(
+                  loan.loan_details.total_repayment_sats ??
                     loan.loan_details.principal_amount_sats *
-                      (1 + loan.loan_details.discount.discount_rate)) / 1e8
-                ).toFixed(8)}
+                      (1 + loan.loan_details.discount.discount_rate),
+                )}
               </div>
               <div className={styles.btcLabel}>BTC</div>
             </div>

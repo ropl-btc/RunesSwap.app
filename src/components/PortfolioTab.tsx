@@ -6,6 +6,7 @@ import { useLiquidiumAuth } from '@/hooks/useLiquidiumAuth';
 import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { useRepayModal } from '@/hooks/useRepayModal';
 import type { Asset } from '@/types/common';
+import { formatSatsToBtc } from '@/utils/formatters';
 import LiquidiumLoansSection from './LiquidiumLoansSection';
 import styles from './PortfolioTab.module.css';
 import RunesPortfolioTable from './RunesPortfolioTable';
@@ -102,8 +103,6 @@ export default function PortfolioTab() {
       </div>
     );
   }
-
-  const formatSatsToBtc = (sats: number): string => (sats / 1e8).toFixed(8);
 
   return (
     <div className={styles.container}>

@@ -48,3 +48,13 @@ export function formatNumber(value: number): string {
   const decPart = safeArrayAccess(parts, 1);
   return decPart ? `${withCommas}.${decPart}` : withCommas;
 }
+
+/**
+ * Converts satoshis to BTC with consistent formatting
+ *
+ * @param sats - Amount in satoshis
+ * @returns Formatted BTC amount as string with 8 decimal places
+ */
+export function formatSatsToBtc(sats: number): string {
+  return (sats / 1e8).toFixed(8);
+}

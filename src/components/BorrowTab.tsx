@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import Big from 'big.js';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
@@ -15,6 +14,7 @@ import { useRuneMarketData } from '@/hooks/useRuneMarketData';
 import { QUERY_KEYS, fetchRuneBalancesFromApi } from '@/lib/api';
 import { Asset } from '@/types/common';
 import { type RuneBalance as OrdiscanRuneBalance } from '@/types/ordiscan';
+import { formatAmountWithPrecision } from '@/utils/amountFormatting';
 import { calculateActualBalance } from '@/utils/runeFormatting';
 import BorrowQuotesList from './BorrowQuotesList';
 import BorrowSuccessMessage from './BorrowSuccessMessage';
@@ -221,17 +221,12 @@ export function BorrowTab({
           const availableBalance = calculateActualBalance(rawBalance, decimals);
           const newAmount =
             percentage === 1 ? availableBalance : availableBalance * percentage;
-          // Format with appropriate decimal places using Big.js for precision
-          const newAmountBig = new Big(newAmount);
-          const multiplier = new Big(10).pow(decimals);
-          const formattedAmount = parseFloat(
-            newAmountBig
-              .times(multiplier)
-              .round(0, Big.roundDown)
-              .div(multiplier)
-              .toFixed(),
+          // Format with appropriate decimal places using shared utility
+          const formattedAmount = formatAmountWithPrecision(
+            newAmount,
+            decimals,
           );
-          setCollateralAmount(formattedAmount.toString());
+          setCollateralAmount(formattedAmount);
           resetQuotes();
           setSelectedQuoteId(null);
         }}

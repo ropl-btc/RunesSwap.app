@@ -1,29 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
-import Big from 'big.js';
 import React, { useEffect, useState } from 'react';
 import { type QuoteResponse } from 'satsterminal-sdk';
 
 // Import our new components
 import { useRuneBalance } from '@/hooks/useRuneBalance';
+import { useRuneInfo } from '@/hooks/useRuneInfo';
+import { useRuneMarketData } from '@/hooks/useRuneMarketData';
 import useSwapAssets from '@/hooks/useSwapAssets';
 import useSwapExecution from '@/hooks/useSwapExecution';
 import useSwapQuote from '@/hooks/useSwapQuote';
 import useSwapRunes from '@/hooks/useSwapRunes';
 import useUsdValues from '@/hooks/useUsdValues';
-import {
-  fetchBtcBalanceFromApi,
-  fetchRuneBalancesFromApi,
-  fetchRuneInfoFromApi,
-  fetchRuneMarketFromApi,
-} from '@/lib/api';
-import { type RuneData } from '@/lib/runesData';
+import { fetchBtcBalanceFromApi, fetchRuneBalancesFromApi } from '@/lib/api';
 import { Asset, BTC_ASSET } from '@/types/common';
-import {
-  type RuneBalance as OrdiscanRuneBalance,
-  type RuneMarketInfo as OrdiscanRuneMarketInfo,
-} from '@/types/ordiscan';
+import { type RuneBalance as OrdiscanRuneBalance } from '@/types/ordiscan';
+import { formatAmountWithPrecision } from '@/utils/amountFormatting';
 import { calculateActualBalance } from '@/utils/runeFormatting';
-import { normalizeRuneName } from '@/utils/runeUtils';
 import FeeSelector from './FeeSelector';
 import { SwapTabForm, useSwapProcessManager } from './swap';
 import styles from './SwapTab.module.css';
@@ -167,51 +159,31 @@ export function SwapTab({
     staleTime: 30000, // Consider balances stale after 30 seconds
   });
 
-  // Query for Input Rune Info (needed for decimals and other info)
+  // Use shared hook for Input Rune Info
   const {
     data: swapRuneInfo,
     isLoading: isSwapRuneInfoLoading,
     error: swapRuneInfoError,
-  } = useQuery<RuneData | null, Error>({
-    queryKey: [
-      'runeInfoApi',
-      assetIn?.name ? normalizeRuneName(assetIn.name) : undefined,
-    ],
-    queryFn: () =>
-      assetIn && !assetIn.isBTC && assetIn.name
-        ? fetchRuneInfoFromApi(assetIn.name)
-        : Promise.resolve(null), // Use API function
-    enabled: !!assetIn && !assetIn.isBTC && !!assetIn.name, // Only fetch for non-BTC assets
-    staleTime: Infinity,
+  } = useRuneInfo(assetIn?.isBTC ? null : assetIn?.name, {
+    enabled: !!assetIn && !assetIn.isBTC && !!assetIn.name,
   });
 
-  // Query for Input Rune Market Info (for swap tab)
-  const { data: inputRuneMarketInfo } = useQuery<
-    OrdiscanRuneMarketInfo | null,
-    Error
-  >({
-    queryKey: ['runeMarketApi', assetIn?.name],
-    queryFn: () =>
-      assetIn && !assetIn.isBTC
-        ? fetchRuneMarketFromApi(assetIn.name)
-        : Promise.resolve(null),
-    enabled: !!assetIn && !assetIn.isBTC,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  // Use shared hooks for market data
+  const { data: inputRuneMarketInfo } = useRuneMarketData(
+    assetIn?.isBTC ? null : assetIn?.name,
+    {
+      enabled: !!assetIn && !assetIn.isBTC,
+      staleTime: 5 * 60 * 1000,
+    },
+  );
 
-  // Query for Output Rune Market Info (for swap tab)
-  const { data: outputRuneMarketInfo } = useQuery<
-    OrdiscanRuneMarketInfo | null,
-    Error
-  >({
-    queryKey: ['runeMarketApi', assetOut?.name],
-    queryFn: () =>
-      assetOut && !assetOut.isBTC
-        ? fetchRuneMarketFromApi(assetOut.name)
-        : Promise.resolve(null),
-    enabled: !!assetOut && !assetOut.isBTC,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const { data: outputRuneMarketInfo } = useRuneMarketData(
+    assetOut?.isBTC ? null : assetOut?.name,
+    {
+      enabled: !!assetOut && !assetOut.isBTC,
+      staleTime: 5 * 60 * 1000,
+    },
+  );
 
   // Compute input rune raw balance at top level to follow Rules of Hooks
   const inputRuneRawBalance = useRuneBalance(assetIn?.name, runeBalances);
@@ -330,22 +302,12 @@ export function SwapTab({
     }
 
     // Calculate percentage of available balance
-    let newAmount =
+    const newAmount =
       percentage === 1 ? availableBalance : availableBalance * percentage;
 
-    // Format with appropriate decimal places using Big.js for precision
-    const newAmountBig = new Big(newAmount);
-    const multiplier = new Big(10).pow(decimals);
-    newAmount = parseFloat(
-      newAmountBig
-        .times(multiplier)
-        .round(0, Big.roundDown)
-        .div(multiplier)
-        .toFixed(),
-    );
-
-    // Convert to string with appropriate decimal places
-    setInputAmount(newAmount.toString());
+    // Format with appropriate decimal places using shared utility
+    const formattedAmount = formatAmountWithPrecision(newAmount, decimals);
+    setInputAmount(formattedAmount);
   };
 
   const availableBalanceNode =

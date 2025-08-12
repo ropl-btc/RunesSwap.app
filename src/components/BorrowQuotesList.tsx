@@ -1,5 +1,6 @@
 import React from 'react';
 import { LiquidiumBorrowQuoteOffer } from '@/lib/api';
+import { formatSatsToBtc } from '@/utils/formatters';
 import styles from './BorrowTab.module.css';
 
 interface BorrowQuotesListProps {
@@ -16,12 +17,10 @@ const BorrowQuotesList: React.FC<BorrowQuotesListProps> = ({
   <div className={styles.quotesContainer}>
     <h2 className={styles.quotesTitle}>Available Loan Offers:</h2>
     {quotes.map((quote) => {
-      const principalBtc = (quote.loan_breakdown.principal_sats / 1e8).toFixed(
-        8,
+      const principalBtc = formatSatsToBtc(quote.loan_breakdown.principal_sats);
+      const repaymentBtc = formatSatsToBtc(
+        quote.loan_breakdown.total_repayment_sats,
       );
-      const repaymentBtc = (
-        quote.loan_breakdown.total_repayment_sats / 1e8
-      ).toFixed(8);
       const interestPercent =
         quote.loan_breakdown.principal_sats > 0
           ? (
