@@ -1,9 +1,9 @@
-import Image from 'next/image';
 import React from 'react';
 import type { Asset } from '@/types/common';
 import Button from './Button';
 import { FormattedRuneAmount } from './FormattedRuneAmount';
 import styles from './PortfolioTab.module.css';
+import RuneIcon from './RuneIcon';
 
 interface RuneBalanceItem {
   name: string;
@@ -114,19 +114,13 @@ const RunesPortfolioTable: React.FC<RunesPortfolioTableProps> = ({
           >
             <div className={styles.runeName}>
               <div className={styles.runeNameContent}>
-                {rune.imageURI && (
-                  <Image
-                    src={rune.imageURI}
-                    alt={`${rune.formattedName} icon`}
-                    className={styles.runeImage}
-                    width={24}
-                    height={24}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      if (target) target.style.display = 'none';
-                    }}
-                  />
-                )}
+                <RuneIcon
+                  src={rune.imageURI}
+                  alt={`${rune.formattedName} icon`}
+                  className={styles.runeImage}
+                  width={24}
+                  height={24}
+                />
                 <div className={styles.runeNameText}>
                   <div className={styles.runeFullName}>
                     {rune.formattedName}

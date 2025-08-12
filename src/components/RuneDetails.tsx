@@ -8,6 +8,7 @@ import type {
 } from '@/types/ordiscan';
 import { formatNumberString, truncateTxid } from '@/utils/formatters';
 import { FormattedRuneAmount } from './FormattedRuneAmount';
+import RuneIcon from './RuneIcon';
 import styles from './RunesInfoTab.module.css';
 
 interface RuneDetailsProps {
@@ -53,7 +54,14 @@ const RuneDetails: React.FC<RuneDetailsProps> = ({
     )}
     {!isDetailedRuneInfoLoading && !showLoading && detailedRuneInfo && (
       <div>
-        <h3>
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <RuneIcon
+            src={`https://icon.unisat.io/icon/runes/${encodeURIComponent(detailedRuneInfo.name)}`}
+            alt=""
+            className={styles.runeImage}
+            width={24}
+            height={24}
+          />
           {detailedRuneInfo.formatted_name} ({detailedRuneInfo.symbol})
         </h3>
         <p>

@@ -150,3 +150,10 @@ When implementing complex features, prefer extracting related hooks and componen
 * The `useWalletConnection` hook manages wallet connection state and provider detection, powering the `ConnectWalletButton` component.
 * `usePortfolioData`, `useLiquidiumAuth` and `useRepayModal` keep `PortfolioTab` lightweight by handling portfolio queries, Liquidium authentication and repayment flows.
 * `useAssetSearch` powers `AssetSelectorDropdown` for debounced search and popular-rune loading, keeping `AssetSelector` minimal.
+
+
+# General Instructions
+* IMPORTANT: Always use context7 to read relevant up-to-date docs when dealing with any external dependency/package/library!
+* Use the supabase tools to interact with our database!
+* SatsTerminal SDK is very aggressive with rate-limiting, we shouldn't increase the amount of queries we're doing to SatsTerminal!
+* IMPORTANT: Always follow KISS and DRY principals.

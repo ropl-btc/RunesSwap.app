@@ -1,52 +1,57 @@
 import type { Asset } from '@/types/common';
 import type { Rune } from '@/types/satsTerminal';
 
-type UnknownRecord = Record<string, unknown>;
-
-// Normalize a popular collections item to a common shape.
-// Returns null if we can't form a stable id from rune/token.
-const normalizePopularItem = (
-  item: UnknownRecord,
-): { id: string; name: string; imageURI: string } | null => {
-  const id = (item?.rune as string) || (item?.token as string) || '';
-  if (!id) return null;
-  const name =
-    ((item?.etching as UnknownRecord)?.runeName as string) ||
-    (item?.rune as string) ||
-    (item?.token as string) ||
-    id;
-  const imageURI =
-    (item?.icon_content_url_data as string) ||
-    (item?.imageURI as string) ||
-    ((item as UnknownRecord).icon as string) ||
-    (item?.imageUrl as string) ||
-    '';
-  return { id, name, imageURI };
+type PopularRuneItem = {
+  token_id: string;
+  token: string;
+  symbol: string;
+  icon: string;
+  is_verified: boolean;
 };
 
-export const mapPopularToRune = (items: UnknownRecord[]): Rune[] =>
-  items
-    .map((it) => normalizePopularItem(it))
-    .filter(
-      (v): v is { id: string; name: string; imageURI: string } => v !== null,
-    )
-    .map(({ id, name, imageURI }) => ({ id, name, imageURI }));
+// Convert popular rune items to Asset format (handles both our format and API response)
+export const mapPopularToAsset = (
+  items: PopularRuneItem[] | Record<string, unknown>[],
+): Asset[] =>
+  items.map((item) => ({
+    id: String(
+      (item as PopularRuneItem).token_id ||
+        (item as Record<string, unknown>).id ||
+        '',
+    ),
+    name: String(
+      (item as PopularRuneItem).token ||
+        (item as Record<string, unknown>).name ||
+        (item as Record<string, unknown>).rune ||
+        '',
+    ),
+    imageURI: String(
+      (item as PopularRuneItem).icon ||
+        (item as Record<string, unknown>).imageURI ||
+        '',
+    ),
+    isBTC: false,
+  }));
 
-export const mapPopularToAsset = (items: UnknownRecord[]): Asset[] =>
-  items
-    .map((it) => normalizePopularItem(it))
-    .filter(
-      (v): v is { id: string; name: string; imageURI: string } => v !== null,
-    )
-    .map(({ id, name, imageURI }) => ({ id, name, imageURI, isBTC: false }));
-
-export const dedupeById = <T extends { id: string }>(arr: T[]): T[] => {
-  const seen = new Set<string>();
-  const out: T[] = [];
-  for (const item of arr) {
-    if (seen.has(item.id)) continue;
-    seen.add(item.id);
-    out.push(item);
-  }
-  return out;
-};
+// Convert popular rune items to Rune format (handles both our format and API response)
+export const mapPopularToRune = (
+  items: PopularRuneItem[] | Record<string, unknown>[],
+): Rune[] =>
+  items.map((item) => ({
+    id: String(
+      (item as PopularRuneItem).token_id ||
+        (item as Record<string, unknown>).id ||
+        '',
+    ),
+    name: String(
+      (item as PopularRuneItem).token ||
+        (item as Record<string, unknown>).name ||
+        (item as Record<string, unknown>).rune ||
+        '',
+    ),
+    imageURI: String(
+      (item as PopularRuneItem).icon ||
+        (item as Record<string, unknown>).imageURI ||
+        '',
+    ),
+  }));

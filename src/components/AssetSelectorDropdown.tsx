@@ -4,6 +4,7 @@ import Image from 'next/image';
 import React, { Fragment } from 'react';
 import { Asset, BTC_ASSET } from '@/types/common';
 import styles from './InputArea.module.css';
+import RuneIcon from './RuneIcon';
 
 interface AssetSelectorDropdownProps {
   selectedAsset: Asset | null;
@@ -19,6 +20,7 @@ interface AssetSelectorDropdownProps {
   loadingDots: string;
 }
 
+/* eslint-disable arrow-body-style */
 const AssetSelectorDropdown: React.FC<AssetSelectorDropdownProps> = ({
   selectedAsset,
   onAssetChange,
@@ -32,13 +34,6 @@ const AssetSelectorDropdown: React.FC<AssetSelectorDropdownProps> = ({
   onSearchChange,
   loadingDots,
 }) => {
-  const isValidImageSrc = (src?: string | null): src is string => {
-    if (!src || typeof src !== 'string') return false;
-    return (
-      src.startsWith('http') || src.startsWith('/') || src.startsWith('data:')
-    );
-  };
-
   return (
     <div className={styles.listboxContainer}>
       <Listbox
@@ -55,21 +50,13 @@ const AssetSelectorDropdown: React.FC<AssetSelectorDropdownProps> = ({
                 </span>
               ) : (
                 <>
-                  {isValidImageSrc(selectedAsset?.imageURI) ? (
-                    <Image
-                      src={selectedAsset.imageURI!}
-                      alt={`${selectedAsset.name} logo`}
-                      className={styles.assetButtonImage}
-                      width={24}
-                      height={24}
-                      unoptimized
-                      aria-hidden="true"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        if (target) target.style.display = 'none';
-                      }}
-                    />
-                  ) : null}
+                  <RuneIcon
+                    src={selectedAsset?.imageURI}
+                    alt={`${selectedAsset?.name ?? ''} logo`}
+                    className={styles.assetButtonImage}
+                    width={24}
+                    height={24}
+                  />
                   {isAssetsLoading
                     ? `Loading${loadingDots}`
                     : selectedAsset
@@ -155,17 +142,13 @@ const AssetSelectorDropdown: React.FC<AssetSelectorDropdownProps> = ({
                     {({ selected }) => (
                       <>
                         <span className={styles.runeOptionContent}>
-                          {isValidImageSrc(BTC_ASSET.imageURI) ? (
-                            <Image
-                              src={BTC_ASSET.imageURI}
-                              alt=""
-                              className={styles.runeImage}
-                              width={24}
-                              height={24}
-                              unoptimized
-                              aria-hidden="true"
-                            />
-                          ) : null}
+                          <RuneIcon
+                            src={BTC_ASSET.imageURI}
+                            alt=""
+                            className={styles.runeImage}
+                            width={24}
+                            height={24}
+                          />
                           <span
                             className={`${styles.listboxOptionText} ${selected ? styles.listboxOptionTextSelected : styles.listboxOptionTextUnselected}`}
                           >
@@ -198,23 +181,13 @@ const AssetSelectorDropdown: React.FC<AssetSelectorDropdownProps> = ({
                     {({ selected }) => (
                       <>
                         <span className={styles.runeOptionContent}>
-                          {isValidImageSrc(asset.imageURI) ? (
-                            <Image
-                              src={asset.imageURI}
-                              alt=""
-                              className={styles.runeImage}
-                              width={24}
-                              height={24}
-                              unoptimized
-                              aria-hidden="true"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                if (target) {
-                                  target.style.display = 'none';
-                                }
-                              }}
-                            />
-                          ) : null}
+                          <RuneIcon
+                            src={asset.imageURI}
+                            alt=""
+                            className={styles.runeImage}
+                            width={24}
+                            height={24}
+                          />
                           <span
                             className={`${styles.listboxOptionText} ${selected ? styles.listboxOptionTextSelected : styles.listboxOptionTextUnselected}`}
                           >
@@ -240,5 +213,6 @@ const AssetSelectorDropdown: React.FC<AssetSelectorDropdownProps> = ({
     </div>
   );
 };
+/* eslint-enable arrow-body-style */
 
 export default AssetSelectorDropdown;

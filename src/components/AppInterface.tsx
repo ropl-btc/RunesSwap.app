@@ -77,7 +77,7 @@ export function AppInterface({ activeTab }: AppInterfaceProps) {
 
   const { btcPriceUsd, isBtcPriceLoading, btcPriceError } = useBtcPrice();
 
-  // Fetch popular runes using React Query for caching across tabs
+  // Fetch popular runes once - it's now a simple static list
   const {
     data: popularRunes,
     isLoading: isPopularRunesLoading,
@@ -85,14 +85,8 @@ export function AppInterface({ activeTab }: AppInterfaceProps) {
   } = useQuery<Record<string, unknown>[], Error>({
     queryKey: [QUERY_KEYS.POPULAR_RUNES],
     queryFn: () => fetchPopularFromApi(),
-    // Be conservative to avoid duplicate fetches during dev/HMR
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    // Keep cache for 7 days to avoid Timer warnings and retain data
-    gcTime: 7 * 24 * 60 * 60 * 1000,
-    retry: false, // Don't retry on failure
+    staleTime: Infinity, // Never refetch - it's a hardcoded list
+    gcTime: Infinity, // Keep forever
   });
 
   const togglePriceChart = React.useCallback(

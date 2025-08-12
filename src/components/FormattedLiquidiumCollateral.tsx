@@ -1,10 +1,10 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { FormattedRuneAmount } from './FormattedRuneAmount';
 import styles from './PortfolioTab.module.css';
+import RuneIcon from './RuneIcon';
 
 interface FormattedLiquidiumCollateralProps {
   runeId: string;
@@ -92,21 +92,13 @@ export function FormattedLiquidiumCollateral({
 
     return (
       <div className={styles.collateralContainer}>
-        {runeInfo?.imageURI && (
-          <Image
-            src={runeInfo.imageURI}
-            alt=""
-            className={styles.runeImage}
-            width={20}
-            height={20}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              if (target) {
-                target.style.display = 'none';
-              }
-            }}
-          />
-        )}
+        <RuneIcon
+          src={runeInfo?.imageURI}
+          alt=""
+          className={styles.runeImage}
+          width={20}
+          height={20}
+        />
         <div className={styles.collateralDetails}>
           <div className={styles.collateralAmount}>
             <FormattedRuneAmount

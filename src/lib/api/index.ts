@@ -19,26 +19,15 @@ export const QUERY_KEYS = {
 
 export type QueryKey = (typeof QUERY_KEYS)[keyof typeof QUERY_KEYS];
 
-import { handleApiResponse } from './utils';
-
 export const fetchPopularFromApi = async (): Promise<
   Record<string, unknown>[]
 > => {
-  const response = await fetch('/api/cached-popular-runes');
-  let data;
-  try {
-    data = await response.json();
-  } catch {
-    throw new Error('Failed to parse popular collections');
-  }
+  const response = await fetch('/api/popular-runes');
   if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to fetch popular collections: ${response.statusText}`,
-    );
+    throw new Error(`Failed to fetch popular runes: ${response.statusText}`);
   }
-  return handleApiResponse<Record<string, unknown>[]>(data, true);
+  const data = await response.json();
+  return data.data || [];
 };
 
 export interface BitcoinFeeRates {

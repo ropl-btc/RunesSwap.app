@@ -16,14 +16,27 @@ interface TabNavigationProps {
 }
 
 export default function TabNavigation({ onTabChange }: TabNavigationProps) {
-  const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
+  const [activeTab, setActiveTab] = useState<ActiveTab>('swap');
+
+  // Read URL parameters after component mounts to avoid hydration mismatch
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const sp = new URLSearchParams(window.location.search);
       const param = sp.get('tab') as ActiveTab | null;
-      if (param) return param;
+      if (param) {
+        const allowed: ActiveTab[] = [
+          'swap',
+          'runesInfo',
+          'yourTxs',
+          'portfolio',
+          'borrow',
+        ];
+        if (allowed.includes(param)) {
+          setActiveTab(param);
+        }
+      }
     }
-    return 'swap';
-  });
+  }, []);
 
   useEffect(() => {
     const handleTabChangeEvent = (event: CustomEvent) => {

@@ -9,6 +9,7 @@ import { interpretRuneTransaction } from '@/utils/transactionHelpers'; // Import
 import styles from './AppInterface.module.css'; // Reuse styles for now
 import { FormattedRuneAmount } from './FormattedRuneAmount'; // Import component
 import { FormattedRuneName } from './FormattedRuneName'; // Import the new component
+import RuneIcon from './RuneIcon';
 
 interface YourTxsTabProps {
   connected: boolean;
@@ -94,7 +95,21 @@ export function YourTxsTab({ connected, address }: YourTxsTabProps) {
                   </div>
                   <div className={styles.txDetailRow}>
                     <span>Rune:</span>
-                    <span className={styles.runeNameHighlight}>
+                    <span
+                      className={styles.runeNameHighlight}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <RuneIcon
+                        src={`https://icon.unisat.io/icon/runes/${encodeURIComponent(runeName)}`}
+                        alt=""
+                        className={styles.runeImage}
+                        width={20}
+                        height={20}
+                      />
                       <FormattedRuneName runeName={runeName} />
                     </span>
                   </div>

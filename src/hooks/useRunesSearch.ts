@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchPopularFromApi, fetchRunesFromApi } from '@/lib/api';
 import { useRunesInfoStore } from '@/store/runesInfoStore';
 import type { Rune } from '@/types/satsTerminal';
-import { dedupeById, mapPopularToRune } from '@/utils/popularRunes';
+import { mapPopularToRune } from '@/utils/popularRunes';
 import { useDebouncedSearch } from './useDebouncedSearch';
 
 interface UseRunesSearchOptions {
@@ -52,60 +52,25 @@ export function useRunesSearch({
         return;
       }
 
-      if (cachedPopularRunes && cachedPopularRunes.length > 0) {
-        const liquidiumToken: Rune = {
-          id: 'liquidiumtoken',
-          name: 'LIQUIDIUM•TOKEN',
-          imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
-        };
-        const fetchedRunesRaw: Rune[] = mapPopularToRune(
-          cachedPopularRunes,
-        ).filter(
-          (rune) =>
-            rune.id !== liquidiumToken.id && rune.name !== liquidiumToken.name,
-        );
-        const fetchedRunes = dedupeById(fetchedRunesRaw);
-        setPopularRunes([liquidiumToken, ...fetchedRunes]);
-        setPopularError(null);
-        setIsPopularLoading(false);
-        return;
-      }
-
       setIsPopularLoading(true);
-      setPopularError(null);
-      setPopularRunes([]);
       try {
-        const liquidiumToken: Rune = {
-          id: 'liquidiumtoken',
-          name: 'LIQUIDIUM•TOKEN',
-          imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
-        };
-        const response = await fetchPopularFromApi();
-        let mappedRunes: Rune[] = [];
-        if (!Array.isArray(response)) {
-          mappedRunes = [liquidiumToken];
-        } else {
-          const fetchedRunesRaw: Rune[] = mapPopularToRune(response).filter(
-            (rune) =>
-              rune.id !== liquidiumToken.id &&
-              rune.name !== liquidiumToken.name,
-          );
-          const fetchedRunes = dedupeById(fetchedRunesRaw);
-          mappedRunes = [liquidiumToken, ...fetchedRunes];
-        }
+        // Try cached data first, then fetch if needed
+        const runesData =
+          cachedPopularRunes && cachedPopularRunes.length > 0
+            ? cachedPopularRunes
+            : await fetchPopularFromApi();
+
+        // Convert to Rune format - LIQUIDIUM•TOKEN is already first in our list
+        const mappedRunes: Rune[] = mapPopularToRune(runesData);
         setPopularRunes(mappedRunes);
+        setPopularError(null);
       } catch (error) {
         setPopularError(
           error instanceof Error
             ? error.message
             : 'Failed to fetch popular runes',
         );
-        const liquidiumTokenOnError: Rune = {
-          id: 'liquidiumtoken',
-          name: 'LIQUIDIUM•TOKEN',
-          imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
-        };
-        setPopularRunes([liquidiumTokenOnError]);
+        setPopularRunes([]);
       } finally {
         setIsPopularLoading(false);
       }

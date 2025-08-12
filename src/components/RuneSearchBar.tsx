@@ -4,6 +4,7 @@ import Image from 'next/image';
 import React from 'react';
 import useRunesSearch from '@/hooks/useRunesSearch';
 import type { Rune } from '@/types/satsTerminal';
+import RuneIcon from './RuneIcon';
 import styles from './RunesInfoTab.module.css';
 
 interface RuneSearchBarProps {
@@ -98,22 +99,13 @@ const RuneSearchBar: React.FC<RuneSearchBarProps> = ({
                 onClick={() => onRuneSelect(rune)}
               >
                 <div className={styles.runeListItemContent}>
-                  {rune.imageURI && (
-                    <Image
-                      src={rune.imageURI}
-                      alt=""
-                      className={styles.runeImage}
-                      width={24}
-                      height={24}
-                      unoptimized
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        if (target) {
-                          target.style.display = 'none';
-                        }
-                      }}
-                    />
-                  )}
+                  <RuneIcon
+                    src={rune.imageURI}
+                    alt=""
+                    className={styles.runeImage}
+                    width={24}
+                    height={24}
+                  />
                   <span>{rune.name}</span>
                 </div>
               </button>

@@ -137,7 +137,7 @@ describe('apiClient', () => {
 
       const result = await fetchPopularFromApi();
 
-      expect(fetch).toHaveBeenCalledWith('/api/cached-popular-runes');
+      expect(fetch).toHaveBeenCalledWith('/api/popular-runes');
       expect(result).toEqual(mockPopular);
     });
 
@@ -147,7 +147,7 @@ describe('apiClient', () => {
       );
 
       await expect(fetchPopularFromApi()).rejects.toThrow('Server error');
-      expect(fetch).toHaveBeenCalledWith('/api/cached-popular-runes');
+      expect(fetch).toHaveBeenCalledWith('/api/popular-runes');
     });
 
     it('throws error for JSON parse failure', async () => {
@@ -161,7 +161,7 @@ describe('apiClient', () => {
       await expect(fetchPopularFromApi()).rejects.toThrow(
         'Failed to parse popular collections',
       );
-      expect(fetch).toHaveBeenCalledWith('/api/cached-popular-runes');
+      expect(fetch).toHaveBeenCalledWith('/api/popular-runes');
     });
   });
 
