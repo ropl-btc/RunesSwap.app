@@ -1,7 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import {
   type BorrowRangeResponse,
-  type LiquidiumBorrowQuoteOffer,
   type LiquidiumBorrowQuoteResponse,
   fetchBorrowQuotesFromApi,
   fetchBorrowRangesFromApi,
@@ -51,16 +50,21 @@ const mockAsset: Asset = {
 const mockRuneInfo: RuneData = {
   id: 'test-rune-id',
   name: 'TEST•RUNE',
-  symbol: 'TEST',
+  formatted_name: 'TEST•RUNE',
+  spacers: null,
+  number: null,
+  inscription_id: null,
   decimals: 8,
-  supply: '1000000',
-  icon: 'test-icon.png',
-  spacedName: 'TEST•RUNE',
-  supply_formatted: '1,000,000',
-  market: {
-    floor_price: 100,
-    market_cap: 1000000,
-  },
+  mint_count_cap: null,
+  symbol: 'TEST',
+  etching_txid: null,
+  amount_per_mint: null,
+  timestamp_unix: null,
+  premined_supply: '1000000',
+  mint_start_block: null,
+  mint_end_block: null,
+  current_supply: null,
+  current_mint_count: null,
 };
 
 describe('useBorrowQuotes', () => {
@@ -130,8 +134,11 @@ describe('useBorrowQuotes', () => {
       const mockBorrowRangeResponse: BorrowRangeResponse = {
         success: true,
         data: {
+          runeId: 'test-rune-id',
           minAmount: '1000000000',
           maxAmount: '10000000000',
+          cached: false,
+          updatedAt: new Date().toISOString(),
         },
       };
 
@@ -161,24 +168,25 @@ describe('useBorrowQuotes', () => {
 
   describe('Quote Fetching', () => {
     it('should fetch quotes when handleGetQuotes is called', async () => {
-      const mockQuoteResponse: LiquidiumBorrowQuoteResponse = {
+      const mockQuoteResponse = {
         runeDetails: {
-          offers: [
-            {
-              id: 'quote-1',
-              loanAmount: '50000000',
-              interestRate: 0.05,
-              duration: 30,
-              lenderAddress: 'bc1lender',
-            } as LiquidiumBorrowQuoteOffer,
-          ],
+          offers: [{ offer_id: 'quote-1' }],
           valid_ranges: {
             rune_amount: {
               ranges: [{ min: '1000000000', max: '10000000000' }],
             },
+            loan_term_days: [7, 14, 30],
+          },
+          rune_id: 'test-rune-id',
+          slug: 'test-rune',
+          floor_price_sats: 100,
+          floor_price_last_updated_at: '2024-01-01T00:00:00Z',
+          common_offer_data: {
+            interest_rate: 0.05,
+            rune_divisibility: 8,
           },
         },
-      };
+      } as LiquidiumBorrowQuoteResponse;
 
       mockFetchBorrowQuotesFromApi.mockResolvedValue(mockQuoteResponse);
       mockFetchPopularFromApi.mockResolvedValue([]);
