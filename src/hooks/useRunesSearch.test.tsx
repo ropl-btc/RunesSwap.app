@@ -21,16 +21,16 @@ describe('useRunesSearch', () => {
   it('updates when props change', async () => {
     const cachedA = [
       {
-        rune: 'AAA',
-        etching: { runeName: 'AAA' },
-        icon_content_url_data: 'a.png',
+        token_id: '123:1',
+        token: 'AAA',
+        icon: 'a.png',
       },
     ];
     const cachedB = [
       {
-        rune: 'BBB',
-        etching: { runeName: 'BBB' },
-        icon_content_url_data: 'b.png',
+        token_id: '123:2',
+        token: 'BBB',
+        icon: 'b.png',
       },
     ];
 
@@ -43,18 +43,12 @@ describe('useRunesSearch', () => {
     await act(async () => {
       await Promise.resolve();
     });
-    expect(result.current.availableRunes.map((r) => r.id)).toEqual([
-      'liquidiumtoken',
-      'AAA',
-    ]);
+    expect(result.current.availableRunes.map((r) => r.id)).toEqual(['123:1']);
 
     rerender({ cachedPopularRunes: cachedB });
     await act(async () => {
       await Promise.resolve();
     });
-    expect(result.current.availableRunes.map((r) => r.id)).toEqual([
-      'liquidiumtoken',
-      'BBB',
-    ]);
+    expect(result.current.availableRunes.map((r) => r.id)).toEqual(['123:2']);
   });
 });

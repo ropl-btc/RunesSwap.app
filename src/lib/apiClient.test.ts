@@ -146,7 +146,9 @@ describe('apiClient', () => {
         mockFetchResponse({ error: 'Server error' }, false, 500),
       );
 
-      await expect(fetchPopularFromApi()).rejects.toThrow('Server error');
+      await expect(fetchPopularFromApi()).rejects.toThrow(
+        'Failed to fetch popular runes: Error',
+      );
       expect(fetch).toHaveBeenCalledWith('/api/popular-runes');
     });
 
@@ -158,9 +160,7 @@ describe('apiClient', () => {
         } as Response),
       );
 
-      await expect(fetchPopularFromApi()).rejects.toThrow(
-        'Failed to parse popular collections',
-      );
+      await expect(fetchPopularFromApi()).rejects.toThrow('Invalid JSON');
       expect(fetch).toHaveBeenCalledWith('/api/popular-runes');
     });
   });
