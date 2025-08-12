@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import Big from 'big.js';
 import React, { useEffect, useState } from 'react';
 import { type QuoteResponse } from 'satsterminal-sdk';
 
@@ -21,6 +22,7 @@ import {
   type RuneBalance as OrdiscanRuneBalance,
   type RuneMarketInfo as OrdiscanRuneMarketInfo,
 } from '@/types/ordiscan';
+import { calculateActualBalance } from '@/utils/runeFormatting';
 import { normalizeRuneName } from '@/utils/runeUtils';
 import FeeSelector from './FeeSelector';
 import { SwapTabForm, useSwapProcessManager } from './swap';
@@ -321,7 +323,7 @@ export function SwapTab({
         if (isNaN(balanceNum)) return;
 
         decimals = swapRuneInfo?.decimals ?? 0;
-        availableBalance = balanceNum / 10 ** decimals;
+        availableBalance = calculateActualBalance(rawBalance, decimals);
       } catch {
         return;
       }
@@ -331,8 +333,16 @@ export function SwapTab({
     let newAmount =
       percentage === 1 ? availableBalance : availableBalance * percentage;
 
-    // Format with appropriate decimal places
-    newAmount = Math.floor(newAmount * 10 ** decimals) / 10 ** decimals;
+    // Format with appropriate decimal places using Big.js for precision
+    const newAmountBig = new Big(newAmount);
+    const multiplier = new Big(10).pow(decimals);
+    newAmount = parseFloat(
+      newAmountBig
+        .times(multiplier)
+        .round(0, Big.roundDown)
+        .div(multiplier)
+        .toFixed(),
+    );
 
     // Convert to string with appropriate decimal places
     setInputAmount(newAmount.toString());
@@ -362,7 +372,7 @@ export function SwapTab({
             const balanceNum = parseFloat(rawBalance);
             if (isNaN(balanceNum)) return 'Invalid Balance';
             const decimals = swapRuneInfo?.decimals ?? 0;
-            const displayValue = balanceNum / 10 ** decimals;
+            const displayValue = calculateActualBalance(rawBalance, decimals);
             return `${displayValue.toLocaleString(undefined, { maximumFractionDigits: decimals })}`;
           } catch {
             return 'Formatting Error';

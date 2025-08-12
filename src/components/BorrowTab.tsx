@@ -1,25 +1,21 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import Big from 'big.js';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
+
 import { useBorrowProcess } from '@/hooks/useBorrowProcess';
 import useBorrowQuotes from '@/hooks/useBorrowQuotes';
 import { useLiquidiumAuth } from '@/hooks/useLiquidiumAuth';
 import { useRuneBalance } from '@/hooks/useRuneBalance';
-import {
-  QUERY_KEYS,
-  fetchRuneBalancesFromApi,
-  fetchRuneInfoFromApi,
-  fetchRuneMarketFromApi,
-} from '@/lib/api';
-import { type RuneData } from '@/lib/runesData';
+import { useRuneInfo } from '@/hooks/useRuneInfo';
+import { useRuneMarketData } from '@/hooks/useRuneMarketData';
+import { QUERY_KEYS, fetchRuneBalancesFromApi } from '@/lib/api';
 import { Asset } from '@/types/common';
-import {
-  type RuneBalance as OrdiscanRuneBalance,
-  type RuneMarketInfo as OrdiscanRuneMarketInfo,
-} from '@/types/ordiscan';
+import { type RuneBalance as OrdiscanRuneBalance } from '@/types/ordiscan';
+import { calculateActualBalance } from '@/utils/runeFormatting';
 import BorrowQuotesList from './BorrowQuotesList';
 import BorrowSuccessMessage from './BorrowSuccessMessage';
 import styles from './BorrowTab.module.css';
@@ -85,28 +81,17 @@ export function BorrowTab({
   });
 
   const { data: collateralRuneInfo, isLoading: isCollateralRuneInfoLoading } =
-    useQuery<RuneData | null, Error>({
-      queryKey: [QUERY_KEYS.RUNE_INFO, collateralAsset?.name],
-      queryFn: () =>
-        collateralAsset && !collateralAsset.isBTC
-          ? fetchRuneInfoFromApi(collateralAsset.name)
-          : Promise.resolve(null),
+    useRuneInfo(collateralAsset?.isBTC ? null : collateralAsset?.name, {
       enabled: !!collateralAsset && !collateralAsset.isBTC,
-      staleTime: Infinity,
     });
 
-  const { data: collateralRuneMarketInfo } = useQuery<
-    OrdiscanRuneMarketInfo | null,
-    Error
-  >({
-    queryKey: [QUERY_KEYS.RUNE_MARKET, collateralAsset?.name],
-    queryFn: () =>
-      collateralAsset && !collateralAsset.isBTC
-        ? fetchRuneMarketFromApi(collateralAsset.name)
-        : Promise.resolve(null),
-    enabled: !!collateralAsset && !collateralAsset.isBTC,
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: collateralRuneMarketInfo } = useRuneMarketData(
+    collateralAsset?.isBTC ? null : collateralAsset?.name,
+    {
+      enabled: !!collateralAsset && !collateralAsset.isBTC,
+      staleTime: 5 * 60 * 1000,
+    },
+  );
 
   const {
     popularRunes,
@@ -233,11 +218,19 @@ export function BorrowTab({
           const balanceNum = parseFloat(rawBalance);
           if (isNaN(balanceNum)) return;
           const decimals = collateralRuneInfo?.decimals ?? 0;
-          const availableBalance = balanceNum / 10 ** decimals;
+          const availableBalance = calculateActualBalance(rawBalance, decimals);
           const newAmount =
             percentage === 1 ? availableBalance : availableBalance * percentage;
-          const formattedAmount =
-            Math.floor(newAmount * 10 ** decimals) / 10 ** decimals;
+          // Format with appropriate decimal places using Big.js for precision
+          const newAmountBig = new Big(newAmount);
+          const multiplier = new Big(10).pow(decimals);
+          const formattedAmount = parseFloat(
+            newAmountBig
+              .times(multiplier)
+              .round(0, Big.roundDown)
+              .div(multiplier)
+              .toFixed(),
+          );
           setCollateralAmount(formattedAmount.toString());
           resetQuotes();
           setSelectedQuoteId(null);

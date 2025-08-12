@@ -1,3 +1,4 @@
+import Big from 'big.js';
 import { useEffect, useState } from 'react';
 import {
   LiquidiumBorrowQuoteOffer,
@@ -9,6 +10,7 @@ import {
 import type { RuneData } from '@/lib/runesData';
 import { Asset } from '@/types/common';
 import { mapPopularToAsset } from '@/utils/popularRunes';
+import { formatRuneAmount } from '@/utils/runeFormatting';
 import { safeArrayAccess, safeArrayFirst } from '@/utils/typeGuards';
 
 interface UseBorrowQuotesArgs {
@@ -109,8 +111,12 @@ export function useBorrowQuotes({
         if (result.success && result.data) {
           const { minAmount, maxAmount } = result.data;
           const decimals = collateralRuneInfo?.decimals ?? 0;
-          const minFormatted = formatRuneAmount(minAmount, decimals);
-          const maxFormatted = formatRuneAmount(maxAmount, decimals);
+          const minFormatted = formatRuneAmount(minAmount, decimals, {
+            maxDecimals: 2,
+          });
+          const maxFormatted = formatRuneAmount(maxAmount, decimals, {
+            maxDecimals: 2,
+          });
           setMinMaxRange(`Min: ${minFormatted} - Max: ${maxFormatted}`);
           setBorrowRangeError(null);
         } else {
@@ -137,18 +143,6 @@ export function useBorrowQuotes({
     };
     fetchMinMaxRange();
   }, [collateralAsset, address, collateralRuneInfo]);
-
-  const formatRuneAmount = (rawAmount: string, decimals: number): string => {
-    try {
-      const rawAmountBigInt = BigInt(rawAmount);
-      const divisorBigInt = BigInt(10) ** BigInt(decimals);
-      const scaledAmount = (rawAmountBigInt * BigInt(100)) / divisorBigInt;
-      const scaledNumber = Number(scaledAmount) / 100;
-      return scaledNumber.toFixed(decimals > 0 ? 2 : 0);
-    } catch {
-      return (Number(rawAmount) / 10 ** decimals).toFixed(decimals > 0 ? 2 : 0);
-    }
-  };
 
   const resetQuotes = () => {
     setQuotes([]);
@@ -201,7 +195,13 @@ export function useBorrowQuotes({
           rawAmount = amountBigInt.toString();
         }
       } catch {
-        rawAmount = String(Math.floor(amountFloat * 10 ** decimals));
+        // Use Big.js for precise calculation
+        const amountBig = new Big(amountFloat);
+        const multiplier = new Big(10).pow(decimals);
+        rawAmount = amountBig
+          .times(multiplier)
+          .round(0, Big.roundDown)
+          .toFixed();
       }
 
       let runeIdForApi = collateralAsset.id;
@@ -231,10 +231,12 @@ export function useBorrowQuotes({
             const minFormatted = formatRuneAmount(
               globalMin.toString(),
               decimals,
+              { maxDecimals: 2 },
             );
             const maxFormatted = formatRuneAmount(
               globalMax.toString(),
               decimals,
+              { maxDecimals: 2 },
             );
             setMinMaxRange(`Min: ${minFormatted} - Max: ${maxFormatted}`);
           }

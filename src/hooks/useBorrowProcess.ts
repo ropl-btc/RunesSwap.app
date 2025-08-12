@@ -1,3 +1,4 @@
+import Big from 'big.js';
 import { useState } from 'react';
 import {
   LiquidiumPrepareBorrowResponse,
@@ -71,9 +72,13 @@ export function useBorrowProcess({
         const amountBigInt = amountInteger * scaleRest;
         rawTokenAmount = amountBigInt.toString();
       } catch {
-        rawTokenAmount = String(
-          Math.floor(parseFloat(collateralAmount) * 10 ** decimals),
-        );
+        // Use Big.js for precise calculation
+        const amountBig = new Big(collateralAmount);
+        const multiplier = new Big(10).pow(decimals);
+        rawTokenAmount = amountBig
+          .times(multiplier)
+          .round(0, Big.roundDown)
+          .toFixed();
       }
 
       const prepareResult: LiquidiumPrepareBorrowResponse =

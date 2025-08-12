@@ -7,7 +7,7 @@ const { cleanup } = require('@testing-library/react');
 // Configure React environment for concurrent features
 global.IS_REACT_ACT_ENVIRONMENT = true;
 
-// Add missing JSDOM globals for browser APIs
+// Add necessary polyfills for libraries that require them
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 global.TextEncoder = require('util').TextEncoder;
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -16,8 +16,8 @@ global.TextDecoder = require('util').TextDecoder;
 // Mock fetch for Node.js environment
 global.fetch = jest.fn();
 
-// Add Next.js Web API globals for API route testing
-// Only add these if they don't exist (to avoid conflicts with NextRequest)
+// Add Web API globals for API route testing
+// Only add these if they don't exist (to avoid conflicts with Next.js)
 if (typeof global.Request === 'undefined') {
   global.Request = class Request {
     constructor(input, init = {}) {
@@ -84,8 +84,6 @@ if (typeof global.Headers === 'undefined') {
 
 // Mock console.warn to reduce noise in tests
 global.console.warn = jest.fn();
-
-// Keep console.error intact; tests should properly await async updates
 
 // Setup cleanup after each test
 afterEach(() => {

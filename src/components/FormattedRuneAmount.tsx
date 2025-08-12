@@ -1,10 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import Big from 'big.js';
 import React from 'react';
-import { fetchRuneInfoFromApi } from '@/lib/api';
-import type { RuneData } from '@/lib/runesData';
+import { useRuneInfo } from '@/hooks/useRuneInfo';
+import { formatRuneAmount } from '@/utils/runeFormatting';
+import { LoadingRuneAmount } from './LoadingSpinner';
 
 interface FormattedRuneAmountProps {
   runeName: string | null | undefined;
@@ -19,20 +18,12 @@ export function FormattedRuneAmount({
     data: runeInfo,
     isLoading,
     error,
-  } = useQuery<RuneData | null, Error>({
-    // Update queryKey to reflect API usage
-    queryKey: ['runeInfoApi', (runeName || '').toUpperCase()],
-    // Use the new API client function
-    queryFn: () =>
-      runeName ? fetchRuneInfoFromApi(runeName) : Promise.resolve(null),
+  } = useRuneInfo(runeName, {
     enabled:
       !!runeName &&
       rawAmount !== 'N/A' &&
       rawAmount !== null &&
       rawAmount !== undefined, // Only run if we have a rune name and a valid raw amount
-    staleTime: Infinity, // Decimals rarely change, cache indefinitely
-    // Remove specific 404 retry logic, as API client returns null for 404 (treated as success by useQuery)
-    retry: 2, // Retry other network/server errors twice
   });
 
   if (rawAmount === 'N/A' || rawAmount === null || rawAmount === undefined) {
@@ -44,7 +35,7 @@ export function FormattedRuneAmount({
   }
 
   if (isLoading) {
-    return <span>{rawAmount} (Loading decimals...)</span>;
+    return <LoadingRuneAmount rawAmount={rawAmount} />;
   }
 
   if (error) {
@@ -59,41 +50,8 @@ export function FormattedRuneAmount({
 
   const decimals = runeInfo.decimals;
 
-  // Calculate and format with decimals using Big.js for precision
-  try {
-    // Use Big.js for precise decimal calculations
-    const rawAmountBig = new Big(rawAmount);
+  // Use the unified formatting utility
+  const formattedAmount = formatRuneAmount(rawAmount, decimals);
 
-    if (decimals === 0) {
-      // No decimal places needed, just format for display
-      return <span>{rawAmountBig.toFixed(0)}</span>;
-    }
-
-    // Create divisor using Big.js to maintain precision
-    const divisor = new Big(10).pow(decimals);
-
-    // Perform precise division
-    const formattedAmountBig = rawAmountBig.div(divisor);
-
-    // Format with appropriate decimal places, removing trailing zeros
-    const formattedString = formattedAmountBig.toFixed();
-
-    // Convert to number for toLocaleString formatting if safe
-    const formattedNumber = parseFloat(formattedString);
-
-    if (isNaN(formattedNumber)) {
-      throw new Error('Calculated amount is NaN');
-    }
-
-    // Format the number with appropriate decimal places
-    return (
-      <span>
-        {formattedNumber.toLocaleString(undefined, {
-          maximumFractionDigits: decimals,
-        })}
-      </span>
-    );
-  } catch {
-    return <span>{rawAmount} (Formatting Error)</span>; // Fallback
-  }
+  return <span>{formattedAmount}</span>;
 }
