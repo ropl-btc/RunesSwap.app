@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchRuneMarketFromApi } from '@/lib/api';
-import type { RuneMarketData } from '@/types/common';
+import type { RuneMarketInfo as OrdiscanRuneMarketInfo } from '@/types/ordiscan';
 
 interface UseRuneMarketDataOptions {
   /**
@@ -36,7 +36,7 @@ export function useRuneMarketData(
     retry = 3,
   } = options;
 
-  return useQuery<RuneMarketData | null, Error>({
+  return useQuery<OrdiscanRuneMarketInfo | null, Error>({
     queryKey: ['runeMarketApi', (runeName || '').toUpperCase()],
     queryFn: () =>
       runeName ? fetchRuneMarketFromApi(runeName) : Promise.resolve(null),
