@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { get, post } from '@/lib/fetchWrapper';
+import { logFetchError } from '@/lib/logger';
 import { LiquidiumLoanOffer } from '@/types/liquidium';
 
 interface Args {
@@ -27,18 +29,23 @@ export function useLiquidiumAuth({
     setIsLoadingLiquidium(true);
     setLiquidiumError(null);
     try {
-      const res = await fetch(
+      const { data } = await get<{
+        success: boolean;
+        data: { loans: LiquidiumLoanOffer[] };
+      }>(
         `/api/liquidium/portfolio?address=${encodeURIComponent(address || '')}`,
       );
-      const data = await res.json();
-      if (!res.ok) {
-        setLiquidiumError(data?.error || 'Failed to fetch loans');
+
+      if (!data.success) {
+        setLiquidiumError('Failed to fetch loans');
         setLoans([]);
         return;
       }
+
       const apiLoans = (data.data?.loans as LiquidiumLoanOffer[]) ?? [];
       setLoans(apiLoans);
     } catch (err: unknown) {
+      logFetchError(`/api/liquidium/portfolio?address=${address}`, err);
       if (err instanceof Error) {
         setLiquidiumError(err.message || 'Unknown error');
         setLoans([]);
@@ -65,44 +72,48 @@ export function useLiquidiumAuth({
         setIsAuthenticating(false);
         return;
       }
-      const challengeRes = await fetch(
+      const { data: challengeData } = await get<{
+        success: boolean;
+        data: { ordinals: { message: string }; payment?: { message: string } };
+      }>(
         `/api/liquidium/challenge?ordinalsAddress=${encodeURIComponent(
           address,
         )}&paymentAddress=${encodeURIComponent(paymentAddress)}`,
       );
-      const challengeData = await challengeRes.json();
-      if (!challengeRes.ok) {
-        setAuthError(challengeData?.error || 'Failed to get challenge');
+
+      if (!challengeData.success) {
+        setAuthError('Failed to get challenge');
         setIsAuthenticating(false);
         return;
       }
+
       const { ordinals, payment } = challengeData.data;
       const ordinalsSignature = await signMessage(ordinals.message, address);
       let paymentSignature: string | undefined;
       if (payment) {
         paymentSignature = await signMessage(payment.message, paymentAddress);
       }
-      const authRes = await fetch('/api/liquidium/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { data: authData } = await post<{ success: boolean }>(
+        '/api/liquidium/auth',
+        {
           ordinalsAddress: address,
           paymentAddress,
           ordinalsSignature,
           paymentSignature,
           ordinalsNonce: ordinals.nonce,
           paymentNonce: payment?.nonce,
-        }),
-      });
-      const authData = await authRes.json();
-      if (!authRes.ok) {
-        setAuthError(authData?.error || 'Authentication failed');
+        },
+      );
+
+      if (!authData.success) {
+        setAuthError('Authentication failed');
         setIsAuthenticating(false);
         return;
       }
       setLiquidiumAuthenticated(true);
       fetchLiquidiumLoans();
     } catch (err: unknown) {
+      logFetchError('/api/liquidium/auth', err);
       setAuthError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setIsAuthenticating(false);
@@ -114,24 +125,35 @@ export function useLiquidiumAuth({
     const checkAuth = async () => {
       setIsCheckingAuth(true);
       try {
-        const res = await fetch(
-          `/api/liquidium/portfolio?address=${encodeURIComponent(address)}`,
-        );
-        if (res.status === 200) {
+        const { data, status } = await get<{
+          success: boolean;
+          data: { loans: LiquidiumLoanOffer[] };
+        }>(`/api/liquidium/portfolio?address=${encodeURIComponent(address)}`);
+
+        if (status === 200 && data.success) {
           setLiquidiumAuthenticated(true);
-          const data = await res.json();
           const apiLoans = (data.data?.loans as LiquidiumLoanOffer[]) ?? [];
           setLoans(apiLoans);
-        } else if (res.status === 401) {
+        } else if (status === 401) {
           setLiquidiumAuthenticated(false);
           setLoans([]);
         } else {
           setLiquidiumAuthenticated(false);
           setLoans([]);
         }
-      } catch {
-        setLiquidiumAuthenticated(false);
-        setLoans([]);
+      } catch (err: unknown) {
+        if (
+          err instanceof Error &&
+          'status' in err &&
+          (err as { status: number }).status === 401
+        ) {
+          setLiquidiumAuthenticated(false);
+          setLoans([]);
+        } else {
+          logFetchError(`/api/liquidium/portfolio?address=${address}`, err);
+          setLiquidiumAuthenticated(false);
+          setLoans([]);
+        }
       } finally {
         setIsCheckingAuth(false);
       }

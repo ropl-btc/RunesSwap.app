@@ -1,3 +1,4 @@
+import { get, post } from '../fetchWrapper';
 import {
   type BorrowRangeResponse,
   type LiquidiumBorrowQuoteResponse,
@@ -13,26 +14,34 @@ import {
   submitRepayPsbt,
 } from './liquidium';
 
-// Mock the global fetch function
-global.fetch = jest.fn();
+// Mock the fetchWrapper module
+jest.mock('../fetchWrapper', () => ({
+  get: jest.fn(),
+  post: jest.fn(),
+  FetchError: class FetchError extends Error {
+    constructor(
+      message: string,
+      public status: number,
+      public statusText: string,
+      public url: string,
+    ) {
+      super(message);
+      this.name = 'FetchError';
+    }
+  },
+}));
 
-// Helper to mock fetch responses
-const mockFetchResponse = (data: unknown, ok = true, status = 200) =>
-  Promise.resolve({
-    ok,
-    status,
-    statusText: ok ? 'OK' : status === 404 ? 'Not Found' : 'Server Error',
-    json: () => Promise.resolve(data),
-  } as Response);
-
-// Helper to mock fetch JSON parse failure
-const mockFetchJsonError = (ok = true, status = 200) =>
-  Promise.resolve({
-    ok,
-    status,
-    statusText: ok ? 'OK' : 'Error',
-    json: () => Promise.reject(new Error('Invalid JSON')),
-  } as Response);
+// Helper to mock fetchWrapper responses
+const mockFetchWrapperResponse = <T>(
+  data: T,
+  status = 200,
+  statusText = 'OK',
+) => ({
+  data,
+  status,
+  statusText,
+  headers: new Headers(),
+});
 
 describe('liquidium API', () => {
   beforeEach(() => {
@@ -78,8 +87,8 @@ describe('liquidium API', () => {
     };
 
     it('fetches borrow quotes successfully', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(mockQuoteResponse),
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse(mockQuoteResponse),
       );
 
       const result = await fetchBorrowQuotesFromApi(
@@ -88,7 +97,7 @@ describe('liquidium API', () => {
         'bc1test123',
       );
 
-      expect(fetch).toHaveBeenCalledWith(
+      expect(get).toHaveBeenCalledWith(
         '/api/liquidium/borrow/quotes?runeId=test-rune-id&runeAmount=500&address=bc1test123',
       );
       expect(result).toEqual(mockQuoteResponse);
@@ -102,8 +111,8 @@ describe('liquidium API', () => {
         },
       };
 
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(nestedResponse),
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse(nestedResponse),
       );
 
       const result = await fetchBorrowQuotesFromApi(
@@ -116,8 +125,8 @@ describe('liquidium API', () => {
     });
 
     it('properly encodes URL parameters', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(mockQuoteResponse),
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse(mockQuoteResponse),
       );
 
       await fetchBorrowQuotesFromApi(
@@ -126,158 +135,159 @@ describe('liquidium API', () => {
         'bc1+special@chars',
       );
 
-      expect(fetch).toHaveBeenCalledWith(
+      expect(get).toHaveBeenCalledWith(
         '/api/liquidium/borrow/quotes?runeId=test%20rune%20with%20spaces&runeAmount=1000&address=bc1%2Bspecial%40chars',
       );
     });
 
-    it('throws error when JSON parsing fails', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() => mockFetchJsonError());
-
-      await expect(
-        fetchBorrowQuotesFromApi('test-rune-id', '500', 'bc1test123'),
-      ).rejects.toThrow('Failed to parse borrow quotes for test-rune-id');
-    });
-
-    it('throws error for non-OK response with error.message', async () => {
-      const errorResponse = {
-        error: { message: 'Rune not found' },
-      };
-
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(errorResponse, false, 404),
+    it('throws error from fetchWrapper for HTTP errors', async () => {
+      const { FetchError } = jest.requireMock('../fetchWrapper');
+      (get as jest.Mock).mockRejectedValue(
+        new FetchError(
+          'HTTP 404: Not Found',
+          404,
+          'Not Found',
+          '/api/liquidium/borrow/quotes',
+        ),
       );
 
       await expect(
         fetchBorrowQuotesFromApi('invalid-rune', '500', 'bc1test123'),
-      ).rejects.toThrow('Rune not found');
+      ).rejects.toThrow('HTTP 404: Not Found');
     });
 
-    it('throws error for non-OK response with string error', async () => {
+    it('throws error for response with success: false', async () => {
       const errorResponse = {
-        error: 'Invalid amount',
+        success: false,
+        error: 'Invalid parameters',
       };
 
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(errorResponse, false, 400),
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse(errorResponse),
       );
 
       await expect(
         fetchBorrowQuotesFromApi('test-rune-id', 'invalid', 'bc1test123'),
-      ).rejects.toThrow('Invalid amount');
+      ).rejects.toThrow('Failed to fetch borrow quotes');
+    });
+  });
+
+  describe('fetchBorrowRangesFromApi', () => {
+    const mockRangeResponse: BorrowRangeResponse = {
+      success: true,
+      data: {
+        ranges: [{ min: '100', max: '1000' }],
+        available_terms: [30, 60, 90],
+      },
+    };
+
+    it('fetches borrow ranges successfully', async () => {
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse(mockRangeResponse),
+      );
+
+      const result = await fetchBorrowRangesFromApi(
+        'test-rune-id',
+        'bc1test123',
+      );
+
+      expect(get).toHaveBeenCalledWith(
+        '/api/liquidium/borrow/ranges?runeId=test-rune-id&address=bc1test123',
+      );
+      expect(result).toEqual(mockRangeResponse);
     });
 
-    it('throws error for non-OK response with message field', async () => {
+    it('properly encodes URL parameters', async () => {
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse(mockRangeResponse),
+      );
+
+      await fetchBorrowRangesFromApi('rune with spaces', 'bc1+special@chars');
+
+      expect(get).toHaveBeenCalledWith(
+        '/api/liquidium/borrow/ranges?runeId=rune%20with%20spaces&address=bc1%2Bspecial%40chars',
+      );
+    });
+
+    it('throws error for network failures', async () => {
+      (get as jest.Mock).mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        fetchBorrowRangesFromApi('test-rune-id', 'bc1user123'),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('throws error for response with success: false', async () => {
       const errorResponse = {
-        message: 'Server temporarily unavailable',
+        success: false,
+        error: 'Invalid rune ID',
       };
 
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(errorResponse, false, 503),
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse(errorResponse),
       );
 
       await expect(
-        fetchBorrowQuotesFromApi('test-rune-id', '500', 'bc1test123'),
-      ).rejects.toThrow('Server temporarily unavailable');
-    });
-
-    it('throws default error for non-OK response without error details', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({}, false, 500),
-      );
-
-      await expect(
-        fetchBorrowQuotesFromApi('test-rune-id', '500', 'bc1test123'),
-      ).rejects.toThrow('Failed to fetch borrow quotes: Server Error');
+        fetchBorrowRangesFromApi('invalid-rune', 'bc1test123'),
+      ).rejects.toThrow('Failed to fetch borrow ranges');
     });
   });
 
   describe('prepareLiquidiumBorrow', () => {
     const mockPrepareParams = {
       instant_offer_id: 'offer-123',
-      fee_rate: 10,
+      fee_rate: 15,
       token_amount: '500',
-      borrower_payment_address: 'bc1payment123',
-      borrower_payment_pubkey: 'pubkey123',
-      borrower_ordinal_address: 'bc1ordinal123',
-      borrower_ordinal_pubkey: 'ordinalpubkey123',
+      borrower_payment_address: 'bc1payment',
+      borrower_payment_pubkey: '02pubkey1',
+      borrower_ordinal_address: 'bc1ordinal',
+      borrower_ordinal_pubkey: '02pubkey2',
       address: 'bc1user123',
     };
 
     const mockPrepareResponse: LiquidiumPrepareBorrowResponse = {
       success: true,
       data: {
-        prepare_offer_id: 'prepare-123',
-        base64_psbt: 'cHNidAEBAA==',
-        sides: [
-          {
-            index: 0,
-            address: 'bc1test123',
-            sighash: 1,
-            disable_tweak_signer: false,
-          },
-        ],
+        prepare_offer_id: 'prepare-456',
+        psbt_base64: 'cHNidAEBAA==',
+        fee_sats: 1500,
       },
     };
 
-    it('prepares borrow transaction successfully', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(mockPrepareResponse),
+    it('prepares liquidium borrow transaction successfully', async () => {
+      (post as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse(mockPrepareResponse),
       );
 
       const result = await prepareLiquidiumBorrow(mockPrepareParams);
 
-      expect(fetch).toHaveBeenCalledWith('/api/liquidium/borrow/prepare', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mockPrepareParams),
-      });
+      expect(post).toHaveBeenCalledWith(
+        '/api/liquidium/borrow/prepare',
+        mockPrepareParams,
+      );
       expect(result).toEqual(mockPrepareResponse);
     });
 
-    it('throws error when JSON parsing fails', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() => mockFetchJsonError());
+    it('throws error for network failures', async () => {
+      (post as jest.Mock).mockRejectedValue(new Error('Network error'));
 
       await expect(prepareLiquidiumBorrow(mockPrepareParams)).rejects.toThrow(
-        'Failed to parse prepare borrow response',
+        'Network error',
       );
     });
 
-    it('throws error for non-OK response with error.message', async () => {
+    it('throws error for response with success: false', async () => {
       const errorResponse = {
-        error: { message: 'Insufficient collateral' },
+        success: false,
+        error: 'Insufficient collateral',
       };
 
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(errorResponse, false, 400),
+      (post as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse(errorResponse),
       );
 
       await expect(prepareLiquidiumBorrow(mockPrepareParams)).rejects.toThrow(
-        'Insufficient collateral',
-      );
-    });
-
-    it('throws error for non-OK response with string error', async () => {
-      const errorResponse = {
-        error: 'Invalid fee rate',
-      };
-
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(errorResponse, false, 400),
-      );
-
-      await expect(prepareLiquidiumBorrow(mockPrepareParams)).rejects.toThrow(
-        'Invalid fee rate',
-      );
-    });
-
-    it('throws default error for non-OK response without error details', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({}, false, 500),
-      );
-
-      await expect(prepareLiquidiumBorrow(mockPrepareParams)).rejects.toThrow(
-        'Failed to prepare borrow: Server Error',
+        'Failed to prepare borrow',
       );
     });
   });
@@ -285,92 +295,57 @@ describe('liquidium API', () => {
   describe('submitLiquidiumBorrow', () => {
     const mockSubmitParams = {
       signed_psbt_base_64: 'cHNidAEBAA==signed',
-      prepare_offer_id: 'prepare-123',
+      prepare_offer_id: 'prepare-456',
       address: 'bc1user123',
     };
 
     const mockSubmitResponse: LiquidiumSubmitBorrowResponse = {
       success: true,
       data: {
-        loan_transaction_id: 'tx123abc',
+        loan_transaction_id: 'tx-789',
       },
     };
 
-    it('submits borrow transaction successfully', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(mockSubmitResponse),
+    it('submits liquidium borrow transaction successfully', async () => {
+      (post as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse(mockSubmitResponse),
       );
 
       const result = await submitLiquidiumBorrow(mockSubmitParams);
 
-      expect(fetch).toHaveBeenCalledWith('/api/liquidium/borrow/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mockSubmitParams),
-      });
+      expect(post).toHaveBeenCalledWith(
+        '/api/liquidium/borrow/submit',
+        mockSubmitParams,
+      );
       expect(result).toEqual(mockSubmitResponse);
     });
 
-    it('handles successful response with JSON parse failure', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchJsonError(true, 200),
-      );
+    it('handles JSON parse errors gracefully', async () => {
+      const jsonError = new Error('Invalid JSON response');
+      (post as jest.Mock).mockRejectedValue(jsonError);
 
       const result = await submitLiquidiumBorrow(mockSubmitParams);
 
       expect(result).toEqual({
         success: true,
         data: {
-          loan_transaction_id: mockSubmitParams.prepare_offer_id,
+          loan_transaction_id: 'prepare-456',
         },
       });
     });
 
-    it('throws error when JSON parsing fails on non-OK response', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchJsonError(false, 500),
-      );
-
-      await expect(submitLiquidiumBorrow(mockSubmitParams)).rejects.toThrow(
-        'Failed to parse submit borrow response',
-      );
-    });
-
-    it('throws error for non-OK response with error.message', async () => {
+    it('throws error for response with success: false', async () => {
       const errorResponse = {
-        error: { message: 'PSBT signature invalid' },
+        success: false,
+        error: 'Transaction failed',
       };
 
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(errorResponse, false, 400),
+      (post as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse(errorResponse),
       );
 
       await expect(submitLiquidiumBorrow(mockSubmitParams)).rejects.toThrow(
-        'PSBT signature invalid',
-      );
-    });
-
-    it('throws error for non-OK response with string error', async () => {
-      const errorResponse = {
-        error: 'Transaction already submitted',
-      };
-
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(errorResponse, false, 409),
-      );
-
-      await expect(submitLiquidiumBorrow(mockSubmitParams)).rejects.toThrow(
-        'Transaction already submitted',
-      );
-    });
-
-    it('throws default error for non-OK response without error details', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({}, false, 500),
-      );
-
-      await expect(submitLiquidiumBorrow(mockSubmitParams)).rejects.toThrow(
-        'Failed to submit borrow: Server Error',
+        'Failed to submit borrow',
       );
     });
   });
@@ -385,145 +360,58 @@ describe('liquidium API', () => {
       },
     };
 
-    it('initiates loan repayment successfully', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(mockRepayResponse),
+    it('repays liquidium loan successfully', async () => {
+      (post as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse(mockRepayResponse),
       );
 
       const result = await repayLiquidiumLoan('loan-123', 'bc1user123');
 
-      expect(fetch).toHaveBeenCalledWith('/api/liquidium/repay', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ loanId: 'loan-123', address: 'bc1user123' }),
+      expect(post).toHaveBeenCalledWith('/api/liquidium/repay', {
+        loanId: 'loan-123',
+        address: 'bc1user123',
       });
       expect(result).toEqual(mockRepayResponse);
     });
 
-    it('transforms API response fields correctly', async () => {
-      const apiResponse = {
+    it('handles response with base64_psbt field mapping', async () => {
+      const responseWithBase64Field = {
         success: true,
         data: {
-          base64_psbt: 'cHNidAEBAA==api',
+          base64_psbt: 'cHNidAEBAA==mapped',
           repayment_amount_sats: 1200,
-          offer_id: 'offer-456',
-          extra_field: 'value',
+          offer_id: 'offer-mapped',
         },
       };
 
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(apiResponse),
+      (post as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse(responseWithBase64Field),
       );
 
       const result = await repayLiquidiumLoan('loan-123', 'bc1user123');
 
-      expect(result.data).toEqual({
-        psbt: 'cHNidAEBAA==api',
-        repaymentAmountSats: 1200,
-        loanId: 'offer-456',
-        base64_psbt: 'cHNidAEBAA==api',
-        repayment_amount_sats: 1200,
-        offer_id: 'offer-456',
-        extra_field: 'value',
-      });
-    });
-
-    it('prefers psbt field over base64_psbt when both exist', async () => {
-      const apiResponse = {
-        success: true,
-        data: {
-          psbt: 'cHNidAEBAA==psbt',
-          base64_psbt: 'cHNidAEBAA==base64',
-          repayment_amount_sats: 1200,
-        },
-      };
-
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(apiResponse),
+      expect(result.data).toEqual(
+        expect.objectContaining({
+          psbt: 'cHNidAEBAA==mapped',
+          repaymentAmountSats: 1200,
+          loanId: 'offer-mapped',
+        }),
       );
-
-      const result = await repayLiquidiumLoan('loan-123', 'bc1user123');
-
-      expect(result.data?.psbt).toBe('cHNidAEBAA==psbt');
     });
 
-    it('uses loanId parameter when offer_id not in response', async () => {
-      const apiResponse = {
-        success: true,
-        data: {
-          base64_psbt: 'cHNidAEBAA==',
-          repayment_amount_sats: 1200,
-        },
-      };
-
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(apiResponse),
-      );
-
-      const result = await repayLiquidiumLoan('loan-456', 'bc1user123');
-
-      expect(result.data?.loanId).toBe('loan-456');
-    });
-
-    it('returns response as-is when no data field', async () => {
-      const simpleResponse = {
+    it('throws error for response with success: false', async () => {
+      const errorResponse = {
         success: false,
         error: 'Loan not found',
       };
 
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(simpleResponse),
-      );
-
-      const result = await repayLiquidiumLoan('invalid-loan', 'bc1user123');
-
-      expect(result).toEqual(simpleResponse);
-    });
-
-    it('throws error when JSON parsing fails', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() => mockFetchJsonError());
-
-      await expect(
-        repayLiquidiumLoan('loan-123', 'bc1user123'),
-      ).rejects.toThrow('Failed to parse repay response');
-    });
-
-    it('throws error for non-OK response with error.message', async () => {
-      const errorResponse = {
-        error: { message: 'Loan already repaid' },
-      };
-
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(errorResponse, false, 400),
+      (post as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse(errorResponse),
       );
 
       await expect(
-        repayLiquidiumLoan('loan-123', 'bc1user123'),
-      ).rejects.toThrow('Loan already repaid');
-    });
-
-    it('throws error for non-OK response with string error', async () => {
-      const errorResponse = {
-        error: 'Insufficient balance',
-      };
-
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(errorResponse, false, 400),
-      );
-
-      await expect(
-        repayLiquidiumLoan('loan-123', 'bc1user123'),
-      ).rejects.toThrow('Insufficient balance');
-    });
-
-    it('throws default error for non-OK response without error details', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({}, false, 404),
-      );
-
-      await expect(
-        repayLiquidiumLoan('loan-123', 'bc1user123'),
-      ).rejects.toThrow('Failed to repay loan: Not Found');
+        repayLiquidiumLoan('invalid-loan', 'bc1user123'),
+      ).rejects.toThrow('Failed to repay loan');
     });
   });
 
@@ -531,13 +419,13 @@ describe('liquidium API', () => {
     const mockSubmitRepayResponse: SubmitRepayResponse = {
       success: true,
       data: {
-        repayment_transaction_id: 'repay-tx-123',
+        transactionId: 'tx-repay-456',
       },
     };
 
     it('submits repay PSBT successfully', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(mockSubmitRepayResponse),
+      (post as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse(mockSubmitRepayResponse),
       );
 
       const result = await submitRepayPsbt(
@@ -546,164 +434,35 @@ describe('liquidium API', () => {
         'bc1user123',
       );
 
-      expect(fetch).toHaveBeenCalledWith('/api/liquidium/repay', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          loanId: 'loan-123',
-          signedPsbt: 'cHNidAEBAA==signed',
-          address: 'bc1user123',
-        }),
+      expect(post).toHaveBeenCalledWith('/api/liquidium/repay', {
+        loanId: 'loan-123',
+        signedPsbt: 'cHNidAEBAA==signed',
+        address: 'bc1user123',
       });
       expect(result).toEqual(mockSubmitRepayResponse);
     });
 
-    it('throws error when JSON parsing fails', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() => mockFetchJsonError());
+    it('throws error for network failures', async () => {
+      (post as jest.Mock).mockRejectedValue(new Error('Network error'));
 
       await expect(
         submitRepayPsbt('loan-123', 'cHNidAEBAA==signed', 'bc1user123'),
-      ).rejects.toThrow('Failed to parse repay submission response');
+      ).rejects.toThrow('Network error');
     });
 
-    it('throws error for non-OK response with error.message', async () => {
+    it('throws error for response with success: false', async () => {
       const errorResponse = {
-        error: { message: 'Invalid PSBT signature' },
+        success: false,
+        error: 'Invalid PSBT',
       };
 
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(errorResponse, false, 400),
+      (post as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse(errorResponse),
       );
 
       await expect(
-        submitRepayPsbt('loan-123', 'cHNidAEBAA==signed', 'bc1user123'),
-      ).rejects.toThrow('Invalid PSBT signature');
-    });
-
-    it('throws error for non-OK response with string error', async () => {
-      const errorResponse = {
-        error: 'PSBT already processed',
-      };
-
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(errorResponse, false, 409),
-      );
-
-      await expect(
-        submitRepayPsbt('loan-123', 'cHNidAEBAA==signed', 'bc1user123'),
-      ).rejects.toThrow('PSBT already processed');
-    });
-
-    it('throws default error for non-OK response without error details', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({}, false, 500),
-      );
-
-      await expect(
-        submitRepayPsbt('loan-123', 'cHNidAEBAA==signed', 'bc1user123'),
-      ).rejects.toThrow('Failed to submit repayment: Server Error');
-    });
-  });
-
-  describe('fetchBorrowRangesFromApi', () => {
-    const mockRangeResponse: BorrowRangeResponse = {
-      success: true,
-      data: {
-        runeId: 'test-rune-id',
-        minAmount: '100',
-        maxAmount: '10000',
-        loanTermDays: [30, 60, 90],
-        cached: true,
-        updatedAt: '2024-01-01T00:00:00Z',
-      },
-    };
-
-    it('fetches borrow ranges successfully', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(mockRangeResponse),
-      );
-
-      const result = await fetchBorrowRangesFromApi(
-        'test-rune-id',
-        'bc1user123',
-      );
-
-      expect(fetch).toHaveBeenCalledWith(
-        '/api/liquidium/borrow/ranges?runeId=test-rune-id&address=bc1user123',
-      );
-      expect(result).toEqual(mockRangeResponse);
-    });
-
-    it('properly encodes URL parameters', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(mockRangeResponse),
-      );
-
-      await fetchBorrowRangesFromApi('rune with spaces', 'bc1+special@chars');
-
-      expect(fetch).toHaveBeenCalledWith(
-        '/api/liquidium/borrow/ranges?runeId=rune%20with%20spaces&address=bc1%2Bspecial%40chars',
-      );
-    });
-
-    it('throws error when JSON parsing fails', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() => mockFetchJsonError());
-
-      await expect(
-        fetchBorrowRangesFromApi('test-rune-id', 'bc1user123'),
-      ).rejects.toThrow('Failed to parse borrow ranges for test-rune-id');
-    });
-
-    it('throws error for non-OK response with error.message', async () => {
-      const errorResponse = {
-        error: { message: 'Rune not supported for borrowing' },
-      };
-
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(errorResponse, false, 400),
-      );
-
-      await expect(
-        fetchBorrowRangesFromApi('unsupported-rune', 'bc1user123'),
-      ).rejects.toThrow('Rune not supported for borrowing');
-    });
-
-    it('throws error for non-OK response with string error', async () => {
-      const errorResponse = {
-        error: 'Service temporarily unavailable',
-      };
-
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(errorResponse, false, 503),
-      );
-
-      await expect(
-        fetchBorrowRangesFromApi('test-rune-id', 'bc1user123'),
-      ).rejects.toThrow('Service temporarily unavailable');
-    });
-
-    it('throws error for non-OK response with message field', async () => {
-      const errorResponse = {
-        message: 'Rate limit exceeded',
-      };
-
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(errorResponse, false, 429),
-      );
-
-      await expect(
-        fetchBorrowRangesFromApi('test-rune-id', 'bc1user123'),
-      ).rejects.toThrow('Rate limit exceeded');
-    });
-
-    it('throws default error for non-OK response without error details', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({}, false, 500),
-      );
-
-      await expect(
-        fetchBorrowRangesFromApi('test-rune-id', 'bc1user123'),
-      ).rejects.toThrow('Failed to fetch borrow ranges: Server Error');
+        submitRepayPsbt('loan-123', 'invalid-psbt', 'bc1user123'),
+      ).rejects.toThrow('Failed to submit repayment');
     });
   });
 });

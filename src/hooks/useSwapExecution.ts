@@ -16,6 +16,7 @@ import {
   fetchRecommendedFeeRates,
   getPsbtFromApi,
 } from '@/lib/api';
+import { logger } from '@/lib/logger';
 import { Asset } from '@/types/common';
 import { patchOrder } from '@/utils/orderUtils';
 
@@ -362,7 +363,14 @@ export default function useSwapExecution({
           return;
         } catch (retryError) {
           // If the retry also fails, show a more specific error
-          console.error('Transaction failed even with higher fee rate');
+          logger.error(
+            'API Error in retryTransaction',
+            {
+              operation: 'retryTransaction',
+              error: 'Transaction failed even with higher fee rate',
+            },
+            'API',
+          );
           const retryErrorMessage =
             retryError instanceof Error
               ? retryError.message

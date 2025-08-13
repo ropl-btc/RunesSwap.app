@@ -188,6 +188,7 @@ export interface BorrowRangeResponse {
     loanTermDays?: number[];
     cached: boolean;
     updatedAt: string;
+    noOffersAvailable?: boolean;
   };
   error?: string;
 }

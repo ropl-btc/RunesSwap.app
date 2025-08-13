@@ -35,13 +35,11 @@ describe('/api/portfolio-data', () => {
   const mockRuneBalances = [
     {
       name: 'UNCOMMON•GOODS',
-      amount: '1000000',
-      decimals: 0,
+      balance: '1000000',
     },
     {
       name: 'RSIC•METAPROTOCOL',
-      amount: '500000',
-      decimals: 2,
+      balance: '500000',
     },
   ];
 
@@ -269,7 +267,7 @@ describe('/api/portfolio-data', () => {
     };
 
     setupMocks(
-      [{ name: 'MISSING•RUNE', amount: '1000', decimals: 0 }], // balances
+      [{ name: 'MISSING•RUNE', balance: '1000' }], // balances
       [], // empty rune infos from DB
       null, // no rune info error
       [], // empty market data from DB
@@ -303,7 +301,7 @@ describe('/api/portfolio-data', () => {
     };
 
     setupMocks(
-      [{ name: 'MISSING•MARKET', amount: '1000', decimals: 0 }], // balances
+      [{ name: 'MISSING•MARKET', balance: '1000' }], // balances
       [
         {
           name: 'MISSING•MARKET',
@@ -415,7 +413,7 @@ describe('/api/portfolio-data', () => {
 
   it('should handle missing external API data gracefully', async () => {
     setupMocks(
-      [{ name: 'UNKNOWN•RUNE', amount: '1000', decimals: 0 }], // balances
+      [{ name: 'UNKNOWN•RUNE', balance: '1000' }], // balances
       [], // empty rune infos from DB
       null, // no rune info error
       [], // empty market data from DB
@@ -437,7 +435,7 @@ describe('/api/portfolio-data', () => {
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
     expect(data.data.balances).toEqual([
-      { name: 'UNKNOWN•RUNE', amount: '1000', decimals: 0 },
+      { name: 'UNKNOWN•RUNE', balance: '1000' },
     ]);
     expect(data.data.runeInfos).toEqual({});
     expect(data.data.marketData).toEqual({});

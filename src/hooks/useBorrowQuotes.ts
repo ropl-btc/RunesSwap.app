@@ -109,7 +109,17 @@ export function useBorrowQuotes({
         }
         const result = await fetchBorrowRangesFromApi(runeIdForApi, address);
         if (result.success && result.data) {
-          const { minAmount, maxAmount } = result.data;
+          const { minAmount, maxAmount, noOffersAvailable } = result.data;
+
+          // Check if no offers are available for this rune
+          if (noOffersAvailable || (minAmount === '0' && maxAmount === '0')) {
+            setMinMaxRange(null);
+            setBorrowRangeError(
+              'There are currently no available loan offers for this Rune on Liquidium.',
+            );
+            return;
+          }
+
           const decimals = collateralRuneInfo?.decimals ?? 0;
           const minFormatted = formatRuneAmount(minAmount, decimals, {
             maxDecimals: 2,
@@ -131,7 +141,9 @@ export function useBorrowQuotes({
           errorMessage.includes('No valid ranges found') ||
           errorMessage.includes(
             'Could not find valid borrow ranges for this rune',
-          )
+          ) ||
+          errorMessage.includes('Not Found') ||
+          errorMessage.includes('does not exist')
         ) {
           setBorrowRangeError(
             'This rune is not currently available for borrowing on Liquidium.',

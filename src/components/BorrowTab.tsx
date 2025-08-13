@@ -23,6 +23,7 @@ import Button from './Button';
 import CollateralInput from './CollateralInput';
 import FeeSelector from './FeeSelector';
 import { FormattedRuneAmount } from './FormattedRuneAmount';
+import { LoadingState } from './LoadingState';
 
 interface BorrowTabProps {
   connected: boolean;
@@ -167,7 +168,7 @@ export function BorrowTab({
   const availableBalanceDisplay =
     connected && collateralAsset && !collateralAsset.isBTC ? (
       isRuneBalancesLoading || isCollateralRuneInfoLoading ? (
-        'Loading...'
+        <LoadingState message="Loading balance..." />
       ) : (
         <FormattedRuneAmount
           runeName={collateralAsset.name}

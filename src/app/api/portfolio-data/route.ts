@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import { z } from 'zod';
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -8,16 +7,23 @@ import {
 } from '@/lib/apiUtils';
 import { RuneData } from '@/lib/runesData';
 import { getOrdiscanClient } from '@/lib/serverUtils';
-import { supabase } from '@/lib/supabase';
+import {
+  batchFetchRuneMarketData,
+  batchFetchRunes,
+} from '@/lib/supabaseQueries';
+import { requestSchemas } from '@/lib/validationSchemas';
 import { RuneBalance, RuneMarketInfo } from '@/types/ordiscan';
 
 export async function GET(request: NextRequest) {
   // const { searchParams } = new URL(request.url);
   // const address = searchParams.get('address');
 
-  // Zod validation for 'address'
-  const schema = z.object({ address: z.string().min(1) });
-  const validation = await validateRequest(request, schema, 'query');
+  // Use centralized validation schema
+  const validation = await validateRequest(
+    request,
+    requestSchemas.addressRequest,
+    'query',
+  );
   if (!validation.success) {
     return validation.errorResponse;
   }
@@ -47,38 +53,11 @@ export async function GET(request: NextRequest) {
     // Extract all rune names
     const runeNames = validBalances.map((balance) => balance.name);
 
-    // Fetch rune info and market data in parallel from Supabase
-    const [runeInfoResult, marketDataResult] = await Promise.all([
-      // Batch fetch rune info from Supabase
-      supabase.from('runes').select('*').in('name', runeNames),
-
-      // Batch fetch market data from Supabase
-      supabase
-        .from('rune_market_data')
-        .select('*')
-        .in('rune_name', runeNames)
-        .gt(
-          'last_updated_at',
-          new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-        ),
+    // Fetch rune info and market data in parallel using centralized utilities
+    const [runeInfos, marketData] = await Promise.all([
+      batchFetchRunes(runeNames),
+      batchFetchRuneMarketData(runeNames),
     ]);
-
-    const runeInfos = runeInfoResult.data;
-    const runeInfoError = runeInfoResult.error;
-    const marketData = marketDataResult.data;
-    const marketError = marketDataResult.error;
-
-    if (runeInfoError) {
-      if (process.env.NODE_ENV !== 'test') {
-        console.error('Error fetching rune infos:', runeInfoError);
-      }
-    }
-
-    if (marketError) {
-      if (process.env.NODE_ENV !== 'test') {
-        console.error('Error fetching market data:', marketError);
-      }
-    }
 
     // Convert array data to maps for easy client-side lookup
     const runeInfoMap: Record<string, RuneData> = {};
@@ -90,10 +69,10 @@ export async function GET(request: NextRequest) {
 
     (marketData || []).forEach((market) => {
       marketDataMap[market.rune_name] = {
-        price_in_sats: market.price_in_sats,
-        price_in_usd: market.price_in_usd,
-        market_cap_in_btc: market.market_cap_in_btc,
-        market_cap_in_usd: market.market_cap_in_usd,
+        price_in_sats: market.price_in_sats || 0,
+        price_in_usd: market.price_in_usd || 0,
+        market_cap_in_btc: market.market_cap_in_btc || 0,
+        market_cap_in_usd: market.market_cap_in_usd || 0,
       };
     });
 
@@ -129,9 +108,17 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    // Transform balances to match documented API format (amount -> balance)
+    const formattedBalances = validBalances.map((balance) => ({
+      name: balance.name,
+      balance:
+        (balance as { amount?: string; balance?: string }).amount ||
+        (balance as { amount?: string; balance?: string }).balance, // Support both formats for backward compatibility
+    }));
+
     // Return the combined data
     return createSuccessResponse({
-      balances: validBalances,
+      balances: formattedBalances,
       runeInfos: runeInfoMap,
       marketData: marketDataMap,
     });

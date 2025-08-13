@@ -12,6 +12,7 @@ import {
 } from '@omnisat/lasereyes';
 import { useEffect, useRef, useState } from 'react';
 import { useSharedLaserEyes } from '@/context/LaserEyesContext';
+import { logger } from '@/lib/logger';
 
 interface WalletErrorPatterns {
   notInstalledPatterns: string[];
@@ -162,7 +163,15 @@ export function useWalletConnection() {
     try {
       await connect(providerToConnect);
     } catch (error) {
-      console.error(`Failed to connect wallet:`, error);
+      logger.error(
+        `Wallet Error in connect`,
+        {
+          operation: 'connect',
+          wallet: providerToConnect,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'WALLET',
+      );
 
       let isWalletNotInstalledError = false;
       let errorMessage = '';

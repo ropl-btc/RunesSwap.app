@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import { z } from 'zod';
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -7,12 +6,15 @@ import {
   validateRequest,
 } from '@/lib/apiUtils';
 import { getOrdiscanClient } from '@/lib/serverUtils';
+import { requestSchemas } from '@/lib/validationSchemas';
 import { RuneBalance } from '@/types/ordiscan';
 
 export async function GET(request: NextRequest) {
-  // Zod validation for 'address'
-  const schema = z.object({ address: z.string().min(1) });
-  const validation = await validateRequest(request, schema, 'query');
+  const validation = await validateRequest(
+    request,
+    requestSchemas.addressRequest,
+    'query',
+  );
   if (!validation.success) {
     return validation.errorResponse;
   }
@@ -29,7 +31,15 @@ export async function GET(request: NextRequest) {
       ? balances
       : [];
 
-    return createSuccessResponse(validBalances);
+    // Transform response to match documented API format (amount -> balance)
+    const formattedBalances = validBalances.map((balance) => ({
+      name: balance.name,
+      balance:
+        (balance as { amount?: string; balance?: string }).amount ||
+        (balance as { amount?: string; balance?: string }).balance, // Support both formats for backward compatibility
+    }));
+
+    return createSuccessResponse(formattedBalances);
   } catch (error) {
     const errorInfo = handleApiError(
       error,

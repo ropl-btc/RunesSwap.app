@@ -5,179 +5,180 @@ import {
   type RuneActivityEvent,
 } from '@/types/ordiscan';
 import { normalizeRuneName } from '@/utils/runeUtils';
+import { get, post } from '../fetchWrapper';
+import { logFetchError } from '../logger';
 import { type RuneData } from '../runesData';
-import { handleApiResponse } from './utils';
+import { getErrorMessageFromData, handleApiResponse } from './utils';
 
 export const fetchBtcBalanceFromApi = async (
   address: string,
 ): Promise<number> => {
-  const response = await fetch(
-    `/api/ordiscan/btc-balance?address=${encodeURIComponent(address)}`,
-  );
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error(`Failed to parse BTC balance for ${address}`);
-  }
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to fetch BTC balance: ${response.statusText}`,
+    const { data } = await get<{ success: boolean; data: { balance: number } }>(
+      `/api/ordiscan/btc-balance?address=${encodeURIComponent(address)}`,
     );
+
+    if (!data.success) {
+      throw new Error('Failed to fetch BTC balance');
+    }
+
+    const parsedData = handleApiResponse<{ balance: number }>(data, false);
+    return parsedData?.balance || 0;
+  } catch (error) {
+    logFetchError(`/api/ordiscan/btc-balance?address=${address}`, error);
+    throw new Error(`Failed to fetch BTC balance for ${address}`);
   }
-  const parsedData = handleApiResponse<{ balance: number }>(data, false);
-  return parsedData?.balance || 0;
 };
 
 export const fetchRuneBalancesFromApi = async (
   address: string,
 ): Promise<OrdiscanRuneBalance[]> => {
-  const response = await fetch(
-    `/api/ordiscan/rune-balances?address=${encodeURIComponent(address)}`,
-  );
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error(`Failed to parse rune balances for ${address}`);
+    const { data } = await get<{
+      success: boolean;
+      data: OrdiscanRuneBalance[];
+    }>(`/api/ordiscan/rune-balances?address=${encodeURIComponent(address)}`);
+
+    if (!data.success) {
+      throw new Error('Failed to fetch rune balances');
+    }
+
+    return handleApiResponse<OrdiscanRuneBalance[]>(data, true);
+  } catch (error) {
+    logFetchError(`/api/ordiscan/rune-balances?address=${address}`, error);
+    throw new Error(`Failed to fetch rune balances for ${address}`);
   }
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to fetch rune balances: ${response.statusText}`,
-    );
-  }
-  return handleApiResponse<OrdiscanRuneBalance[]>(data, true);
 };
 
 export const fetchRuneInfoFromApi = async (
   name: string,
 ): Promise<RuneData | null> => {
   const normalizedName = normalizeRuneName(name);
-  const response = await fetch(
-    `/api/ordiscan/rune-info?name=${encodeURIComponent(normalizedName)}`,
-  );
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error(`Failed to parse rune info for ${name}`);
-  }
-  if (!response.ok) {
-    if (response.status === 404) {
+    const { data } = await get<{ success: boolean; data: RuneData }>(
+      `/api/ordiscan/rune-info?name=${encodeURIComponent(normalizedName)}`,
+    );
+
+    if (!data.success) {
+      throw new Error('Failed to fetch rune info');
+    }
+
+    return handleApiResponse<RuneData | null>(data, false);
+  } catch (error: unknown) {
+    // Handle 404 responses (rune not found)
+    if (
+      error instanceof Error &&
+      'status' in error &&
+      (error as { status: number }).status === 404
+    ) {
       return null;
     }
+
+    logFetchError(`/api/ordiscan/rune-info?name=${normalizedName}`, error);
     throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to fetch rune info: ${response.statusText}`,
+      getErrorMessageFromData(error, `Failed to fetch rune info for ${name}`),
     );
   }
-  return handleApiResponse<RuneData | null>(data, false);
 };
 
 export const updateRuneDataViaApi = async (
   name: string,
 ): Promise<RuneData | null> => {
   const normalizedName = normalizeRuneName(name);
-  const response = await fetch('/api/ordiscan/rune-update', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: normalizedName }),
-  });
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error(`Failed to parse update response for ${name}`);
-  }
-  if (response.status === 404) {
-    return null;
-  }
-  if (!response.ok) {
+    const { data } = await post<{ success: boolean; data: RuneData }>(
+      '/api/ordiscan/rune-update',
+      { name: normalizedName },
+    );
+
+    if (!data.success) {
+      throw new Error('Failed to update rune data');
+    }
+
+    return handleApiResponse<RuneData | null>(data, false);
+  } catch (error: unknown) {
+    // Handle 404 responses (rune not found)
+    if (
+      error instanceof Error &&
+      'status' in error &&
+      (error as { status: number }).status === 404
+    ) {
+      return null;
+    }
+
+    logFetchError('/api/ordiscan/rune-update', error);
     throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to update rune data: ${response.statusText}`,
+      getErrorMessageFromData(error, `Failed to update rune data for ${name}`),
     );
   }
-  return handleApiResponse<RuneData | null>(data, false);
 };
 
 export const fetchRuneMarketFromApi = async (
   name: string,
 ): Promise<OrdiscanRuneMarketInfo | null> => {
   const normalizedName = normalizeRuneName(name);
-  const response = await fetch(
-    `/api/ordiscan/rune-market?name=${encodeURIComponent(normalizedName)}`,
-  );
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error(`Failed to parse market info for ${name}`);
-  }
-  if (response.status === 404) {
-    return null;
-  }
-  if (!response.ok) {
+    const { data } = await get<{
+      success: boolean;
+      data: OrdiscanRuneMarketInfo;
+    }>(`/api/ordiscan/rune-market?name=${encodeURIComponent(normalizedName)}`);
+
+    if (!data.success) {
+      throw new Error('Failed to fetch market info');
+    }
+
+    return handleApiResponse<OrdiscanRuneMarketInfo | null>(data, false);
+  } catch (error: unknown) {
+    // Handle 404 responses (market info not found)
+    if (
+      error instanceof Error &&
+      'status' in error &&
+      (error as { status: number }).status === 404
+    ) {
+      return null;
+    }
+
+    logFetchError(`/api/ordiscan/rune-market?name=${normalizedName}`, error);
     throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to fetch market info: ${response.statusText}`,
+      getErrorMessageFromData(error, `Failed to fetch market info for ${name}`),
     );
   }
-  return handleApiResponse<OrdiscanRuneMarketInfo | null>(data, false);
 };
 
 export const fetchListRunesFromApi = async (): Promise<OrdiscanRuneInfo[]> => {
-  const response = await fetch('/api/ordiscan/list-runes');
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error('Failed to parse runes list');
-  }
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to fetch runes list: ${response.statusText}`,
+    const { data } = await get<{ success: boolean; data: OrdiscanRuneInfo[] }>(
+      '/api/ordiscan/list-runes',
     );
+
+    if (!data.success) {
+      throw new Error('Failed to fetch runes list');
+    }
+
+    return handleApiResponse<OrdiscanRuneInfo[]>(data, true);
+  } catch (error) {
+    logFetchError('/api/ordiscan/list-runes', error);
+    throw new Error('Failed to fetch runes list');
   }
-  return handleApiResponse<OrdiscanRuneInfo[]>(data, true);
 };
 
 export const fetchRuneActivityFromApi = async (
   address: string,
 ): Promise<RuneActivityEvent[]> => {
-  const response = await fetch(
-    `/api/ordiscan/rune-activity?address=${encodeURIComponent(address)}`,
-  );
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch rune activity: Server responded with status ${response.status}`,
-      );
-    }
-    throw new Error('Failed to parse successful API response.');
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to fetch rune activity: ${response.statusText}`,
+    const { data } = await get<{ success: boolean; data: RuneActivityEvent[] }>(
+      `/api/ordiscan/rune-activity?address=${encodeURIComponent(address)}`,
     );
-  }
 
-  return handleApiResponse<RuneActivityEvent[]>(data, true);
+    if (!data.success) {
+      throw new Error('Failed to fetch rune activity');
+    }
+
+    return handleApiResponse<RuneActivityEvent[]>(data, true);
+  } catch (error) {
+    logFetchError(`/api/ordiscan/rune-activity?address=${address}`, error);
+    throw new Error(`Failed to fetch rune activity for ${address}`);
+  }
 };
 
 export interface PriceHistoryDataPoint {
@@ -207,25 +208,21 @@ export const fetchRunePriceHistoryFromApi = async (
     querySlug = 'LIQUIDIUMTOKEN';
   }
 
-  const response = await fetch(
-    `/api/rune-price-history?slug=${encodeURIComponent(querySlug)}`,
-  );
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error(`Failed to parse price history for ${runeName}`);
-  }
+    const { data } = await get<{
+      success: boolean;
+      data: PriceHistoryResponse;
+    }>(`/api/rune-price-history?slug=${encodeURIComponent(querySlug)}`);
 
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to fetch price history: ${response.statusText}`,
-    );
-  }
+    if (!data.success) {
+      throw new Error('Failed to fetch price history');
+    }
 
-  return handleApiResponse<PriceHistoryResponse>(data, false);
+    return handleApiResponse<PriceHistoryResponse>(data, false);
+  } catch (error) {
+    logFetchError(`/api/rune-price-history?slug=${querySlug}`, error);
+    throw new Error(`Failed to fetch price history for ${runeName}`);
+  }
 };
 
 export const fetchPortfolioDataFromApi = async (
@@ -239,25 +236,27 @@ export const fetchPortfolioDataFromApi = async (
     return { balances: [], runeInfos: {}, marketData: {} };
   }
 
-  const response = await fetch(
-    `/api/portfolio-data?address=${encodeURIComponent(address)}`,
-  );
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error(`Failed to parse portfolio data for ${address}`);
+    const { data } = await get<{
+      success: boolean;
+      data: {
+        balances: OrdiscanRuneBalance[];
+        runeInfos: Record<string, RuneData>;
+        marketData: Record<string, OrdiscanRuneMarketInfo>;
+      };
+    }>(`/api/portfolio-data?address=${encodeURIComponent(address)}`);
+
+    if (!data.success) {
+      throw new Error('Failed to fetch portfolio data');
+    }
+
+    return handleApiResponse<{
+      balances: OrdiscanRuneBalance[];
+      runeInfos: Record<string, RuneData>;
+      marketData: Record<string, OrdiscanRuneMarketInfo>;
+    }>(data, false);
+  } catch (error) {
+    logFetchError(`/api/portfolio-data?address=${address}`, error);
+    throw new Error(`Failed to fetch portfolio data for ${address}`);
   }
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to fetch portfolio data: ${response.statusText}`,
-    );
-  }
-  return handleApiResponse<{
-    balances: OrdiscanRuneBalance[];
-    runeInfos: Record<string, RuneData>;
-    marketData: Record<string, OrdiscanRuneMarketInfo>;
-  }>(data, false);
 };

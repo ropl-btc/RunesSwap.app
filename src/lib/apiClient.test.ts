@@ -8,17 +8,36 @@ import {
   fetchRunesFromApi,
 } from './api';
 
-// Mock the global fetch function
-global.fetch = jest.fn();
+// Mock the fetchWrapper module that the underlying functions use
+jest.mock('./fetchWrapper', () => ({
+  get: jest.fn(),
+  post: jest.fn(),
+  FetchError: class FetchError extends Error {
+    constructor(
+      message: string,
+      public status: number,
+      public statusText: string,
+      public url: string,
+    ) {
+      super(message);
+      this.name = 'FetchError';
+    }
+  },
+}));
 
-// Helper to mock fetch responses
-const mockFetchResponse = (data: unknown, ok = true, status = 200) =>
-  Promise.resolve({
-    ok,
-    status,
-    statusText: ok ? 'OK' : status === 404 ? 'Not Found' : 'Error',
-    json: () => Promise.resolve(data),
-  } as Response);
+import { get } from './fetchWrapper';
+
+// Helper to mock fetchWrapper responses
+const mockFetchWrapperResponse = <T>(
+  data: T,
+  status = 200,
+  statusText = 'OK',
+) => ({
+  data,
+  status,
+  statusText,
+  headers: new Headers(),
+});
 
 describe('apiClient', () => {
   beforeEach(() => {
@@ -37,14 +56,11 @@ describe('apiClient', () => {
     });
   });
 
-  // We can't test handleApiResponse directly as it's not exported
-  // Instead, we test it indirectly through the exported functions
-
   describe('fetchRunesFromApi', () => {
     it('returns empty array for empty query', async () => {
       const result = await fetchRunesFromApi('');
       expect(result).toEqual([]);
-      expect(fetch).not.toHaveBeenCalled();
+      expect(get).not.toHaveBeenCalled();
     });
 
     it('fetches and processes runes data successfully', async () => {
@@ -53,74 +69,53 @@ describe('apiClient', () => {
         { id: '2', name: 'RUNE2' },
       ];
 
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({ success: true, data: mockRunes }),
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse({ success: true, data: mockRunes }),
       );
 
       const result = await fetchRunesFromApi('test');
 
-      expect(fetch).toHaveBeenCalledWith(
-        '/api/sats-terminal/search?query=test',
-      );
-      expect(result).toEqual(mockRunes);
-    });
-
-    it('handles direct array response (backward compatibility)', async () => {
-      const mockRunes = [
-        { id: '1', name: 'RUNE1' },
-        { id: '2', name: 'RUNE2' },
-      ];
-
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse(mockRunes),
-      );
-
-      const result = await fetchRunesFromApi('test');
-
-      expect(fetch).toHaveBeenCalledWith(
-        '/api/sats-terminal/search?query=test',
-      );
+      expect(get).toHaveBeenCalledWith('/api/sats-terminal/search?query=test');
       expect(result).toEqual(mockRunes);
     });
 
     it('returns empty array when success response has non-array data', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({ success: true, data: { notAnArray: true } }),
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse({ success: true, data: { notAnArray: true } }),
       );
 
       const result = await fetchRunesFromApi('test');
 
-      expect(fetch).toHaveBeenCalledWith(
-        '/api/sats-terminal/search?query=test',
-      );
+      expect(get).toHaveBeenCalledWith('/api/sats-terminal/search?query=test');
       expect(result).toEqual([]);
     });
 
-    it('throws error for non-OK response', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({ error: 'Not found' }, false, 404),
-      );
-
-      await expect(fetchRunesFromApi('test')).rejects.toThrow('Not found');
-      expect(fetch).toHaveBeenCalledWith(
-        '/api/sats-terminal/search?query=test',
-      );
-    });
-
-    it('throws error for JSON parse failure', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: true,
-          json: () => Promise.reject(new Error('Invalid JSON')),
-        } as Response),
+    it('throws error for fetchWrapper errors', async () => {
+      const { FetchError } = jest.requireMock('./fetchWrapper');
+      (get as jest.Mock).mockRejectedValue(
+        new FetchError(
+          'HTTP 404: Not Found',
+          404,
+          'Not Found',
+          '/api/sats-terminal/search',
+        ),
       );
 
       await expect(fetchRunesFromApi('test')).rejects.toThrow(
-        'Failed to parse search results',
+        'Failed to search runes',
       );
-      expect(fetch).toHaveBeenCalledWith(
-        '/api/sats-terminal/search?query=test',
+      expect(get).toHaveBeenCalledWith('/api/sats-terminal/search?query=test');
+    });
+
+    it('throws error for success: false response', async () => {
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse({ success: false, error: 'Not found' }),
       );
+
+      await expect(fetchRunesFromApi('test')).rejects.toThrow(
+        'Failed to search runes',
+      );
+      expect(get).toHaveBeenCalledWith('/api/sats-terminal/search?query=test');
     });
   });
 
@@ -131,37 +126,42 @@ describe('apiClient', () => {
         { id: '2', name: 'POPULAR2' },
       ];
 
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({ success: true, data: mockPopular }),
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse({ success: true, data: mockPopular }),
       );
 
       const result = await fetchPopularFromApi();
 
-      expect(fetch).toHaveBeenCalledWith('/api/popular-runes');
+      expect(get).toHaveBeenCalledWith('/api/popular-runes');
       expect(result).toEqual(mockPopular);
     });
 
-    it('throws error for non-OK response', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({ error: 'Server error' }, false, 500),
+    it('throws error for fetchWrapper errors', async () => {
+      const { FetchError } = jest.requireMock('./fetchWrapper');
+      (get as jest.Mock).mockRejectedValue(
+        new FetchError(
+          'HTTP 500: Server Error',
+          500,
+          'Server Error',
+          '/api/popular-runes',
+        ),
       );
 
       await expect(fetchPopularFromApi()).rejects.toThrow(
-        'Failed to fetch popular runes: Error',
+        'Failed to fetch popular runes',
       );
-      expect(fetch).toHaveBeenCalledWith('/api/popular-runes');
+      expect(get).toHaveBeenCalledWith('/api/popular-runes');
     });
 
-    it('throws error for JSON parse failure', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: true,
-          json: () => Promise.reject(new Error('Invalid JSON')),
-        } as Response),
+    it('throws error for success: false response', async () => {
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse({ success: false, error: 'Server error' }),
       );
 
-      await expect(fetchPopularFromApi()).rejects.toThrow('Invalid JSON');
-      expect(fetch).toHaveBeenCalledWith('/api/popular-runes');
+      await expect(fetchPopularFromApi()).rejects.toThrow(
+        'Failed to fetch popular runes',
+      );
+      expect(get).toHaveBeenCalledWith('/api/popular-runes');
     });
   });
 
@@ -169,51 +169,61 @@ describe('apiClient', () => {
     it('normalizes rune name by removing bullet characters', async () => {
       const mockRuneInfo = { id: '1', name: 'RUNE', decimals: 8 };
 
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({ success: true, data: mockRuneInfo }),
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse({ success: true, data: mockRuneInfo }),
       );
 
       await fetchRuneInfoFromApi('RUNE•TEST');
 
-      expect(fetch).toHaveBeenCalledWith(
-        '/api/ordiscan/rune-info?name=RUNETEST',
-      );
+      expect(get).toHaveBeenCalledWith('/api/ordiscan/rune-info?name=RUNETEST');
     });
 
     it('fetches and processes rune info successfully', async () => {
       const mockRuneInfo = { id: '1', name: 'RUNE', decimals: 8 };
 
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({ success: true, data: mockRuneInfo }),
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse({ success: true, data: mockRuneInfo }),
       );
 
       const result = await fetchRuneInfoFromApi('RUNE');
 
-      expect(fetch).toHaveBeenCalledWith('/api/ordiscan/rune-info?name=RUNE');
+      expect(get).toHaveBeenCalledWith('/api/ordiscan/rune-info?name=RUNE');
       expect(result).toEqual(mockRuneInfo);
     });
 
     it('returns null for 404 responses', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({ error: 'Not found' }, false, 404),
+      const { FetchError } = jest.requireMock('./fetchWrapper');
+      (get as jest.Mock).mockRejectedValue(
+        new FetchError(
+          'HTTP 404: Not Found',
+          404,
+          'Not Found',
+          '/api/ordiscan/rune-info',
+        ),
       );
 
       const result = await fetchRuneInfoFromApi('NONEXISTENT');
       expect(result).toBeNull();
-      expect(fetch).toHaveBeenCalledWith(
+      expect(get).toHaveBeenCalledWith(
         '/api/ordiscan/rune-info?name=NONEXISTENT',
       );
     });
 
     it('throws error for server errors', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({ error: 'Server error' }, false, 500),
+      const { FetchError } = jest.requireMock('./fetchWrapper');
+      (get as jest.Mock).mockRejectedValue(
+        new FetchError(
+          'HTTP 500: Server error',
+          500,
+          'Server error',
+          '/api/ordiscan/rune-info',
+        ),
       );
 
       await expect(fetchRuneInfoFromApi('RUNE')).rejects.toThrow(
-        'Server error',
+        'HTTP 500: Server error',
       );
-      expect(fetch).toHaveBeenCalledWith('/api/ordiscan/rune-info?name=RUNE');
+      expect(get).toHaveBeenCalledWith('/api/ordiscan/rune-info?name=RUNE');
     });
   });
 
@@ -221,91 +231,91 @@ describe('apiClient', () => {
     it('fetches and processes BTC balance successfully', async () => {
       const mockBalance = { balance: 123456 };
 
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({ success: true, data: mockBalance }),
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse({ success: true, data: mockBalance }),
       );
 
       const result = await fetchBtcBalanceFromApi('bc1qtest');
 
-      expect(fetch).toHaveBeenCalledWith(
+      expect(get).toHaveBeenCalledWith(
         '/api/ordiscan/btc-balance?address=bc1qtest',
       );
       expect(result).toBe(123456);
     });
 
     it('returns 0 for missing balance data', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({ success: true, data: {} }),
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse({ success: true, data: {} }),
       );
 
       const result = await fetchBtcBalanceFromApi('bc1qtest');
 
-      expect(fetch).toHaveBeenCalledWith(
+      expect(get).toHaveBeenCalledWith(
         '/api/ordiscan/btc-balance?address=bc1qtest',
       );
       expect(result).toBe(0);
     });
 
     it('returns 0 when API returns null data', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({ success: true, data: null }),
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse({ success: true, data: null }),
       );
 
       const result = await fetchBtcBalanceFromApi('bc1qtest');
 
-      expect(fetch).toHaveBeenCalledWith(
+      expect(get).toHaveBeenCalledWith(
         '/api/ordiscan/btc-balance?address=bc1qtest',
       );
       expect(result).toBe(0);
     });
 
-    it('throws error for non-OK response', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({ error: 'Server error' }, false, 500),
+    it('throws error for fetchWrapper errors', async () => {
+      const { FetchError } = jest.requireMock('./fetchWrapper');
+      (get as jest.Mock).mockRejectedValue(
+        new FetchError(
+          'HTTP 500: Server Error',
+          500,
+          'Server Error',
+          '/api/ordiscan/btc-balance',
+        ),
       );
 
       await expect(fetchBtcBalanceFromApi('bc1qtest')).rejects.toThrow(
-        'Server error',
+        'Failed to fetch BTC balance for bc1qtest',
       );
-      expect(fetch).toHaveBeenCalledWith(
+      expect(get).toHaveBeenCalledWith(
         '/api/ordiscan/btc-balance?address=bc1qtest',
       );
     });
   });
 
   describe('fetchRuneActivityFromApi', () => {
-    it('throws error when JSON parsing fails on error response', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: false,
-          status: 500,
-          statusText: 'Internal Error',
-          json: () => Promise.reject(new Error('Invalid')),
-        } as Response),
+    it('throws error when fetchWrapper fails', async () => {
+      const { FetchError } = jest.requireMock('./fetchWrapper');
+      (get as jest.Mock).mockRejectedValue(
+        new FetchError(
+          'HTTP 500: Internal Error',
+          500,
+          'Internal Error',
+          '/api/ordiscan/rune-activity',
+        ),
       );
 
       await expect(fetchRuneActivityFromApi('addr')).rejects.toThrow(
-        'Failed to fetch rune activity: Server responded with status 500',
+        'Failed to fetch rune activity for addr',
       );
-      expect(fetch).toHaveBeenCalledWith(
+      expect(get).toHaveBeenCalledWith(
         '/api/ordiscan/rune-activity?address=addr',
       );
     });
 
-    it('throws parse error for malformed success response', async () => {
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        Promise.resolve({
-          ok: true,
-          status: 200,
-          statusText: 'OK',
-          json: () => Promise.reject(new Error('Invalid')),
-        } as Response),
-      );
+    it('throws error for general network failures', async () => {
+      (get as jest.Mock).mockRejectedValue(new Error('Network error'));
 
       await expect(fetchRuneActivityFromApi('addr')).rejects.toThrow(
-        'Failed to parse successful API response.',
+        'Failed to fetch rune activity for addr',
       );
-      expect(fetch).toHaveBeenCalledWith(
+      expect(get).toHaveBeenCalledWith(
         '/api/ordiscan/rune-activity?address=addr',
       );
     });
@@ -315,7 +325,7 @@ describe('apiClient', () => {
     it('returns default response for empty rune name', async () => {
       const result = await fetchRunePriceHistoryFromApi('');
       expect(result).toEqual({ slug: '', prices: [], available: false });
-      expect(fetch).not.toHaveBeenCalled();
+      expect(get).not.toHaveBeenCalled();
     });
 
     it('formats slug for LIQUIDIUM runes', async () => {
@@ -324,13 +334,14 @@ describe('apiClient', () => {
         prices: [],
         available: true,
       };
-      (fetch as jest.Mock).mockImplementationOnce(() =>
-        mockFetchResponse({ success: true, data: mockHistory }),
+
+      (get as jest.Mock).mockResolvedValue(
+        mockFetchWrapperResponse({ success: true, data: mockHistory }),
       );
 
       const result = await fetchRunePriceHistoryFromApi('LIQUIDIUM•TOKEN');
 
-      expect(fetch).toHaveBeenCalledWith(
+      expect(get).toHaveBeenCalledWith(
         '/api/rune-price-history?slug=LIQUIDIUMTOKEN',
       );
       expect(result).toEqual(mockHistory);

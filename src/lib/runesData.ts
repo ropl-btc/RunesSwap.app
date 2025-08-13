@@ -1,5 +1,6 @@
+import { logApiError, logDbError } from './logger';
 import { getOrdiscanClient } from './serverUtils';
-import { supabase } from './supabase';
+import { fetchRuneByName, upsertRuneData } from './supabaseQueries';
 
 export interface RuneData {
   id: string;
@@ -23,16 +24,8 @@ export interface RuneData {
 
 export async function getRuneData(runeName: string): Promise<RuneData | null> {
   try {
-    // First, try to get from Supabase
-    const { data: existingRune, error: dbError } = await supabase
-      .from('runes')
-      .select('*')
-      .eq('name', runeName)
-      .single();
-
-    if (dbError) {
-      // Error handled by continuing to API fetch
-    }
+    // First, try to get from Supabase using centralized utility
+    const existingRune = await fetchRuneByName(runeName);
 
     if (existingRune) {
       return existingRune as RuneData;
@@ -46,19 +39,15 @@ export async function getRuneData(runeName: string): Promise<RuneData | null> {
       return null;
     }
 
-    // Store in Supabase - ensure we're using the correct field names
-    const dataToInsert = {
-      ...runeData,
-      last_updated_at: new Date().toISOString(),
-    };
-
-    await supabase.from('runes').upsert([dataToInsert]).select();
-
-    // Insert errors are non-critical - we can still return the data
-    // even if caching to DB fails
+    // Store in Supabase using centralized utility (non-critical if it fails)
+    const success = await upsertRuneData(runeData as RuneData);
+    if (!success) {
+      logDbError('upsertRuneData', 'Failed to cache rune data');
+    }
 
     return runeData as RuneData;
-  } catch {
+  } catch (error) {
+    logApiError('getRuneData', error);
     return null;
   }
 }

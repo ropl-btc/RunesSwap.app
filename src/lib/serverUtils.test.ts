@@ -61,7 +61,8 @@ describe('serverUtils', () => {
       );
 
       expect(console.error).toHaveBeenCalledWith(
-        'Ordiscan API key not found. Please set ORDISCAN_API_KEY environment variable on the server.',
+        '[CONFIG] Server configuration error: Missing Ordiscan API Key',
+        { service: 'ordiscan' },
       );
     });
 
@@ -74,7 +75,8 @@ describe('serverUtils', () => {
       );
 
       expect(console.error).toHaveBeenCalledWith(
-        'Ordiscan API key not found. Please set ORDISCAN_API_KEY environment variable on the server.',
+        '[CONFIG] Server configuration error: Missing Ordiscan API Key',
+        { service: 'ordiscan' },
       );
     });
   });
@@ -107,7 +109,8 @@ describe('serverUtils', () => {
       );
 
       expect(console.error).toHaveBeenCalledWith(
-        'SatsTerminal API key not found. Please set SATS_TERMINAL_API_KEY environment variable on the server.',
+        '[CONFIG] Server configuration error: Missing SatsTerminal API Key',
+        { service: 'satsterminal' },
       );
     });
 
@@ -120,7 +123,8 @@ describe('serverUtils', () => {
       );
 
       expect(console.error).toHaveBeenCalledWith(
-        'SatsTerminal API key not found. Please set SATS_TERMINAL_API_KEY environment variable on the server.',
+        '[CONFIG] Server configuration error: Missing SatsTerminal API Key',
+        { service: 'satsterminal' },
       );
     });
   });

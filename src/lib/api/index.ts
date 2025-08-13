@@ -3,6 +3,9 @@ export * from './ordiscan';
 export * from './liquidium';
 export * from './coingecko';
 
+import { fetchExternal, get } from '../fetchWrapper';
+import { logFetchError } from '../logger';
+
 export const QUERY_KEYS = {
   POPULAR_RUNES: 'popularRunes',
   RUNE_INFO: 'runeInfo',
@@ -22,12 +25,21 @@ export type QueryKey = (typeof QUERY_KEYS)[keyof typeof QUERY_KEYS];
 export const fetchPopularFromApi = async (): Promise<
   Record<string, unknown>[]
 > => {
-  const response = await fetch('/api/popular-runes');
-  if (!response.ok) {
-    throw new Error(`Failed to fetch popular runes: ${response.statusText}`);
+  try {
+    const { data } = await get<{
+      success: boolean;
+      data: Record<string, unknown>[];
+    }>('/api/popular-runes');
+
+    if (!data.success) {
+      throw new Error('Failed to fetch popular runes');
+    }
+
+    return data.data || [];
+  } catch (error) {
+    logFetchError('/api/popular-runes', error);
+    throw new Error('Failed to fetch popular runes');
   }
-  const data = await response.json();
-  return data.data || [];
 };
 
 export interface BitcoinFeeRates {
@@ -39,34 +51,22 @@ export interface BitcoinFeeRates {
 }
 
 export const fetchRecommendedFeeRates = async (): Promise<BitcoinFeeRates> => {
+  const defaultRates: BitcoinFeeRates = {
+    fastestFee: 25,
+    halfHourFee: 20,
+    hourFee: 15,
+    economyFee: 10,
+    minimumFee: 5,
+  };
+
   try {
-    const response = await fetch(
+    const { data } = await fetchExternal<BitcoinFeeRates>(
       'https://mempool.space/api/v1/fees/recommended',
+      { timeout: 10000, retries: 2 },
     );
-
-    if (!response.ok) {
-      console.warn(
-        `Failed to fetch fee rates: ${response.status} ${response.statusText}`,
-      );
-      return {
-        fastestFee: 25,
-        halfHourFee: 20,
-        hourFee: 15,
-        economyFee: 10,
-        minimumFee: 5,
-      };
-    }
-
-    const data = await response.json();
-    return data as BitcoinFeeRates;
+    return data;
   } catch (error) {
-    console.warn('Error fetching recommended fee rates:', error);
-    return {
-      fastestFee: 25,
-      halfHourFee: 20,
-      hourFee: 15,
-      economyFee: 10,
-      minimumFee: 5,
-    };
+    logFetchError('https://mempool.space/api/v1/fees/recommended', error);
+    return defaultRates;
   }
 };

@@ -2,6 +2,7 @@
 
 import React, { Suspense, useState } from 'react';
 import { AppInterface } from '@/components/AppInterface';
+import { LoadingState } from '@/components/LoadingState';
 import TabNavigation, { ActiveTab } from '@/components/TabNavigation';
 import styles from './page.module.css';
 
@@ -11,7 +12,7 @@ export default function Home() {
   return (
     <div className={styles.mainContainer}>
       <TabNavigation onTabChange={setActiveTab} />
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<LoadingState message="Loading application..." />}>
         <AppInterface activeTab={activeTab} />
       </Suspense>
     </div>

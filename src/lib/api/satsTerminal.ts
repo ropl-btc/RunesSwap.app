@@ -4,6 +4,8 @@ import {
   type QuoteResponse,
 } from 'satsterminal-sdk';
 import type { Rune } from '@/types/satsTerminal';
+import { get, post } from '../fetchWrapper';
+import { logFetchError } from '../logger';
 import { handleApiResponse } from './utils';
 
 export const fetchRunesFromApi = async (query: string): Promise<Rune[]> => {
@@ -11,95 +13,81 @@ export const fetchRunesFromApi = async (query: string): Promise<Rune[]> => {
   // Guard: avoid spamming search for very short queries
   if (trimmed.length < 2) return [];
 
-  const response = await fetch(
-    `/api/sats-terminal/search?query=${encodeURIComponent(trimmed)}`,
-  );
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error('Failed to parse search results');
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Search failed: ${response.statusText}`,
+    const { data } = await get<{ success: boolean; data: Rune[] }>(
+      `/api/sats-terminal/search?query=${encodeURIComponent(trimmed)}`,
     );
-  }
 
-  return handleApiResponse<Rune[]>(data, true);
+    if (!data.success) {
+      throw new Error('Search failed');
+    }
+
+    return handleApiResponse<Rune[]>(data, true);
+  } catch (error) {
+    logFetchError(
+      `/api/sats-terminal/search?query=${encodeURIComponent(trimmed)}`,
+      error,
+    );
+    throw new Error('Failed to search runes');
+  }
 };
 
 export const fetchQuoteFromApi = async (
   params: Record<string, unknown>,
 ): Promise<QuoteResponse> => {
-  const response = await fetch('/api/sats-terminal/quote', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
-  });
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error('Failed to parse quote response');
-  }
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to fetch quote: ${response.statusText}`,
+    const { data } = await post<{ success: boolean; data: QuoteResponse }>(
+      `/api/sats-terminal/quote`,
+      params,
     );
+
+    if (!data.success) {
+      throw new Error('Quote request failed');
+    }
+
+    return handleApiResponse<QuoteResponse>(data, false);
+  } catch (error) {
+    logFetchError(`/api/sats-terminal/quote`, error);
+    throw new Error('Failed to fetch quote');
   }
-  return handleApiResponse<QuoteResponse>(data, false);
 };
 
 export const getPsbtFromApi = async (
   params: GetPSBTParams,
 ): Promise<Record<string, unknown>> => {
-  const response = await fetch('/api/sats-terminal/psbt/create', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
-  });
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error('Failed to parse PSBT response');
+    const { data } = await post<{
+      success: boolean;
+      data: Record<string, unknown>;
+    }>(`/api/sats-terminal/psbt/create`, params);
+
+    if (!data.success) {
+      throw new Error('PSBT creation failed');
+    }
+
+    return data.data;
+  } catch (error) {
+    logFetchError(`/api/sats-terminal/psbt/create`, error);
+    throw new Error('Failed to create PSBT');
   }
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to create PSBT: ${response.statusText}`,
-    );
-  }
-  return data as Record<string, unknown>;
 };
 
 export const confirmPsbtViaApi = async (
   params: ConfirmPSBTParams,
 ): Promise<Record<string, unknown>> => {
-  const response = await fetch('/api/sats-terminal/psbt/confirm', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
-  });
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error('Failed to parse confirmation response');
+    const { data } = await post<{
+      success: boolean;
+      data: Record<string, unknown>;
+    }>(`/api/sats-terminal/psbt/confirm`, params);
+
+    if (!data.success) {
+      throw new Error('PSBT confirmation failed');
+    }
+
+    return data.data;
+  } catch (error) {
+    logFetchError(`/api/sats-terminal/psbt/confirm`, error);
+    throw new Error('Failed to confirm PSBT');
   }
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to confirm PSBT: ${response.statusText}`,
-    );
-  }
-  return data as Record<string, unknown>;
 };

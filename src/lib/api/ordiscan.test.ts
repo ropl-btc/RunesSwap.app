@@ -1,34 +1,53 @@
+import { get } from '../fetchWrapper';
 import { fetchRuneInfoFromApi } from './ordiscan';
 
-beforeEach(() => {
-  (global.fetch as unknown as jest.Mock) = jest.fn();
-});
+// Mock the fetchWrapper module
+jest.mock('../fetchWrapper', () => ({
+  get: jest.fn(),
+  FetchError: class FetchError extends Error {
+    constructor(
+      message: string,
+      public status: number,
+      public statusText: string,
+      public url: string,
+    ) {
+      super(message);
+      this.name = 'FetchError';
+    }
+  },
+}));
 
-afterEach(() => {
-  jest.resetAllMocks();
+beforeEach(() => {
+  jest.clearAllMocks();
 });
 
 describe('fetchRuneInfoFromApi', () => {
   it('fetches and returns rune info', async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
+    (get as jest.Mock).mockResolvedValue({
+      data: { success: true, data: { name: 'BTC' } },
       status: 200,
-      json: () => Promise.resolve({ success: true, data: { name: 'BTC' } }),
+      statusText: 'OK',
+      headers: new Headers(),
     });
 
     const result = await fetchRuneInfoFromApi('BTC');
-    expect(fetch).toHaveBeenCalledWith('/api/ordiscan/rune-info?name=BTC');
+    expect(get).toHaveBeenCalledWith('/api/ordiscan/rune-info?name=BTC');
     expect(result).toEqual({ name: 'BTC' });
   });
 
   it('throws on error response', async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: false,
-      status: 500,
-      statusText: 'oops',
-      json: () => Promise.resolve({ error: 'fail' }),
-    });
+    const { FetchError } = jest.requireMock('../fetchWrapper');
+    (get as jest.Mock).mockRejectedValue(
+      new FetchError(
+        'HTTP 500: oops',
+        500,
+        'oops',
+        '/api/ordiscan/rune-info?name=FAIL',
+      ),
+    );
 
-    await expect(fetchRuneInfoFromApi('FAIL')).rejects.toThrow('fail');
+    await expect(fetchRuneInfoFromApi('FAIL')).rejects.toThrow(
+      'HTTP 500: oops',
+    );
   });
 });

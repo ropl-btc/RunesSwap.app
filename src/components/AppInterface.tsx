@@ -9,31 +9,62 @@ import useBtcPrice from '@/hooks/useBtcPrice';
 import { QUERY_KEYS, fetchPopularFromApi } from '@/lib/api';
 import type { Asset } from '@/types/common';
 import styles from './AppInterface.module.css';
+import { LoadingState } from './LoadingState';
 
 // Dynamic imports for tab components (performance optimization)
 
 const BorrowTab = dynamic(() => import('./BorrowTab'), {
-  loading: () => <div className={styles.tabLoading}>Loading...</div>,
+  loading: () => (
+    <LoadingState
+      className={styles.tabLoading || undefined}
+      message="Loading borrow tab..."
+    />
+  ),
 });
 
 const PortfolioTab = dynamic(() => import('./PortfolioTab'), {
-  loading: () => <div className={styles.tabLoading}>Loading...</div>,
+  loading: () => (
+    <LoadingState
+      className={styles.tabLoading || undefined}
+      message="Loading portfolio..."
+    />
+  ),
 });
 
 const PriceChart = dynamic(() => import('./PriceChart'), {
-  loading: () => <div className={styles.chartLoading}>Loading chart...</div>,
+  loading: () => (
+    <LoadingState
+      className={styles.chartLoading || undefined}
+      message="Loading chart..."
+    />
+  ),
 });
 
 const RunesInfoTab = dynamic(() => import('./RunesInfoTab'), {
-  loading: () => <div className={styles.tabLoading}>Loading...</div>,
+  loading: () => (
+    <LoadingState
+      className={styles.tabLoading || undefined}
+      message="Loading runes info..."
+    />
+  ),
 });
 
 const SwapTab = dynamic(() => import('./SwapTab'), {
-  loading: () => <div className={styles.tabLoading}>Loading...</div>,
+  loading: () => (
+    <LoadingState
+      className={styles.tabLoading || undefined}
+      message="Loading swap interface..."
+    />
+  ),
 });
 
 const YourTxsTab = dynamic(() => import('./YourTxsTab'), {
-  loading: () => <div className={styles.tabLoading}>Loading...</div>,
+  loading: () => (
+    <LoadingState
+      className={styles.tabLoading || undefined}
+      message="Loading transactions..."
+    />
+  ),
 });
 
 // --- Props Interface --- Update the activeTab type

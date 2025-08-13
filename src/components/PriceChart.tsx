@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import usePriceChart from '@/hooks/usePriceChart';
 import styles from './AppInterface.module.css';
+import { LoadingState } from './LoadingState';
 import PriceTooltip from './PriceTooltip';
 import TimeframeSelector from './TimeframeSelector';
 // Path to hourglass icon used while BTC price is loading
@@ -220,13 +221,9 @@ const PriceChart: React.FC<PriceChartProps> = ({
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                fontSize: '1.4rem',
-                fontWeight: 'bold',
-                color: '#000080',
-                textShadow: '1px 1px 2px white',
               }}
             >
-              Loading...
+              <LoadingState message="Loading chart data..." />
             </div>
           )}
 

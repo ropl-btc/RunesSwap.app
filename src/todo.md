@@ -1,2 +1,3 @@
-* check network tab to see what calls we are making and its responses. - check if it all aligns with our local code or if there is room for optimization or if we are spamming any API or query or something unnecessarily. Include sample API responses for everything relevant in our CLAUDE.md file. If you can't access the network requests, ask me, so I can give them to you. If you do so, give me clear instructions how I should give them to you.
-* are there any similar or duplicate logic snippets in the codebase that we can extract into shared components to follow KISS and DRY principals? if so, please find them and create a plan for implementation.
+* i see that in rune-balances route.ts we now have amount and balance. do we even need balance still? why did it even work with amount before when balance is the correct thing? do we have logic somewhere that basically converted amount to balance or something? or how did it work before when the naming convention was wrong? also is it fully fixed and working?
+* run /refactor command 5 times.
+  * 0/5

@@ -1,7 +1,7 @@
 interface LoadingStateProps {
   message?: string;
   progress?: number;
-  className?: string;
+  className?: string | undefined;
 }
 
 export function LoadingState({

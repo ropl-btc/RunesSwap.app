@@ -6,6 +6,8 @@ import type {
   RepayLiquidiumLoanResponse,
   SubmitRepayResponse,
 } from '@/types/liquidium';
+import { get, post } from '../fetchWrapper';
+import { logFetchError } from '../logger';
 
 export type {
   BorrowRangeResponse,
@@ -23,40 +25,37 @@ export const repayLiquidiumLoan = async (
   loanId: string,
   address: string,
 ): Promise<RepayLiquidiumLoanResponse> => {
-  const response = await fetch('/api/liquidium/repay', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ loanId, address }),
-  });
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error('Failed to parse repay response');
-  }
-  if (!response.ok) {
-    const message = getErrorMessageFromData(
-      data,
-      `Failed to repay loan: ${response.statusText}`,
+    const { data } = await post<RepayLiquidiumLoanResponse>(
+      '/api/liquidium/repay',
+      { loanId, address },
     );
+
+    if (!data.success) {
+      throw new Error('Failed to repay loan');
+    }
+
+    // Map Liquidium API fields to expected frontend fields without mutating raw response
+    if (data?.data) {
+      // Create a new transformed data object instead of mutating the original
+      const transformedData = {
+        success: data.success,
+        data: {
+          psbt: data.data.base64_psbt || data.data.psbt,
+          repaymentAmountSats: data.data.repayment_amount_sats,
+          loanId: data.data.offer_id || loanId,
+          ...data.data, // Include any other fields from the original data
+        },
+        error: data.error,
+      };
+      return transformedData;
+    }
+    return data;
+  } catch (error) {
+    logFetchError('/api/liquidium/repay', error);
+    const message = getErrorMessageFromData(error, 'Failed to repay loan');
     throw new Error(message);
   }
-  // Map Liquidium API fields to expected frontend fields without mutating raw response
-  if (data?.data) {
-    // Create a new transformed data object instead of mutating the original
-    const transformedData = {
-      success: data.success,
-      data: {
-        psbt: data.data.base64_psbt || data.data.psbt,
-        repaymentAmountSats: data.data.repayment_amount_sats,
-        loanId: data.data.offer_id || loanId,
-        ...data.data, // Include any other fields from the original data
-      },
-      error: data.error,
-    };
-    return transformedData;
-  }
-  return data;
 };
 
 export const submitRepayPsbt = async (
@@ -64,25 +63,26 @@ export const submitRepayPsbt = async (
   signedPsbt: string,
   address: string,
 ): Promise<SubmitRepayResponse> => {
-  const response = await fetch('/api/liquidium/repay', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ loanId, signedPsbt, address }),
-  });
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error('Failed to parse repay submission response');
-  }
-  if (!response.ok) {
+    const { data } = await post<SubmitRepayResponse>('/api/liquidium/repay', {
+      loanId,
+      signedPsbt,
+      address,
+    });
+
+    if (!data.success) {
+      throw new Error('Failed to submit repayment');
+    }
+
+    return data;
+  } catch (error) {
+    logFetchError('/api/liquidium/repay', error);
     const message = getErrorMessageFromData(
-      data,
-      `Failed to submit repayment: ${response.statusText}`,
+      error,
+      'Failed to submit repayment',
     );
     throw new Error(message);
   }
-  return data;
 };
 
 // --- New Liquidium Borrow Types ---
@@ -103,20 +103,10 @@ export const fetchBorrowQuotesFromApi = async (
   const url = `/api/liquidium/borrow/quotes?runeId=${encodeURIComponent(runeId)}&runeAmount=${runeAmount}&address=${encodeURIComponent(address)}`;
 
   try {
-    const response = await fetch(url);
-    let data;
-    try {
-      data = await response.json();
-    } catch {
-      throw new Error(`Failed to parse borrow quotes for ${runeId}`);
-    }
+    const { data } = await get<LiquidiumBorrowQuoteResponse>(url);
 
-    if (!response.ok) {
-      const errorMessage = getErrorMessageFromData(
-        data,
-        `Failed to fetch borrow quotes: ${response.statusText}`,
-      );
-      throw new Error(errorMessage);
+    if (!data.success) {
+      throw new Error('Failed to fetch borrow quotes');
     }
 
     // Handle both response formats:
@@ -128,6 +118,7 @@ export const fetchBorrowQuotesFromApi = async (
 
     return data as LiquidiumBorrowQuoteResponse;
   } catch (error) {
+    logFetchError(url, error);
     throw error; // Re-throw to let the component handle it
   }
 };
@@ -143,25 +134,22 @@ export const prepareLiquidiumBorrow = async (params: {
   borrower_ordinal_pubkey: string;
   address: string; // User's address for JWT lookup
 }): Promise<LiquidiumPrepareBorrowResponse> => {
-  const response = await fetch('/api/liquidium/borrow/prepare', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
-  });
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error('Failed to parse prepare borrow response');
-  }
-  if (!response.ok) {
-    const message = getErrorMessageFromData(
-      data,
-      `Failed to prepare borrow: ${response.statusText}`,
+    const { data } = await post<LiquidiumPrepareBorrowResponse>(
+      '/api/liquidium/borrow/prepare',
+      params,
     );
+
+    if (!data.success) {
+      throw new Error('Failed to prepare borrow');
+    }
+
+    return data as LiquidiumPrepareBorrowResponse;
+  } catch (error) {
+    logFetchError('/api/liquidium/borrow/prepare', error);
+    const message = getErrorMessageFromData(error, 'Failed to prepare borrow');
     throw new Error(message);
   }
-  return data as LiquidiumPrepareBorrowResponse;
 };
 
 // Submit Liquidium Borrow Transaction
@@ -170,18 +158,24 @@ export const submitLiquidiumBorrow = async (params: {
   prepare_offer_id: string;
   address: string; // User's address for JWT lookup
 }): Promise<LiquidiumSubmitBorrowResponse> => {
-  const response = await fetch('/api/liquidium/borrow/submit', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
-  });
-
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    // If the response was OK but we couldn't parse JSON, create a synthetic success response
-    if (response.ok) {
+    const { data } = await post<LiquidiumSubmitBorrowResponse>(
+      '/api/liquidium/borrow/submit',
+      params,
+    );
+
+    if (!data.success) {
+      throw new Error('Failed to submit borrow');
+    }
+
+    return data as LiquidiumSubmitBorrowResponse;
+  } catch (error: unknown) {
+    // Special handling for JSON parse errors with successful HTTP status
+    if (
+      error instanceof Error &&
+      error.message.includes('JSON') &&
+      !('status' in error)
+    ) {
       return {
         success: true,
         data: {
@@ -190,18 +184,13 @@ export const submitLiquidiumBorrow = async (params: {
       };
     }
 
-    throw new Error('Failed to parse submit borrow response');
-  }
-
-  if (!response.ok) {
+    logFetchError('/api/liquidium/borrow/submit', error);
     const errorMessage = getErrorMessageFromData(
-      data,
-      `Failed to submit borrow: ${response.statusText}`,
+      error,
+      'Failed to submit borrow',
     );
     throw new Error(errorMessage);
   }
-
-  return data as LiquidiumSubmitBorrowResponse;
 };
 
 // Fetch Borrow Ranges from API
@@ -211,26 +200,15 @@ export const fetchBorrowRangesFromApi = async (
 ): Promise<BorrowRangeResponse> => {
   try {
     const url = `/api/liquidium/borrow/ranges?runeId=${encodeURIComponent(runeId)}&address=${encodeURIComponent(address)}`;
+    const { data } = await get<BorrowRangeResponse>(url);
 
-    const response = await fetch(url);
-
-    let data;
-    try {
-      data = await response.json();
-    } catch {
-      throw new Error(`Failed to parse borrow ranges for ${runeId}`);
-    }
-
-    if (!response.ok) {
-      const errorMessage = getErrorMessageFromData(
-        data,
-        `Failed to fetch borrow ranges: ${response.statusText}`,
-      );
-      throw new Error(errorMessage);
+    if (!data.success) {
+      throw new Error('Failed to fetch borrow ranges');
     }
 
     return data as BorrowRangeResponse;
   } catch (error) {
+    logFetchError(`/api/liquidium/borrow/ranges?runeId=${runeId}`, error);
     throw error;
   }
 };
