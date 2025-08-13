@@ -38,15 +38,22 @@ export const repayLiquidiumLoan = async (
     // Map Liquidium API fields to expected frontend fields without mutating raw response
     if (data?.data) {
       // Create a new transformed data object instead of mutating the original
-      const transformedData = {
+      const transformedData: RepayLiquidiumLoanResponse = {
         success: data.success,
         data: {
-          psbt: data.data.base64_psbt || data.data.psbt,
-          repaymentAmountSats: data.data.repayment_amount_sats,
-          loanId: data.data.offer_id || loanId,
-          ...data.data, // Include any other fields from the original data
+          psbt:
+            ((data.data as Record<string, unknown>).base64_psbt as string) ||
+            data.data.psbt,
+          repaymentAmountSats:
+            ((data.data as Record<string, unknown>)
+              .repayment_amount_sats as number) ||
+            data.data.repaymentAmountSats,
+          loanId:
+            ((data.data as Record<string, unknown>).offer_id as string) ||
+            data.data.loanId ||
+            loanId,
         },
-        error: data.error,
+        ...(data.error && { error: data.error }),
       };
       return transformedData;
     }

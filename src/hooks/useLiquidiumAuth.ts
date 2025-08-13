@@ -74,7 +74,10 @@ export function useLiquidiumAuth({
       }
       const { data: challengeData } = await get<{
         success: boolean;
-        data: { ordinals: { message: string }; payment?: { message: string } };
+        data: {
+          ordinals: { message: string; nonce: string };
+          payment?: { message: string; nonce: string };
+        };
       }>(
         `/api/liquidium/challenge?ordinalsAddress=${encodeURIComponent(
           address,

@@ -176,8 +176,12 @@ describe('liquidium API', () => {
     const mockRangeResponse: BorrowRangeResponse = {
       success: true,
       data: {
-        ranges: [{ min: '100', max: '1000' }],
-        available_terms: [30, 60, 90],
+        runeId: 'test-rune-id',
+        minAmount: '100',
+        maxAmount: '1000',
+        loanTermDays: [30, 60, 90],
+        cached: false,
+        updatedAt: '2024-01-01T00:00:00Z',
       },
     };
 
@@ -249,8 +253,15 @@ describe('liquidium API', () => {
       success: true,
       data: {
         prepare_offer_id: 'prepare-456',
-        psbt_base64: 'cHNidAEBAA==',
-        fee_sats: 1500,
+        base64_psbt: 'cHNidAEBAA==',
+        sides: [
+          {
+            index: 0,
+            address: 'bc1test123',
+            sighash: 1,
+            disable_tweak_signer: false,
+          },
+        ],
       },
     };
 
@@ -419,7 +430,7 @@ describe('liquidium API', () => {
     const mockSubmitRepayResponse: SubmitRepayResponse = {
       success: true,
       data: {
-        transactionId: 'tx-repay-456',
+        repayment_transaction_id: 'tx-repay-456',
       },
     };
 
