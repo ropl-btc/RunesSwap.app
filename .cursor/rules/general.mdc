@@ -9,20 +9,20 @@ Concise guidance for automated coding agents (Codex/Claude) working on
 RunesSwap.app. Keep edits minimal, type‑safe, and aligned with the patterns
 below.
 
-### Overview
+## Overview
 - **Framework**: Next.js App Router, React 19, TypeScript (strict).
 - **State**: React Query (server data) + Zustand (client state).
 - **Theme**: Windows‑98 style via CSS Modules + global CSS variables.
 - **Path alias**: `@/*` → `./src/*` (tsconfig + Jest).
 
-### External services
+## External services
 - **Ordiscan**: on‑chain UTXO, rune data.
 - **SatsTerminal**: quotes, PSBT, swap execution.
 - **Liquidium**: borrowing, loans.
 - **Supabase**: rune info + market data cache.
 - **CoinGecko**: BTC price.
 
-### Structure
+## Structure
 ```text
 src/
   app/ (api routes, docs page, layout, globals.css)
@@ -35,7 +35,7 @@ src/
   utils/ (formatters, guards, runes helpers)
 ```
 
-### Environment
+## Environment
 Set variables from `.env.example`. Commonly required:
 - `SATS_TERMINAL_API_KEY`
 - `ORDISCAN_API_KEY`
@@ -45,7 +45,7 @@ Set variables from `.env.example`. Commonly required:
 
 Security: never expose secrets via `NEXT_PUBLIC_*`.
 
-### AI‑optimized code standards
+## AI‑optimized code standards
 - **Type safety (strict)**: `exactOptionalPropertyTypes`,
   `noUncheckedIndexedAccess` are enabled in `tsconfig.json`.
 - **Safe utilities** (use these, avoid direct array indexing):
@@ -53,7 +53,8 @@ Security: never expose secrets via `NEXT_PUBLIC_*`.
   - `safeArrayAccess<T>(array: T[], index: number): T | undefined`
   - `safeParseJWT(jwt: string): Record<string, unknown> | null`
   Location: `src/utils/typeGuards.ts`.
-- **Numbers**: validate conversions to avoid `NaN`.
+- **Numbers (non‑financial)**: validate conversions to avoid `NaN`.
+  For any financial arithmetic (amounts, quotes, USD conversions), use `big.js`.
   ```ts
   const toNumber = (s: string, fallback = 0) => {
     const n = Number(s);
@@ -67,7 +68,7 @@ Security: never expose secrets via `NEXT_PUBLIC_*`.
 - **Formatting/imports**: 80‑char max; alphabetized, grouped imports
   (ESLint import/order + sort‑imports).
 
-### API patterns
+## API patterns
 - Use helpers in `src/lib/apiUtils.ts`:
   - `createSuccessResponse`, `createErrorResponse`, `handleApiError`,
     `validateRequest` (Zod‑based validation for body/query).
@@ -75,29 +76,29 @@ Security: never expose secrets via `NEXT_PUBLIC_*`.
 - Prefer thin API routes under `src/app/api/*` that proxy Ordiscan,
   SatsTerminal, Liquidium; cache in Supabase when helpful.
 
-### Numeric precision
+## Numeric precision
 Use `big.js` for financial math (quotes, USD conversions, portfolio):
 `import Big from 'big.js'`. See `src/hooks/useUsdValues.ts` and
 `src/components/FormattedRuneAmount.tsx` for patterns.
 
-### Data flows
+## Data flows
 - **Typical**: component → `lib/apiClient.ts` (re‑exports from `lib/api`) →
   `app/api/*` → external service → standardized JSON → React Query updates UI.
 - **Swap**: select assets/amount → SatsTerminal quote → sign PSBT via
   LaserEyes → broadcast.
 - **Borrow**: select rune collateral → Liquidium quote → sign → on‑chain loan.
 
-### CSS guidelines
+## CSS guidelines
 - Use CSS Modules with global Win98 variables (see `app/globals.css`).
 - CamelCase class names; descriptive and concise.
 
-### Dev & quality
+## Dev & quality
 - Scripts: `pnpm dev`, `pnpm build`, `pnpm start`, `pnpm test`,
   `pnpm lint`, `pnpm ai-check`, `pnpm gen:liquidium-sdk`.
 - Tests: Jest + ts‑jest, `jsdom`, CSS module mapping.
 - Commits: Conventional Commits enforced by commitlint; husky prepares hooks.
 
-### Agent checklist
+## Agent checklist
 - Use safe array/number patterns; avoid `array[0]`.
 - Keep lines ≤ 80 chars; imports sorted/alphabetized.
 - Respect server vs client env vars; do not leak secrets.

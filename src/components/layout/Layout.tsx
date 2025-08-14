@@ -109,6 +109,14 @@ export function Layout({ children }: LayoutProps) {
               }}
               priority
               onClick={() => router.push('/?tab=swap')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  router.push('/?tab=swap');
+                }
+              }}
             />
             <TitleText />
           </span>

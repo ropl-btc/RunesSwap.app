@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRuneInfo } from '@/hooks/useRuneInfo';
 import { formatRuneAmount } from '@/utils/runeFormatting';
-import { Loading } from '../loading';
+import { Loading } from '../loading/Loading';
 
 interface FormattedRuneAmountProps {
   runeName: string | null | undefined;

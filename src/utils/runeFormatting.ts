@@ -12,11 +12,6 @@ export interface RuneFormattingOptions {
    */
   maxDecimals?: number;
   /**
-   * Whether to use locale-specific number formatting
-   * @default true
-   */
-  useLocaleString?: boolean;
-  /**
    * Whether to remove trailing zeros
    * @default true
    */
@@ -35,11 +30,7 @@ export function formatRuneAmount(
   decimals: number,
   options: RuneFormattingOptions = {},
 ): string {
-  const {
-    maxDecimals,
-    useLocaleString = true,
-    removeTrailingZeros = true,
-  } = options;
+  const { maxDecimals, removeTrailingZeros = true } = options;
 
   try {
     // Convert to Big.js for precise calculations
@@ -47,8 +38,7 @@ export function formatRuneAmount(
 
     if (decimals === 0) {
       // No decimal places needed, just format for display
-      const result = rawAmountBig.toFixed(0);
-      return useLocaleString ? Number(result).toLocaleString() : result;
+      return rawAmountBig.toFixed(0);
     }
 
     // Create divisor using Big.js to maintain precision
@@ -69,16 +59,7 @@ export function formatRuneAmount(
       formattedString = formattedString.replace(/\.?0+$/, '');
     }
 
-    // Convert to number for locale formatting if safe and requested
-    if (useLocaleString) {
-      const formattedNumber = parseFloat(formattedString);
-      if (!isNaN(formattedNumber)) {
-        return formattedNumber.toLocaleString(undefined, {
-          maximumFractionDigits: displayDecimals,
-        });
-      }
-    }
-
+    // Use Big.js for all formatting to preserve precision
     return formattedString;
   } catch (error) {
     // Fallback to raw amount on any error
