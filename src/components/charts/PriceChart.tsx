@@ -16,7 +16,7 @@ import {
   formatTime,
 } from '@/utils/formatters';
 import styles from '../layout/AppInterface.module.css';
-import { Loading } from '../loading/Loading';
+import { Loading } from '../loading';
 import PriceTooltip from './PriceTooltip';
 import TimeframeSelector from './TimeframeSelector';
 // Path to hourglass icon used while BTC price is loading
