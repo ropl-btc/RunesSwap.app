@@ -569,6 +569,7 @@ The application uses `fastestFee` for optimal transaction speed across all swap 
 
 # General Instructions
 * IMPORTANT: Always use context7 to read relevant up-to-date docs when dealing with any external dependency/package/library!
+* IMPORTANT: Always follow KISS and DRY principals.
+* Run `pnpm ai-check` after every bigger change.
 * Use the supabase tools to interact with our database!
 * SatsTerminal SDK is very aggressive with rate-limiting, we shouldn't increase the amount of queries we're doing to SatsTerminal!
-* IMPORTANT: Always follow KISS and DRY principals.

@@ -2,7 +2,7 @@ import { Analytics } from '@vercel/analytics/react';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
-import Layout from '@/components/Layout';
+import Layout from '@/components/layout/Layout';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {

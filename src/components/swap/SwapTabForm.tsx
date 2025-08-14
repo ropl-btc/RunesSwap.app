@@ -1,8 +1,8 @@
 import React from 'react';
 import { QuoteResponse } from 'satsterminal-sdk';
 import { Asset } from '@/types/common';
-import { InputArea } from '../InputArea';
-import styles from '../SwapTab.module.css';
+import { InputArea } from './InputArea';
+import styles from './SwapTab.module.css';
 import {
   PriceInfoPanel,
   SwapButton,

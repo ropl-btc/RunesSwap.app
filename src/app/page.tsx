@@ -1,9 +1,9 @@
 'use client';
 
 import React, { Suspense, useState } from 'react';
-import { AppInterface } from '@/components/AppInterface';
+import { AppInterface } from '@/components/layout/AppInterface';
+import TabNavigation, { ActiveTab } from '@/components/layout/TabNavigation';
 import { Loading } from '@/components/loading';
-import TabNavigation, { ActiveTab } from '@/components/TabNavigation';
 import styles from './page.module.css';
 
 export default function Home() {
