@@ -58,3 +58,95 @@ export function formatNumber(value: number): string {
 export function formatSatsToBtc(sats: number): string {
   return (sats / 1e8).toFixed(8);
 }
+
+/**
+ * Formats a USD value with currency formatting
+ *
+ * @param value - USD value to format
+ * @returns Formatted USD string
+ */
+export function formatUsd(value: number): string {
+  return value.toLocaleString(undefined, {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+/**
+ * Formats a number with commas and specified decimal places
+ *
+ * @param value - Number to format
+ * @param options - Formatting options
+ * @returns Formatted number string
+ */
+export function formatNumberWithLocale(
+  value: number,
+  options?: Intl.NumberFormatOptions,
+): string {
+  return value.toLocaleString(undefined, options);
+}
+
+/**
+ * Truncates an address for display
+ *
+ * @param address - Address string to truncate
+ * @param startChars - Number of characters to show at start (default: 6)
+ * @param endChars - Number of characters to show at end (default: 4)
+ * @returns Truncated address string
+ */
+export function truncateAddress(
+  address: string,
+  startChars: number = 6,
+  endChars: number = 4,
+): string {
+  if (!address) return '';
+  if (address.length <= startChars + endChars + 3) return address;
+  return `${address.substring(0, startChars)}...${address.substring(address.length - endChars)}`;
+}
+
+/**
+ * Formats a date to locale string for consistent display
+ *
+ * @param date - Date to format
+ * @param options - Formatting options
+ * @returns Formatted date string
+ */
+export function formatDate(
+  date: Date | string | number,
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  const dateObj = new Date(date);
+  return dateObj.toLocaleDateString([], options);
+}
+
+/**
+ * Formats a time to locale string for consistent display
+ *
+ * @param date - Date to format
+ * @param options - Formatting options
+ * @returns Formatted time string
+ */
+export function formatTime(
+  date: Date | string | number,
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  const dateObj = new Date(date);
+  return dateObj.toLocaleTimeString([], options);
+}
+
+/**
+ * Formats a date and time to locale string for consistent display
+ *
+ * @param date - Date to format
+ * @param options - Formatting options
+ * @returns Formatted date and time string
+ */
+export function formatDateTime(
+  date: Date | string | number,
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  const dateObj = new Date(date);
+  return dateObj.toLocaleString(undefined, options);
+}

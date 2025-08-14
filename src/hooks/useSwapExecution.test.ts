@@ -11,45 +11,34 @@ jest.mock('@/lib/api', () => ({
   QUERY_KEYS: { BTC_FEE_RATES: 'btcFeeRates' },
 }));
 
-jest.mock('@tanstack/react-query', () => ({
-  useQuery: jest.fn(),
-}));
+jest.mock('@tanstack/react-query', () => ({ useQuery: jest.fn() }));
 
 const { getPsbtFromApi, confirmPsbtViaApi } = jest.requireMock('@/lib/api');
 const { useQuery } = jest.requireMock('@tanstack/react-query');
 
-// DOM environment is handled by jest-environment-jsdom
-
 type HookProps = Parameters<typeof useSwapExecution>[0];
 
-function baseProps(overrides: Partial<HookProps> = {}): HookProps {
-  return {
-    connected: true,
-    address: 'addr',
-    paymentAddress: 'paddr',
-    publicKey: 'pub',
-    paymentPublicKey: 'ppub',
-    signPsbt: jest.fn().mockResolvedValue({ signedPsbtBase64: 'signed' }),
-    assetIn: BTC_ASSET,
-    assetOut: { id: 'RUNE', name: 'RUNE', imageURI: 'test-image-uri' },
-    quote: {
-      selectedOrders: [
-        {
-          id: '1',
-          market: 'RUNE/BTC',
-          price: 1,
-          formattedAmount: 1,
-        },
-      ],
-    } as unknown as QuoteResponse,
-    quoteTimestamp: Date.now(),
-    swapState: initialSwapProcessState,
-    dispatchSwap: jest.fn(),
-    isThrottledRef: { current: false },
-    quoteKeyRef: { current: '' },
-    ...overrides,
-  };
-}
+const createBaseProps = (overrides: Partial<HookProps> = {}): HookProps => ({
+  connected: true,
+  address: 'addr',
+  paymentAddress: 'paddr',
+  publicKey: 'pub',
+  paymentPublicKey: 'ppub',
+  signPsbt: jest.fn().mockResolvedValue({ signedPsbtBase64: 'signed' }),
+  assetIn: BTC_ASSET,
+  assetOut: { id: 'RUNE', name: 'RUNE', imageURI: 'test-image-uri' },
+  quote: {
+    selectedOrders: [
+      { id: '1', market: 'RUNE/BTC', price: 1, formattedAmount: 1 },
+    ],
+  } as unknown as QuoteResponse,
+  quoteTimestamp: Date.now(),
+  swapState: initialSwapProcessState,
+  dispatchSwap: jest.fn(),
+  isThrottledRef: { current: false },
+  quoteKeyRef: { current: '' },
+  ...overrides,
+});
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -59,59 +48,62 @@ beforeEach(() => {
 });
 
 describe('useSwapExecution', () => {
-  it('dispatches SWAP_SUCCESS on successful swap', async () => {
-    (getPsbtFromApi as jest.Mock).mockResolvedValue({
-      psbtBase64: 'psbt',
-      swapId: 'swap123',
-    });
-    (confirmPsbtViaApi as jest.Mock).mockResolvedValue({ txid: 'tx123' });
+  const swapScenarios = [
+    {
+      name: 'successful swap',
+      setup: () => {
+        (getPsbtFromApi as jest.Mock).mockResolvedValue({
+          psbtBase64: 'psbt',
+          swapId: 'swap123',
+        });
+        (confirmPsbtViaApi as jest.Mock).mockResolvedValue({ txid: 'tx123' });
+      },
+      props: {},
+      expectedActions: [{ type: 'SWAP_SUCCESS', txId: 'tx123' }],
+    },
+    {
+      name: 'quote expiry',
+      setup: () => {},
+      props: { quoteTimestamp: Date.now() - 61000 },
+      expectedActions: [
+        { type: 'QUOTE_EXPIRED' },
+        {
+          type: 'SET_GENERIC_ERROR',
+          error: 'Quote expired. Please fetch a new one.',
+        },
+      ],
+    },
+  ];
 
-    const props = baseProps();
-    const { result } = renderHook(() => useSwapExecution(props));
+  test.each(swapScenarios)(
+    'handles $name',
+    async ({ setup, props, expectedActions }) => {
+      setup();
+      const hookProps = createBaseProps(props);
+      const { result } = renderHook(() => useSwapExecution(hookProps));
 
-    await act(async () => {
-      await result.current.handleSwap();
-    });
+      await act(async () => result.current.handleSwap());
 
-    expect(props.dispatchSwap).toHaveBeenCalledWith({
-      type: 'SWAP_SUCCESS',
-      txId: 'tx123',
-    });
-  });
-
-  it('handles quote expiry', async () => {
-    const props = baseProps({ quoteTimestamp: Date.now() - 61000 });
-    const { result } = renderHook(() => useSwapExecution(props));
-
-    await act(async () => {
-      await result.current.handleSwap();
-    });
-
-    expect(props.dispatchSwap).toHaveBeenCalledWith({ type: 'QUOTE_EXPIRED' });
-    expect(props.dispatchSwap).toHaveBeenCalledWith({
-      type: 'SET_GENERIC_ERROR',
-      error: 'Quote expired. Please fetch a new one.',
-    });
-    expect(getPsbtFromApi).not.toHaveBeenCalled();
-  });
+      expectedActions.forEach((action) => {
+        expect(hookProps.dispatchSwap).toHaveBeenCalledWith(action);
+      });
+    },
+  );
 
   it('retries with higher fee rate on fee error', async () => {
     let call = 0;
     (getPsbtFromApi as jest.Mock).mockImplementation(() => {
       call += 1;
-      if (call === 1) {
-        return Promise.reject(new Error('Network fee rate not high enough'));
-      }
-      return Promise.resolve({ psbtBase64: 'psbt2', swapId: 'swap2' });
+      return call === 1
+        ? Promise.reject(new Error('Network fee rate not high enough'))
+        : Promise.resolve({ psbtBase64: 'psbt2', swapId: 'swap2' });
     });
     (confirmPsbtViaApi as jest.Mock).mockResolvedValue({ txid: 'tx456' });
 
-    const props = baseProps();
+    const props = createBaseProps();
     const { result } = renderHook(() => useSwapExecution(props));
 
-    await act(async () => {
-      await result.current.handleSwap();
-    });
+    await act(async () => result.current.handleSwap());
 
     expect(getPsbtFromApi).toHaveBeenCalledTimes(2);
     expect(props.dispatchSwap).toHaveBeenCalledWith({

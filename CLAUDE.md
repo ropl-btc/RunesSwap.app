@@ -550,6 +550,23 @@ curl -X GET "http://localhost:3000/api/rune-price-history?slug=dog-go-to-the-moo
 }
 ```
 
+## Bitcoin Fee Rates API
+
+Bitcoin fee rates are fetched from mempool.space API with the following response format:
+
+**Sample Response:**
+```json
+{
+  "fastestFee": 2,
+  "halfHourFee": 1,
+  "hourFee": 1,
+  "economyFee": 1,
+  "minimumFee": 1
+}
+```
+
+The application uses `fastestFee` for optimal transaction speed across all swap operations.
+
 # General Instructions
 * IMPORTANT: Always use context7 to read relevant up-to-date docs when dealing with any external dependency/package/library!
 * Use the supabase tools to interact with our database!

@@ -1,10 +1,5 @@
 import { NextRequest } from 'next/server';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  handleApiError,
-  validateRequest,
-} from '@/lib/apiUtils';
+import { createSuccessResponse, validateRequest } from '@/lib/apiUtils';
 import { RuneData } from '@/lib/runesData';
 import { getOrdiscanClient } from '@/lib/serverUtils';
 import {
@@ -12,24 +7,20 @@ import {
   batchFetchRunes,
 } from '@/lib/supabaseQueries';
 import { requestSchemas } from '@/lib/validationSchemas';
+import { withApiHandler } from '@/lib/withApiHandler';
 import { RuneBalance, RuneMarketInfo } from '@/types/ordiscan';
 
-export async function GET(request: NextRequest) {
-  // const { searchParams } = new URL(request.url);
-  // const address = searchParams.get('address');
-
-  // Use centralized validation schema
-  const validation = await validateRequest(
-    request,
-    requestSchemas.addressRequest,
-    'query',
-  );
-  if (!validation.success) {
-    return validation.errorResponse;
-  }
-  const { address: validAddress } = validation.data;
-
-  try {
+export const GET = withApiHandler(
+  async (request: NextRequest) => {
+    const validation = await validateRequest(
+      request,
+      requestSchemas.addressRequest,
+      'query',
+    );
+    if (!validation.success) {
+      return validation.errorResponse;
+    }
+    const { address: validAddress } = validation.data;
     // Fetch balances from Ordiscan (always fresh)
     const ordiscan = getOrdiscanClient();
     const balancesPromise = ordiscan.address.getRunes({
@@ -116,21 +107,11 @@ export async function GET(request: NextRequest) {
         (balance as { amount?: string; balance?: string }).balance, // Support both formats for backward compatibility
     }));
 
-    // Return the combined data
     return createSuccessResponse({
       balances: formattedBalances,
       runeInfos: runeInfoMap,
       marketData: marketDataMap,
     });
-  } catch (error) {
-    const errorInfo = handleApiError(
-      error,
-      `Failed to fetch portfolio data for ${validAddress}`,
-    );
-    return createErrorResponse(
-      errorInfo.message,
-      errorInfo.details,
-      errorInfo.status,
-    );
-  }
-}
+  },
+  { defaultErrorMessage: 'Failed to fetch portfolio data' },
+);

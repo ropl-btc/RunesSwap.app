@@ -6,7 +6,11 @@ import type {
   RuneInfo as OrdiscanRuneInfo,
   RuneMarketInfo as OrdiscanRuneMarketInfo,
 } from '@/types/ordiscan';
-import { formatNumberString, truncateTxid } from '@/utils/formatters';
+import {
+  formatNumberString,
+  formatNumberWithLocale,
+  truncateTxid,
+} from '@/utils/formatters';
 import { FormattedRuneAmount } from './FormattedRuneAmount';
 import RuneIcon from './RuneIcon';
 import styles from './RunesInfoTab.module.css';
@@ -99,7 +103,7 @@ const RuneDetails: React.FC<RuneDetailsProps> = ({
             </p>
             <p>
               <strong>Market Cap:</strong>{' '}
-              {runeMarketInfo.market_cap_in_usd.toLocaleString()} USD
+              {formatNumberWithLocale(runeMarketInfo.market_cap_in_usd)} USD
             </p>
           </>
         )}
@@ -165,7 +169,9 @@ const RuneDetails: React.FC<RuneDetailsProps> = ({
         {detailedRuneInfo.current_mint_count !== undefined && (
           <p>
             <strong>Current Mint Count:</strong>{' '}
-            {detailedRuneInfo.current_mint_count?.toLocaleString() || 'N/A'}
+            {detailedRuneInfo.current_mint_count
+              ? formatNumberWithLocale(detailedRuneInfo.current_mint_count)
+              : 'N/A'}
           </p>
         )}
         {onShowPriceChart && (

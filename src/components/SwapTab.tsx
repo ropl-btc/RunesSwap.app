@@ -15,8 +15,10 @@ import { fetchBtcBalanceFromApi, fetchRuneBalancesFromApi } from '@/lib/api';
 import { Asset, BTC_ASSET } from '@/types/common';
 import { type RuneBalance as OrdiscanRuneBalance } from '@/types/ordiscan';
 import { formatAmountWithPrecision } from '@/utils/amountFormatting';
+import { formatNumberWithLocale } from '@/utils/formatters';
 import { calculateActualBalance } from '@/utils/runeFormatting';
 import FeeSelector from './FeeSelector';
+import { Loading } from './loading';
 import { SwapTabForm, useSwapProcessManager } from './swap';
 import styles from './SwapTab.module.css';
 
@@ -314,16 +316,16 @@ export function SwapTab({
     connected && assetIn ? (
       assetIn.isBTC ? (
         isBtcBalanceLoading ? (
-          <span className={styles.loadingText}>Loading{loadingDots}</span>
+          <Loading variant="balance" className={styles.loadingText} />
         ) : btcBalanceError ? (
           <span className={styles.errorText}>Error loading balance</span>
         ) : btcBalanceSats !== undefined ? (
-          `${(btcBalanceSats / 100_000_000).toLocaleString(undefined, { maximumFractionDigits: 8 })}`
+          `${formatNumberWithLocale(btcBalanceSats / 100_000_000, { maximumFractionDigits: 8 })}`
         ) : (
           'N/A'
         )
       ) : isRuneBalancesLoading || isSwapRuneInfoLoading ? (
-        <span className={styles.loadingText}>Loading{loadingDots}</span>
+        <Loading variant="balance" className={styles.loadingText} />
       ) : runeBalancesError || swapRuneInfoError ? (
         <span className={styles.errorText}>Error loading balance</span>
       ) : (
@@ -335,7 +337,7 @@ export function SwapTab({
             if (isNaN(balanceNum)) return 'Invalid Balance';
             const decimals = swapRuneInfo?.decimals ?? 0;
             const displayValue = calculateActualBalance(rawBalance, decimals);
-            return `${displayValue.toLocaleString(undefined, { maximumFractionDigits: decimals })}`;
+            return `${formatNumberWithLocale(displayValue, { maximumFractionDigits: decimals })}`;
           } catch {
             return 'Formatting Error';
           }

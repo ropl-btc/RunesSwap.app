@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRuneInfo } from '@/hooks/useRuneInfo';
 import { formatRuneAmount } from '@/utils/runeFormatting';
-import { LoadingRuneAmount } from './LoadingSpinner';
+import { Loading } from './loading';
 
 interface FormattedRuneAmountProps {
   runeName: string | null | undefined;
@@ -35,7 +35,7 @@ export function FormattedRuneAmount({
   }
 
   if (isLoading) {
-    return <LoadingRuneAmount rawAmount={rawAmount} />;
+    return <Loading variant="rune-amount" rawAmount={rawAmount} />;
   }
 
   if (error) {

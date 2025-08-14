@@ -5,10 +5,10 @@ import { z } from 'zod';
 import {
   createErrorResponse,
   createSuccessResponse,
-  handleApiError,
   validateRequest,
 } from '@/lib/apiUtils';
 import { getSatsTerminalClient } from '@/lib/serverUtils';
+import { withApiHandler } from '@/lib/withApiHandler';
 import type { Rune } from '@/types/satsTerminal';
 
 const searchParamsSchema = z.object({
@@ -51,20 +51,19 @@ function generateStableId(item: SearchResponseItem, index: number): string {
   return `search_${hash}`;
 }
 
-export async function GET(request: NextRequest) {
-  const validation = await validateRequest(
-    request,
-    searchParamsSchema,
-    'query',
-  );
-  if (!validation.success) return validation.errorResponse;
+export const GET = withApiHandler(
+  async (request: NextRequest) => {
+    const validation = await validateRequest(
+      request,
+      searchParamsSchema,
+      'query',
+    );
+    if (!validation.success) return validation.errorResponse;
 
-  const { query, sell } = validation.data;
+    const { query, sell } = validation.data;
 
-  try {
     const terminal = getSatsTerminalClient();
 
-    // Convert to SDK-compatible format
     const searchParams: SearchParams = {
       query: query,
       sell: sell === 'true',
@@ -72,7 +71,6 @@ export async function GET(request: NextRequest) {
 
     const searchResponse = await terminal.search(searchParams);
 
-    // Transform the raw SDK response to match our Rune interface
     const transformedResults: Rune[] = Array.isArray(searchResponse)
       ? searchResponse.map((item: SearchResponseItem, index: number) => ({
           id: generateStableId(item, index),
@@ -82,32 +80,30 @@ export async function GET(request: NextRequest) {
       : [];
 
     return createSuccessResponse(transformedResults);
-  } catch (error) {
-    const errorInfo = handleApiError(error, 'Failed to search');
-    const errorMessage = error instanceof Error ? error.message : String(error);
+  },
+  {
+    defaultErrorMessage: 'Failed to search',
+    customErrorHandler: (error: unknown) => {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
 
-    // Special handling for rate limiting
-    if (errorMessage.includes('Rate limit') || errorInfo.status === 429) {
-      return createErrorResponse(
-        'Rate limit exceeded',
-        'Please try again later',
-        429,
-      );
-    }
+      if (errorMessage.includes('Rate limit')) {
+        return createErrorResponse(
+          'Rate limit exceeded',
+          'Please try again later',
+          429,
+        );
+      }
 
-    // Handle unexpected token errors (HTML responses instead of JSON)
-    if (errorMessage.includes('Unexpected token')) {
-      return createErrorResponse(
-        'API service unavailable',
-        'The SatsTerminal API is currently unavailable. Please try again later.',
-        503,
-      );
-    }
+      if (errorMessage.includes('Unexpected token')) {
+        return createErrorResponse(
+          'API service unavailable',
+          'The SatsTerminal API is currently unavailable. Please try again later.',
+          503,
+        );
+      }
 
-    return createErrorResponse(
-      errorInfo.message,
-      errorInfo.details,
-      errorInfo.status,
-    );
-  }
-}
+      return null;
+    },
+  },
+);

@@ -1,65 +1,69 @@
 import { formatNumberString, truncateTxid } from './formatters';
 
 describe('truncateTxid', () => {
-  it('returns empty string for empty input', () => {
-    expect(truncateTxid('')).toBe('');
-    expect(truncateTxid(undefined as unknown as string)).toBe('');
-  });
+  const testCases = [
+    { input: '', expected: '', name: 'empty string' },
+    {
+      input: undefined as unknown as string,
+      expected: '',
+      name: 'undefined input',
+    },
+    { input: 'abc123', expected: 'abc123', name: 'short string unchanged' },
+    {
+      input: 'abcdef1234567890abcdef1234567890',
+      expected: 'abcdef12...34567890',
+      name: 'long string with default length',
+    },
+    {
+      input: 'abcdef1234567890abcdef1234567890',
+      length: 4,
+      expected: 'abcd...7890',
+      name: 'long string with custom length',
+    },
+    {
+      input: 'a'.repeat(19),
+      expected: 'a'.repeat(19),
+      name: 'string at threshold length',
+    },
+  ];
 
-  it("returns original string if it's shorter than truncation length", () => {
-    const shortTxid = 'abc123';
-    expect(truncateTxid(shortTxid)).toBe(shortTxid);
-  });
-
-  it('truncates long strings correctly with default length', () => {
-    const longTxid = 'abcdef1234567890abcdef1234567890';
-    expect(truncateTxid(longTxid)).toBe('abcdef12...34567890');
-  });
-
-  it('truncates long strings with custom length', () => {
-    const longTxid = 'abcdef1234567890abcdef1234567890';
-    expect(truncateTxid(longTxid, 4)).toBe('abcd...7890');
-  });
-
-  it('returns original when length threshold is met', () => {
-    const txid = 'a'.repeat(19); // 2*8 + 3
-    expect(truncateTxid(txid)).toBe(txid);
+  testCases.forEach(({ input, length, expected, name }) => {
+    it(`handles ${name}`, () => {
+      expect(truncateTxid(input, length)).toBe(expected);
+    });
   });
 });
 
 describe('formatNumberString', () => {
-  it('returns default display for undefined or null', () => {
-    expect(formatNumberString(undefined)).toBe('N/A');
-    expect(formatNumberString(null)).toBe('N/A');
-  });
+  const testCases = [
+    { input: undefined, expected: 'N/A', name: 'undefined input' },
+    { input: null, expected: 'N/A', name: 'null input' },
+    { input: '123', expected: '123', name: 'small number' },
+    { input: '1234', expected: '1,234', name: 'four-digit number' },
+    { input: '1234567890', expected: '1,234,567,890', name: 'large number' },
+    {
+      input: '12345678901234567890',
+      expected: '12,345,678,901,234,567,890',
+      name: 'extremely large number',
+    },
+    { input: 'not-a-number', expected: 'N/A', name: 'invalid input' },
+    {
+      input: undefined,
+      defaultDisplay: 'none',
+      expected: 'none',
+      name: 'custom default display',
+    },
+    { input: '0', expected: '0', name: 'zero' },
+    {
+      input: '-1234.56',
+      expected: '-1,234.56',
+      name: 'decimal and negative number',
+    },
+  ];
 
-  it('formats small numbers correctly', () => {
-    expect(formatNumberString('123')).toBe('123');
-    expect(formatNumberString('1234')).toBe('1,234');
-  });
-
-  it('formats large numbers with commas', () => {
-    expect(formatNumberString('1234567890')).toBe('1,234,567,890');
-  });
-
-  it('handles extremely large numbers without losing precision', () => {
-    const bigNum = '12345678901234567890';
-    expect(formatNumberString(bigNum)).toBe('12,345,678,901,234,567,890');
-  });
-
-  it('returns default display for invalid input', () => {
-    expect(formatNumberString('not-a-number')).toBe('N/A');
-  });
-
-  it('allows custom default display', () => {
-    expect(formatNumberString(undefined, 'none')).toBe('none');
-  });
-
-  it('handles zero correctly', () => {
-    expect(formatNumberString('0')).toBe('0');
-  });
-
-  it('formats decimal and negative numbers', () => {
-    expect(formatNumberString('-1234.56')).toBe('-1,234.56');
+  testCases.forEach(({ input, defaultDisplay, expected, name }) => {
+    it(`handles ${name}`, () => {
+      expect(formatNumberString(input, defaultDisplay)).toBe(expected);
+    });
   });
 });

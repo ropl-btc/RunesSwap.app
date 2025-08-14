@@ -19,8 +19,6 @@ export type {
   SubmitRepayResponse,
 } from '@/types/liquidium';
 
-import { getErrorMessageFromData } from './utils';
-
 export const repayLiquidiumLoan = async (
   loanId: string,
   address: string,
@@ -60,8 +58,7 @@ export const repayLiquidiumLoan = async (
     return data;
   } catch (error) {
     logFetchError('/api/liquidium/repay', error);
-    const message = getErrorMessageFromData(error, 'Failed to repay loan');
-    throw new Error(message);
+    throw new Error('Failed to repay loan');
   }
 };
 
@@ -84,11 +81,7 @@ export const submitRepayPsbt = async (
     return data;
   } catch (error) {
     logFetchError('/api/liquidium/repay', error);
-    const message = getErrorMessageFromData(
-      error,
-      'Failed to submit repayment',
-    );
-    throw new Error(message);
+    throw new Error('Failed to submit repayment');
   }
 };
 
@@ -154,8 +147,7 @@ export const prepareLiquidiumBorrow = async (params: {
     return data as LiquidiumPrepareBorrowResponse;
   } catch (error) {
     logFetchError('/api/liquidium/borrow/prepare', error);
-    const message = getErrorMessageFromData(error, 'Failed to prepare borrow');
-    throw new Error(message);
+    throw new Error('Failed to prepare borrow');
   }
 };
 
@@ -192,11 +184,7 @@ export const submitLiquidiumBorrow = async (params: {
     }
 
     logFetchError('/api/liquidium/borrow/submit', error);
-    const errorMessage = getErrorMessageFromData(
-      error,
-      'Failed to submit borrow',
-    );
-    throw new Error(errorMessage);
+    throw new Error('Failed to submit borrow');
   }
 };
 

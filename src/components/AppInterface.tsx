@@ -9,13 +9,14 @@ import useBtcPrice from '@/hooks/useBtcPrice';
 import { QUERY_KEYS, fetchPopularFromApi } from '@/lib/api';
 import type { Asset } from '@/types/common';
 import styles from './AppInterface.module.css';
-import { LoadingState } from './LoadingState';
+import { Loading } from './loading';
 
 // Dynamic imports for tab components (performance optimization)
 
 const BorrowTab = dynamic(() => import('./BorrowTab'), {
   loading: () => (
-    <LoadingState
+    <Loading
+      variant="progress"
       className={styles.tabLoading || undefined}
       message="Loading borrow tab..."
     />
@@ -24,7 +25,8 @@ const BorrowTab = dynamic(() => import('./BorrowTab'), {
 
 const PortfolioTab = dynamic(() => import('./PortfolioTab'), {
   loading: () => (
-    <LoadingState
+    <Loading
+      variant="progress"
       className={styles.tabLoading || undefined}
       message="Loading portfolio..."
     />
@@ -33,7 +35,8 @@ const PortfolioTab = dynamic(() => import('./PortfolioTab'), {
 
 const PriceChart = dynamic(() => import('./PriceChart'), {
   loading: () => (
-    <LoadingState
+    <Loading
+      variant="progress"
       className={styles.chartLoading || undefined}
       message="Loading chart..."
     />
@@ -42,7 +45,8 @@ const PriceChart = dynamic(() => import('./PriceChart'), {
 
 const RunesInfoTab = dynamic(() => import('./RunesInfoTab'), {
   loading: () => (
-    <LoadingState
+    <Loading
+      variant="progress"
       className={styles.tabLoading || undefined}
       message="Loading runes info..."
     />
@@ -51,7 +55,8 @@ const RunesInfoTab = dynamic(() => import('./RunesInfoTab'), {
 
 const SwapTab = dynamic(() => import('./SwapTab'), {
   loading: () => (
-    <LoadingState
+    <Loading
+      variant="progress"
       className={styles.tabLoading || undefined}
       message="Loading swap interface..."
     />
@@ -60,7 +65,8 @@ const SwapTab = dynamic(() => import('./SwapTab'), {
 
 const YourTxsTab = dynamic(() => import('./YourTxsTab'), {
   loading: () => (
-    <LoadingState
+    <Loading
+      variant="progress"
       className={styles.tabLoading || undefined}
       message="Loading transactions..."
     />

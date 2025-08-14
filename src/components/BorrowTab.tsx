@@ -15,6 +15,7 @@ import { QUERY_KEYS, fetchRuneBalancesFromApi } from '@/lib/api';
 import { Asset } from '@/types/common';
 import { type RuneBalance as OrdiscanRuneBalance } from '@/types/ordiscan';
 import { formatAmountWithPrecision } from '@/utils/amountFormatting';
+import { formatUsd } from '@/utils/formatters';
 import { calculateActualBalance } from '@/utils/runeFormatting';
 import BorrowQuotesList from './BorrowQuotesList';
 import BorrowSuccessMessage from './BorrowSuccessMessage';
@@ -23,7 +24,7 @@ import Button from './Button';
 import CollateralInput from './CollateralInput';
 import FeeSelector from './FeeSelector';
 import { FormattedRuneAmount } from './FormattedRuneAmount';
-import { LoadingState } from './LoadingState';
+import { Loading } from './loading';
 
 interface BorrowTabProps {
   connected: boolean;
@@ -168,7 +169,7 @@ export function BorrowTab({
   const availableBalanceDisplay =
     connected && collateralAsset && !collateralAsset.isBTC ? (
       isRuneBalancesLoading || isCollateralRuneInfoLoading ? (
-        <LoadingState message="Loading balance..." />
+        <Loading variant="dots" message="Loading balance" />
       ) : (
         <FormattedRuneAmount
           runeName={collateralAsset.name}
@@ -181,14 +182,9 @@ export function BorrowTab({
     collateralAmount &&
     parseFloat(collateralAmount) > 0 &&
     collateralRuneMarketInfo?.price_in_usd
-      ? (
-          parseFloat(collateralAmount) * collateralRuneMarketInfo.price_in_usd
-        ).toLocaleString(undefined, {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })
+      ? formatUsd(
+          parseFloat(collateralAmount) * collateralRuneMarketInfo.price_in_usd,
+        )
       : undefined;
 
   return (

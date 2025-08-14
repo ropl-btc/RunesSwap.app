@@ -85,8 +85,23 @@ if (typeof global.Headers === 'undefined') {
 // Mock console.warn to reduce noise in tests
 global.console.warn = jest.fn();
 
+// Global setup for all tests
+beforeEach(() => {
+  // Clear all mocks before each test
+  jest.clearAllMocks();
+
+  // Reset any global state that might persist between tests
+  if (typeof window !== 'undefined') {
+    // Clear localStorage, sessionStorage, etc. if needed
+    window.localStorage?.clear?.();
+    window.sessionStorage?.clear?.();
+  }
+});
+
 // Setup cleanup after each test
 afterEach(() => {
   cleanup();
-  jest.clearAllMocks();
+
+  // Restore any mocked functions
+  jest.restoreAllMocks();
 });

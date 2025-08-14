@@ -1,25 +1,19 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  handleApiError,
-  validateRequest,
-} from '@/lib/apiUtils';
+import { createSuccessResponse, validateRequest } from '@/lib/apiUtils';
 import { getOrdiscanClient } from '@/lib/serverUtils';
+import { withApiHandler } from '@/lib/withApiHandler';
 
-export async function GET(request: NextRequest) {
-  // Zod validation for 'address'
-  const schema = z.object({ address: z.string().min(1) });
-  const validation = await validateRequest(request, schema, 'query');
-  if (!validation.success) {
-    return validation.errorResponse;
-  }
-  const { address } = validation.data;
+export const GET = withApiHandler(
+  async (request: NextRequest) => {
+    const schema = z.object({ address: z.string().min(1) });
+    const validation = await validateRequest(request, schema, 'query');
+    if (!validation.success) {
+      return validation.errorResponse;
+    }
+    const { address } = validation.data;
 
-  try {
     const ordiscan = getOrdiscanClient();
-    // Use the original logic from src/lib/ordiscan.ts
     const utxos = await ordiscan.address.getUtxos({ address: address });
 
     if (!Array.isArray(utxos)) {
@@ -27,7 +21,6 @@ export async function GET(request: NextRequest) {
         `[API Route] Invalid or empty UTXO data received for address ${address}. Expected array, got:`,
         utxos,
       );
-      // Return 0 balance if data is invalid
       return createSuccessResponse({ balance: 0 });
     }
 
@@ -36,15 +29,6 @@ export async function GET(request: NextRequest) {
       0,
     );
     return createSuccessResponse({ balance: totalBalance });
-  } catch (error) {
-    const errorInfo = handleApiError(
-      error,
-      `Failed to fetch BTC balance for ${address}`,
-    );
-    return createErrorResponse(
-      errorInfo.message,
-      errorInfo.details,
-      errorInfo.status,
-    );
-  }
-}
+  },
+  { defaultErrorMessage: 'Failed to fetch BTC balance' },
+);

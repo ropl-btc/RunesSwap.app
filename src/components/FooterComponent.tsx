@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
+import { formatUsd } from '@/utils/formatters';
 import styles from './AppInterface.module.css';
 import buttonStyles from './Button.module.css';
 
@@ -24,13 +25,7 @@ export function FooterComponent({
       ) : btcPriceError ? (
         <span className={styles.errorText}>Error loading price</span>
       ) : btcPriceUsd ? (
-        <span>
-          BTC Price:{' '}
-          {btcPriceUsd.toLocaleString(undefined, {
-            style: 'currency',
-            currency: 'USD',
-          })}
-        </span>
+        <span>BTC Price: {formatUsd(btcPriceUsd)}</span>
       ) : (
         <span>BTC Price: N/A</span>
       )}

@@ -13,42 +13,40 @@ jest.mock('@/store/runesInfoStore', () => ({
   })),
 }));
 
-// DOM environment is handled by jest-environment-jsdom
-
 type HookProps = Parameters<typeof useRunesSearch>[0];
+
+const createMockRunes = (suffix: string) => [
+  {
+    token_id: `123:${suffix}`,
+    token: `TOKEN_${suffix}`,
+    icon: `${suffix}.png`,
+  },
+];
 
 describe('useRunesSearch', () => {
   it('updates when props change', async () => {
-    const cachedA = [
+    const scenarios = [
       {
-        token_id: '123:1',
-        token: 'AAA',
-        icon: 'a.png',
+        props: { cachedPopularRunes: createMockRunes('1') },
+        expectedId: '123:1',
       },
-    ];
-    const cachedB = [
       {
-        token_id: '123:2',
-        token: 'BBB',
-        icon: 'b.png',
+        props: { cachedPopularRunes: createMockRunes('2') },
+        expectedId: '123:2',
       },
     ];
 
-    const initialProps: HookProps = { cachedPopularRunes: cachedA };
     const { result, rerender } = renderHook(
       (props: HookProps = {}) => useRunesSearch(props),
-      { initialProps },
+      { initialProps: scenarios[0]?.props },
     );
 
-    await act(async () => {
-      await Promise.resolve();
-    });
-    expect(result.current.availableRunes.map((r) => r.id)).toEqual(['123:1']);
-
-    rerender({ cachedPopularRunes: cachedB });
-    await act(async () => {
-      await Promise.resolve();
-    });
-    expect(result.current.availableRunes.map((r) => r.id)).toEqual(['123:2']);
+    for (const { props, expectedId } of scenarios) {
+      rerender(props);
+      await act(async () => Promise.resolve());
+      expect(result.current.availableRunes.map((r) => r.id)).toEqual([
+        expectedId,
+      ]);
+    }
   });
 });

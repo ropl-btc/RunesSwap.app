@@ -3,8 +3,9 @@ export * from './ordiscan';
 export * from './liquidium';
 export * from './coingecko';
 
-import { fetchExternal, get } from '../fetchWrapper';
+import { fetchExternal } from '../fetchWrapper';
 import { logFetchError } from '../logger';
+import { apiGet } from './createApiClient';
 
 export const QUERY_KEYS = {
   POPULAR_RUNES: 'popularRunes',
@@ -24,23 +25,7 @@ export type QueryKey = (typeof QUERY_KEYS)[keyof typeof QUERY_KEYS];
 
 export const fetchPopularFromApi = async (): Promise<
   Record<string, unknown>[]
-> => {
-  try {
-    const { data } = await get<{
-      success: boolean;
-      data: Record<string, unknown>[];
-    }>('/api/popular-runes');
-
-    if (!data.success) {
-      throw new Error('Failed to fetch popular runes');
-    }
-
-    return data.data || [];
-  } catch (error) {
-    logFetchError('/api/popular-runes', error);
-    throw new Error('Failed to fetch popular runes');
-  }
-};
+> => apiGet<Record<string, unknown>[]>('/api/popular-runes');
 
 export interface BitcoinFeeRates {
   fastestFee: number;

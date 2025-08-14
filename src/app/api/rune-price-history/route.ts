@@ -5,6 +5,7 @@ import {
   createSuccessResponse,
   validateRequest,
 } from '@/lib/apiUtils';
+import { withApiHandler } from '@/lib/withApiHandler';
 import { normalizeRuneName } from '@/utils/runeUtils';
 
 // Define the schema for the query parameters
@@ -30,16 +31,12 @@ interface PriceDataPoint {
   floor_value: number;
 }
 
-export async function GET(request: NextRequest) {
-  try {
-    // Extract and validate the query parameters
-    // const { searchParams } = new URL(request.url);
-    // const slug = searchParams.get('slug');
+export const GET = withApiHandler(
+  async (request: NextRequest) => {
     const validation = await validateRequest(request, QuerySchema, 'query');
     if (!validation.success) {
       return validation.errorResponse;
     }
-    // Use the validated slug
     const { slug: originalSlug } = validation.data;
 
     // Format the rune name for the API call
@@ -128,19 +125,11 @@ export async function GET(request: NextRequest) {
     // Make sure the available flag is set correctly
     const available = prices.length > 0;
 
-    // Return the transformed data
     return createSuccessResponse({
       slug: formattedSlug,
       prices,
       available,
     });
-  } catch (error: unknown) {
-    return createErrorResponse(
-      error instanceof Error ? error.message : 'Unknown error occurred',
-      error instanceof Error
-        ? error.stack || 'No stack trace available'
-        : 'Unknown error details',
-      500,
-    );
-  }
-}
+  },
+  { defaultErrorMessage: 'Failed to fetch price history' },
+);

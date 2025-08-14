@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
+import { formatNumberWithLocale } from '@/utils/formatters';
 import { calculateActualBalance } from '@/utils/runeFormatting';
 import { FormattedRuneAmount } from './FormattedRuneAmount';
 import styles from './PortfolioTab.module.css';
@@ -75,18 +76,14 @@ export function FormattedLiquidiumCollateral({
   // Format the amount based on divisibility
   const formattedAmount = (amount: number, divisibility: number): string => {
     if (divisibility === 0) {
-      return amount.toLocaleString();
+      return formatNumberWithLocale(amount);
     }
 
-    const formattedValue = calculateActualBalance(
-      amount,
-      divisibility,
-    ).toLocaleString(undefined, {
+    const actualBalance = calculateActualBalance(amount, divisibility);
+    return formatNumberWithLocale(actualBalance, {
       minimumFractionDigits: 0,
       maximumFractionDigits: divisibility,
     });
-
-    return formattedValue;
   };
 
   // If we have a rune name, use FormattedRuneAmount

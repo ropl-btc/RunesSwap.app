@@ -1,41 +1,26 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  handleApiError,
-  validateRequest,
-} from '@/lib/apiUtils';
+import { createSuccessResponse, validateRequest } from '@/lib/apiUtils';
 import { getOrdiscanClient } from '@/lib/serverUtils';
+import { withApiHandler } from '@/lib/withApiHandler';
 import { RuneActivityEvent } from '@/types/ordiscan';
 
-export async function GET(request: NextRequest) {
-  // Zod validation for 'address'
-  const schema = z.object({ address: z.string().min(1) });
-  const validation = await validateRequest(request, schema, 'query');
-  if (!validation.success) {
-    return validation.errorResponse;
-  }
-  const { address: validAddress } = validation.data;
+export const GET = withApiHandler(
+  async (request: NextRequest) => {
+    const schema = z.object({ address: z.string().min(1) });
+    const validation = await validateRequest(request, schema, 'query');
+    if (!validation.success) {
+      return validation.errorResponse;
+    }
+    const { address: validAddress } = validation.data;
 
-  try {
     const ordiscan = getOrdiscanClient();
     const activity: RuneActivityEvent[] =
       await ordiscan.address.getRunesActivity({ address: validAddress });
 
-    // Ensure we always return a valid array
     const validActivity = Array.isArray(activity) ? activity : [];
 
     return createSuccessResponse(validActivity);
-  } catch (error) {
-    const errorInfo = handleApiError(
-      error,
-      `Failed to fetch rune activity for address ${validAddress}`,
-    );
-    return createErrorResponse(
-      errorInfo.message,
-      errorInfo.details,
-      errorInfo.status,
-    );
-  }
-}
+  },
+  { defaultErrorMessage: 'Failed to fetch rune activity' },
+);

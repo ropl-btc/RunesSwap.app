@@ -5,13 +5,9 @@ import {
   AVAILABLE_WALLETS,
   useWalletConnection,
 } from '@/hooks/useWalletConnection';
+import { truncateAddress } from '@/utils/formatters';
 import styles from './ConnectWalletButton.module.css';
 import WalletOptionsList from './WalletOptionsList';
-
-const truncateAddress = (address: string) => {
-  if (!address) return '';
-  return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
-};
 
 export function ConnectWalletButton() {
   const {

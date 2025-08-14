@@ -3,11 +3,11 @@ import { z } from 'zod';
 import {
   createErrorResponse,
   createSuccessResponse,
-  handleApiError,
   validateRequest,
 } from '@/lib/apiUtils';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
 import { supabase } from '@/lib/supabase';
+import { withApiHandler } from '@/lib/withApiHandler';
 import { safeParseJWT } from '@/utils/typeGuards';
 
 const AuthSchema = z.object({
@@ -19,19 +19,19 @@ const AuthSchema = z.object({
   paymentNonce: z.string().optional(),
 });
 
-export async function POST(request: NextRequest) {
-  const validation = await validateRequest(request, AuthSchema, 'body');
-  if (!validation.success) return validation.errorResponse;
-  const {
-    ordinalsAddress,
-    paymentAddress,
-    ordinalsSignature,
-    paymentSignature,
-    ordinalsNonce,
-    paymentNonce,
-  } = validation.data;
+export const POST = withApiHandler(
+  async (request: NextRequest) => {
+    const validation = await validateRequest(request, AuthSchema, 'body');
+    if (!validation.success) return validation.errorResponse;
+    const {
+      ordinalsAddress,
+      paymentAddress,
+      ordinalsSignature,
+      paymentSignature,
+      ordinalsNonce,
+      paymentNonce,
+    } = validation.data;
 
-  try {
     const client = createLiquidiumClient();
 
     const submitData = {
@@ -55,7 +55,6 @@ export async function POST(request: NextRequest) {
       requestBody: submitData,
     });
 
-    // Decode JWT to get expiry using safe parsing
     let expiresAt: Date | null = null;
     const payload = safeParseJWT(authSubmitResponse.user_jwt);
     if (payload && typeof payload.exp === 'number') {
@@ -66,7 +65,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Store JWT in Supabase
     const upsertData = {
       wallet_address: ordinalsAddress,
       ordinals_address: ordinalsAddress,
@@ -77,7 +75,6 @@ export async function POST(request: NextRequest) {
     };
     console.info('[API Debug] Upserting Liquidium JWT with data:', upsertData);
 
-    // Now using regular client as we have proper RLS policies in place
     const { error, data: upsertResult } = await supabase
       .from('liquidium_tokens')
       .upsert(upsertData, { onConflict: 'wallet_address' });
@@ -92,12 +89,6 @@ export async function POST(request: NextRequest) {
     }
     console.info('[API Debug] Upsert result:', upsertResult);
     return createSuccessResponse({ jwt: authSubmitResponse.user_jwt });
-  } catch (error) {
-    const errorInfo = handleApiError(error, 'Liquidium authentication failed');
-    return createErrorResponse(
-      errorInfo.message,
-      errorInfo.details,
-      errorInfo.status,
-    );
-  }
-}
+  },
+  { defaultErrorMessage: 'Liquidium authentication failed' },
+);

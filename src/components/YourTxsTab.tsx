@@ -5,6 +5,7 @@ import Image from 'next/image';
 import React from 'react';
 import { fetchRuneActivityFromApi } from '@/lib/api'; // Import API functions
 import { RuneActivityEvent } from '@/types/ordiscan'; // Import types
+import { formatDateTime, truncateTxid } from '@/utils/formatters';
 import { interpretRuneTransaction } from '@/utils/transactionHelpers'; // Import the new utility function
 import styles from './AppInterface.module.css'; // Reuse styles for now
 import { FormattedRuneAmount } from './FormattedRuneAmount'; // Import component
@@ -81,11 +82,10 @@ export function YourTxsTab({ connected, address }: YourTxsTabProps) {
                     rel="noopener noreferrer"
                     className={styles.txLinkBold}
                   >
-                    TXID: {tx.txid.substring(0, 8)}...
-                    {tx.txid.substring(tx.txid.length - 8)}
+                    TXID: {truncateTxid(tx.txid)}
                   </a>
                   <span className={styles.txTimestamp}>
-                    {new Date(tx.timestamp).toLocaleString()}
+                    {formatDateTime(tx.timestamp)}
                   </span>
                 </div>
                 <div className={styles.txDetails}>

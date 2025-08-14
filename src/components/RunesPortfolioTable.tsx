@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Asset } from '@/types/common';
+import { formatNumberWithLocale } from '@/utils/formatters';
 import Button from './Button';
 import { FormattedRuneAmount } from './FormattedRuneAmount';
 import styles from './PortfolioTab.module.css';
@@ -156,7 +157,7 @@ const RunesPortfolioTable: React.FC<RunesPortfolioTableProps> = ({
       <div>≈ {totalBtcValue.toFixed(8)} BTC</div>
       <div>
         $
-        {totalUsdValue.toLocaleString(undefined, {
+        {formatNumberWithLocale(totalUsdValue, {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         })}

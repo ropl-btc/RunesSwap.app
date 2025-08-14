@@ -21,17 +21,3 @@ export function useRuneBalance(
     return found ? found.balance : '0';
   }, [runeName, runeBalances]);
 }
-
-/**
- * Legacy function for backwards compatibility
- * @deprecated Use useRuneBalance hook instead
- */
-export function getSpecificRuneBalance(
-  runeName: string | undefined,
-  runeBalances: OrdiscanRuneBalance[] | undefined,
-): string | null {
-  if (!runeName || !runeBalances) return null;
-  const formattedRuneName = normalizeRuneName(runeName);
-  const found = runeBalances.find((rb) => rb.name === formattedRuneName);
-  return found ? found.balance : '0';
-}

@@ -1,3 +1,0 @@
-* i see that in rune-balances route.ts we now have amount and balance. do we even need balance still? why did it even work with amount before when balance is the correct thing? do we have logic somewhere that basically converted amount to balance or something? or how did it work before when the naming convention was wrong? also is it fully fixed and working?
-* run /refactor command 5 times.
-  * 0/5

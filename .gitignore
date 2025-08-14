@@ -49,3 +49,6 @@ next-env.d.ts
 
 # Roo
 /.roo
+
+# Other
+todo.md

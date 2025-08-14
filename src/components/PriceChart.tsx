@@ -10,8 +10,13 @@ import {
   YAxis,
 } from 'recharts';
 import usePriceChart from '@/hooks/usePriceChart';
+import {
+  formatDate,
+  formatNumberWithLocale,
+  formatTime,
+} from '@/utils/formatters';
 import styles from './AppInterface.module.css';
-import { LoadingState } from './LoadingState';
+import { Loading } from './loading';
 import PriceTooltip from './PriceTooltip';
 import TimeframeSelector from './TimeframeSelector';
 // Path to hourglass icon used while BTC price is loading
@@ -117,18 +122,18 @@ const PriceChart: React.FC<PriceChartProps> = ({
                       return `${date.getHours()}:00`;
                     case '7d':
                       // Show day and month for 7d view
-                      return date.toLocaleDateString([], {
+                      return formatDate(date, {
                         month: 'numeric',
                         day: 'numeric',
                       });
                     case '30d':
                     case '90d':
-                      return date.toLocaleDateString([], {
+                      return formatDate(date, {
                         month: 'short',
                         day: 'numeric',
                       });
                     default:
-                      return date.toLocaleString();
+                      return formatDate(date);
                   }
                 }}
                 tick={{ fill: '#000', fontSize: 10 }}
@@ -138,7 +143,7 @@ const PriceChart: React.FC<PriceChartProps> = ({
               />
               <YAxis
                 dataKey="price"
-                tickFormatter={(v) => v.toLocaleString('en-US') + ' sats'}
+                tickFormatter={(v) => formatNumberWithLocale(v) + ' sats'}
                 tick={{ fill: '#000', fontSize: 10 }}
                 axisLine={{ stroke: '#000' }}
                 tickLine={{ stroke: '#000' }}
@@ -155,21 +160,21 @@ const PriceChart: React.FC<PriceChartProps> = ({
                   const date = new Date(ts as number);
                   // Snap to last full hour
                   date.setMinutes(0, 0, 0);
-                  const time = date.toLocaleTimeString([], {
+                  const time = formatTime(date, {
                     hour: '2-digit',
                     minute: '2-digit',
                     hour12: false,
                   });
-                  const day = date.toLocaleDateString();
+                  const day = formatDate(date);
                   return `${time} · ${day}`;
                 }}
                 formatter={(value: number) => {
                   // value is sats
                   const usd = btcPriceUsd ? (value / 1e8) * btcPriceUsd : null;
                   return [
-                    `${value.toLocaleString('en-US')} sats`,
+                    `${formatNumberWithLocale(value)} sats`,
                     usd !== null
-                      ? `≈ $${usd.toLocaleString('en-US', { maximumFractionDigits: 6 })}`
+                      ? `≈ $${formatNumberWithLocale(usd, { maximumFractionDigits: 6 })}`
                       : '',
                   ];
                 }}
@@ -223,7 +228,7 @@ const PriceChart: React.FC<PriceChartProps> = ({
                 alignItems: 'center',
               }}
             >
-              <LoadingState message="Loading chart data..." />
+              <Loading variant="progress" message="Loading chart data..." />
             </div>
           )}
 
