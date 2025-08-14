@@ -17,7 +17,7 @@ import { type RuneBalance as OrdiscanRuneBalance } from '@/types/ordiscan';
 import { formatAmountWithPrecision } from '@/utils/amountFormatting';
 import { formatNumberWithLocale } from '@/utils/formatters';
 import { calculateActualBalance } from '@/utils/runeFormatting';
-import { Loading } from '../loading';
+import { Loading } from '@/components/loading';
 import FeeSelector from '../ui/FeeSelector';
 import styles from './SwapTab.module.css';
 import { SwapTabForm, useSwapProcessManager } from '.';
