@@ -1,4 +1,8 @@
-import { formatNumberString, truncateTxid } from '../formatters';
+import {
+  formatNumberString,
+  truncateTxid,
+  formatSatsToBtc,
+} from '../formatters';
 
 describe('truncateTxid', () => {
   const testCases = [
@@ -64,6 +68,38 @@ describe('formatNumberString', () => {
   testCases.forEach(({ input, defaultDisplay, expected, name }) => {
     it(`handles ${name}`, () => {
       expect(formatNumberString(input, defaultDisplay)).toBe(expected);
+    });
+  });
+});
+
+describe('formatSatsToBtc', () => {
+  const testCases = [
+    { input: 0, expected: '0.00000000', name: 'zero satoshis' },
+    { input: 1, expected: '0.00000001', name: 'one satoshi' },
+    { input: 100000000, expected: '1.00000000', name: 'one BTC' },
+    { input: 500809536, expected: '5.00809536', name: 'fractional BTC' },
+    {
+      input: 2100000000000000,
+      expected: '21000000.00000000',
+      name: 'max BTC supply',
+    },
+    { input: '100000000', expected: '1.00000000', name: 'string input' },
+    { input: 99999999n, expected: '0.99999999', name: 'bigint input' },
+    {
+      input: '123.456',
+      expected: '0.00000123',
+      name: 'string with decimals (rounds down)',
+    },
+    {
+      input: 123.9,
+      expected: '0.00000123',
+      name: 'float with decimals (rounds down)',
+    },
+  ];
+
+  testCases.forEach(({ input, expected, name }) => {
+    it(`handles ${name}`, () => {
+      expect(formatSatsToBtc(input)).toBe(expected);
     });
   });
 });

@@ -4,6 +4,7 @@ import { formatSatsToBtc } from '@/utils/formatters';
 import { FormattedLiquidiumCollateral } from '../formatters/FormattedLiquidiumCollateral';
 import styles from '../portfolio/PortfolioTab.module.css';
 import Button from '../ui/Button';
+import Big from 'big.js';
 
 interface LiquidiumLoansSectionProps {
   loans: LiquidiumLoanOffer[];
@@ -90,8 +91,14 @@ const LiquidiumLoansSection: React.FC<LiquidiumLoansSectionProps> = ({
               <div className={styles.btcAmount}>
                 {formatSatsToBtc(
                   loan.loan_details.total_repayment_sats ??
-                    loan.loan_details.principal_amount_sats *
-                      (1 + (loan.loan_details.discount?.discount_rate ?? 0)),
+                    new Big(loan.loan_details.principal_amount_sats)
+                      .times(
+                        new Big(1).plus(
+                          loan.loan_details.discount?.discount_rate ?? 0,
+                        ),
+                      )
+                      .round(0, Big.roundUp) // round up to the nearest satoshi to avoid undercharging
+                      .toNumber(),
                 )}
               </div>
               <div className={styles.btcLabel}>BTC</div>

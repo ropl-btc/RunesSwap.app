@@ -54,7 +54,7 @@ export function convertToRawAmount(
   const amountBig = new Big(amount);
   const multiplier = new Big(10).pow(decimals);
 
-  return amountBig.times(multiplier).round(0, Big.roundDown).toFixed();
+  return amountBig.times(multiplier).round(0, Big.roundDown).toFixed(0);
 }
 
 /**

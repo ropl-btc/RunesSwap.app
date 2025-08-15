@@ -100,12 +100,13 @@ export const GET = withApiHandler(
     });
 
     // Transform balances to match documented API format (amount -> balance)
-    const formattedBalances = validBalances.map((balance) => ({
-      name: balance.name,
-      balance:
-        (balance as { amount?: string; balance?: string }).amount ||
-        (balance as { amount?: string; balance?: string }).balance, // Support both formats for backward compatibility
-    }));
+    const formattedBalances = validBalances.map((balance) => {
+      const amt =
+        (balance as { amount?: string; balance?: string }).amount ??
+        (balance as { amount?: string; balance?: string }).balance ??
+        '0';
+      return { name: balance.name, balance: amt };
+    });
 
     return createSuccessResponse({
       balances: formattedBalances,

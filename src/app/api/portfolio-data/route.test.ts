@@ -227,4 +227,20 @@ describe('/api/portfolio-data', () => {
     ]);
     expect(mockGt).toHaveBeenCalled();
   });
+
+  it('should default to "0" when both amount and balance are missing', async () => {
+    setupMocks({
+      balances: [{ name: 'MALFORMED•RUNE' }], // Missing both amount and balance
+      runeInfos: [],
+      marketData: [],
+    });
+    const response = await GET(createRequest());
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.success).toBe(true);
+    expect(data.data.balances).toEqual([
+      { name: 'MALFORMED•RUNE', balance: '0' },
+    ]);
+  });
 });

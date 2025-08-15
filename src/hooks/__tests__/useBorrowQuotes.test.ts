@@ -36,6 +36,7 @@ const baseProps = {
   collateralAmount: '',
   address: null,
   collateralRuneInfo: null,
+  cachedPopularRunes: [],
 };
 
 const activeProps = {
@@ -43,6 +44,7 @@ const activeProps = {
   collateralAmount: '100',
   address: 'bc1test',
   collateralRuneInfo: createMockRuneInfo(),
+  cachedPopularRunes: [],
 };
 
 describe('useBorrowQuotes', () => {

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Pre-commit hook for Claude Code
 # This script runs before git commit commands to validate code quality
@@ -6,8 +7,8 @@
 # Parse the command from stdin (Claude Code passes the command details as JSON)
 COMMAND_INPUT=$(cat)
 
-# Extract the command from the JSON input
-COMMAND=$(echo "$COMMAND_INPUT" | grep -o '"command":"[^"]*"' | cut -d'"' -f4)
+# Extract the command from the JSON input (robust JSON parsing)
+COMMAND=$(node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const j=JSON.parse(s);console.log(j.command||"")}catch{console.log("")}})' <<< "$COMMAND_INPUT")
 
 # Check if this is a git commit command
 if [[ "$COMMAND" == *"git commit"* ]]; then
