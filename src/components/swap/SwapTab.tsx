@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 import { type QuoteResponse } from 'satsterminal-sdk';
+import Big from 'big.js';
 
 // Import our new components
 import { useRuneBalance } from '@/hooks/useRuneBalance';
@@ -282,13 +283,10 @@ export function SwapTab({
   const handlePercentageClick = (percentage: number) => {
     if (!connected || !assetIn) return;
 
-    let availableBalance = 0;
     let decimals = 8; // Default decimals for BTC
 
     if (assetIn.isBTC) {
-      if (btcBalanceSats !== undefined) {
-        availableBalance = btcBalanceSats / 100_000_000;
-      } else {
+      if (btcBalanceSats === undefined) {
         return; // No balance available
       }
     } else {
@@ -308,10 +306,18 @@ export function SwapTab({
       }
     }
 
-    // BTC path: Calculate percentage of available BTC balance
-    const newAmount =
-      percentage === 1 ? availableBalance : availableBalance * percentage;
-    const formattedAmount = formatAmountWithPrecision(newAmount, decimals);
+    // BTC path: Calculate percentage of available BTC balance directly from sats using Big.js
+    const availableBalanceBig = new Big(btcBalanceSats!.toString()).div(
+      new Big(10).pow(8),
+    );
+    const newAmountBig =
+      percentage === 1
+        ? availableBalanceBig
+        : availableBalanceBig.times(percentage);
+    const formattedAmount = formatAmountWithPrecision(
+      newAmountBig.toString(),
+      decimals,
+    );
     setInputAmount(formattedAmount);
   };
 
