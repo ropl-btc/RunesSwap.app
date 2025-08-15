@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { apiGet } from './lib/api/createApiClient';
+import { apiGet } from '@/lib/api/createApiClient';
 
 // Request helpers
 export function createTestRequest(

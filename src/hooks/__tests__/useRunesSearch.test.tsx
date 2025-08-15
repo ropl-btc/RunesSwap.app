@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import useRunesSearch from '../useRunesSearch';
+import useRunesSearch from '@/hooks/useRunesSearch';
 
 jest.mock('@/lib/api', () => ({
   fetchRunesFromApi: jest.fn(),

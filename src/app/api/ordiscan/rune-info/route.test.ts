@@ -1,6 +1,6 @@
 import { type RuneData, getRuneData } from '@/lib/runesData';
 import { createTestRequest } from '@/test-utils';
-import { GET } from './route';
+import { GET } from '@/app/api/ordiscan/rune-info/route';
 
 jest.mock('@/lib/runesData');
 const mockGetRuneData = jest.mocked(getRuneData);

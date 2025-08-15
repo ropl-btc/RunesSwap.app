@@ -9,11 +9,11 @@ import useBtcPrice from '@/hooks/useBtcPrice';
 import { QUERY_KEYS, fetchPopularFromApi } from '@/lib/api';
 import type { Asset } from '@/types/common';
 import { Loading } from '@/components/loading/Loading';
-import styles from './AppInterface.module.css';
+import styles from '@/components/layout/AppInterface.module.css';
 
 // Dynamic imports for tab components (performance optimization)
 
-const BorrowTab = dynamic(() => import('../borrow/BorrowTab'), {
+const BorrowTab = dynamic(() => import('@/components/borrow/BorrowTab'), {
   loading: () => (
     <Loading
       variant="progress"
@@ -23,17 +23,20 @@ const BorrowTab = dynamic(() => import('../borrow/BorrowTab'), {
   ),
 });
 
-const PortfolioTab = dynamic(() => import('../portfolio/PortfolioTab'), {
-  loading: () => (
-    <Loading
-      variant="progress"
-      className={styles.tabLoading || undefined}
-      message="Loading portfolio..."
-    />
-  ),
-});
+const PortfolioTab = dynamic(
+  () => import('@/components/portfolio/PortfolioTab'),
+  {
+    loading: () => (
+      <Loading
+        variant="progress"
+        className={styles.tabLoading || undefined}
+        message="Loading portfolio..."
+      />
+    ),
+  },
+);
 
-const PriceChart = dynamic(() => import('../charts/PriceChart'), {
+const PriceChart = dynamic(() => import('@/components/charts/PriceChart'), {
   loading: () => (
     <Loading
       variant="progress"
@@ -43,7 +46,7 @@ const PriceChart = dynamic(() => import('../charts/PriceChart'), {
   ),
 });
 
-const RunesInfoTab = dynamic(() => import('../runes/RunesInfoTab'), {
+const RunesInfoTab = dynamic(() => import('@/components/runes/RunesInfoTab'), {
   loading: () => (
     <Loading
       variant="progress"
@@ -53,7 +56,7 @@ const RunesInfoTab = dynamic(() => import('../runes/RunesInfoTab'), {
   ),
 });
 
-const SwapTab = dynamic(() => import('../swap/SwapTab'), {
+const SwapTab = dynamic(() => import('@/components/swap/SwapTab'), {
   loading: () => (
     <Loading
       variant="progress"
@@ -63,7 +66,7 @@ const SwapTab = dynamic(() => import('../swap/SwapTab'), {
   ),
 });
 
-const YourTxsTab = dynamic(() => import('../portfolio/YourTxsTab'), {
+const YourTxsTab = dynamic(() => import('@/components/portfolio/YourTxsTab'), {
   loading: () => (
     <Loading
       variant="progress"

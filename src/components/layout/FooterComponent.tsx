@@ -4,8 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 import { formatUsd } from '@/utils/formatters';
-import buttonStyles from '../ui/Button.module.css';
-import styles from './AppInterface.module.css';
+import buttonStyles from '@/components/ui/Button.module.css';
+import styles from '@/components/layout/AppInterface.module.css';
 
 interface FooterComponentProps {
   btcPriceUsd: number | undefined;

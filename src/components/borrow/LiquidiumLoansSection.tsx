@@ -1,9 +1,9 @@
 import React from 'react';
 import { LiquidiumLoanOffer } from '@/types/liquidium';
 import { formatSatsToBtc } from '@/utils/formatters';
-import { FormattedLiquidiumCollateral } from '../formatters/FormattedLiquidiumCollateral';
-import styles from '../portfolio/PortfolioTab.module.css';
-import Button from '../ui/Button';
+import { FormattedLiquidiumCollateral } from '@/components/formatters/FormattedLiquidiumCollateral';
+import styles from '@/components/portfolio/PortfolioTab.module.css';
+import Button from '@/components/ui/Button';
 import Big from 'big.js';
 
 interface LiquidiumLoansSectionProps {

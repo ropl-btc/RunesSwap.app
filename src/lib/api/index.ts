@@ -1,11 +1,11 @@
-export * from './satsTerminal';
-export * from './ordiscan';
-export * from './liquidium';
-export * from './coingecko';
+export * from '@/lib/api/satsTerminal';
+export * from '@/lib/api/ordiscan';
+export * from '@/lib/api/liquidium';
+export * from '@/lib/api/coingecko';
 
-import { fetchExternal } from '../fetchWrapper';
-import { logFetchError } from '../logger';
-import { apiGet } from './createApiClient';
+import { fetchExternal } from '@/lib/fetchWrapper';
+import { logFetchError } from '@/lib/logger';
+import { apiGet } from '@/lib/api/createApiClient';
 
 export const QUERY_KEYS = {
   POPULAR_RUNES: 'popularRunes',

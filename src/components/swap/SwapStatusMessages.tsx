@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import React from 'react';
-import { SwapStep } from './SwapButton';
-import styles from './SwapStatusMessages.module.css';
+import { SwapStep } from '@/components/swap/SwapButton';
+import styles from '@/components/swap/SwapStatusMessages.module.css';
 
 interface SwapStatusMessagesProps {
   /**

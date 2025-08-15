@@ -16,10 +16,10 @@ import {
   formatNumberWithLocale,
   formatTime,
 } from '@/utils/formatters';
-import styles from '../layout/AppInterface.module.css';
+import styles from '@/components/layout/AppInterface.module.css';
 import { Loading } from '@/components/loading/Loading';
-import PriceTooltip from './PriceTooltip';
-import TimeframeSelector from './TimeframeSelector';
+import PriceTooltip from '@/components/charts/PriceTooltip';
+import TimeframeSelector from '@/components/charts/TimeframeSelector';
 // Path to hourglass icon used while BTC price is loading
 const HOURGLASS_SRC = '/icons/windows_hourglass.png';
 

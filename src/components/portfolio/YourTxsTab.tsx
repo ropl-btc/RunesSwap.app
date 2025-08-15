@@ -7,10 +7,10 @@ import { fetchRuneActivityFromApi } from '@/lib/api'; // Import API functions
 import { RuneActivityEvent } from '@/types/ordiscan'; // Import types
 import { formatDateTime, truncateTxid } from '@/utils/formatters';
 import { interpretRuneTransaction } from '@/utils/transactionHelpers';
-import { FormattedRuneAmount } from '../formatters/FormattedRuneAmount';
-import { FormattedRuneName } from '../formatters/FormattedRuneName';
-import styles from '../layout/AppInterface.module.css';
-import RuneIcon from '../runes/RuneIcon';
+import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
+import { FormattedRuneName } from '@/components/formatters/FormattedRuneName';
+import styles from '@/components/layout/AppInterface.module.css';
+import RuneIcon from '@/components/runes/RuneIcon';
 
 interface YourTxsTabProps {
   connected: boolean;

@@ -3,8 +3,8 @@ import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/solid';
 import Image from 'next/image';
 import React, { Fragment } from 'react';
 import { Asset, BTC_ASSET } from '@/types/common';
-import RuneIcon from '../runes/RuneIcon';
-import styles from './InputArea.module.css';
+import RuneIcon from '@/components/runes/RuneIcon';
+import styles from '@/components/swap/InputArea.module.css';
 
 interface AssetSelectorDropdownProps {
   selectedAsset: Asset | null;

@@ -1,7 +1,7 @@
 import { fetchRunesFromApi } from '@/lib/api';
 import { Asset } from '@/types/common';
 import type { Rune } from '@/types/satsTerminal';
-import { useDebouncedSearch } from './useDebouncedSearch';
+import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 
 interface UseAssetSearchArgs {
   availableAssets: Asset[];

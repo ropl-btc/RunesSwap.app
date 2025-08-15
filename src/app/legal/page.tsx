@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import React from 'react';
-import styles from '../page.module.css';
+import styles from '@/app/page.module.css';
 
 export const metadata = {
   title: 'Legal | RunesSwap.app',

@@ -1,6 +1,6 @@
 import React from 'react';
-import styles from '../portfolio/PortfolioTab.module.css';
-import Button from '../ui/Button';
+import styles from '@/components/portfolio/PortfolioTab.module.css';
+import Button from '@/components/ui/Button';
 
 interface RepayModalProps {
   open: boolean;

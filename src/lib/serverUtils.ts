@@ -4,7 +4,7 @@
 
 import { Ordiscan } from 'ordiscan';
 import { SatsTerminal } from 'satsterminal-sdk';
-import { logger } from './logger';
+import { logger } from '@/lib/logger';
 
 /**
  * Gets an initialized Ordiscan SDK client instance.

@@ -4,9 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 import { formatNumberWithLocale } from '@/utils/formatters';
 import { calculateActualBalance } from '@/utils/runeFormatting';
-import styles from '../portfolio/PortfolioTab.module.css';
-import RuneIcon from '../runes/RuneIcon';
-import { FormattedRuneAmount } from './FormattedRuneAmount';
+import styles from '@/components/portfolio/PortfolioTab.module.css';
+import RuneIcon from '@/components/runes/RuneIcon';
+import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
 
 interface FormattedLiquidiumCollateralProps {
   runeId: string;

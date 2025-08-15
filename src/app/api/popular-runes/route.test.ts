@@ -5,7 +5,7 @@ import {
   expectSuccessResponse,
   testData,
 } from '@/test-utils';
-import { GET } from './route';
+import { GET } from '@/app/api/popular-runes/route';
 
 jest.mock('@/lib/popularRunes');
 const mockGetPopularRunes = jest.mocked(popularRunes.getPopularRunes);

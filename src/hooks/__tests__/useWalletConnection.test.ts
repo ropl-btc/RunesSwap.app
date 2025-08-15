@@ -11,7 +11,10 @@ import {
   XVERSE,
 } from '@omnisat/lasereyes';
 import { act, renderHook } from '@testing-library/react';
-import { AVAILABLE_WALLETS, useWalletConnection } from '../useWalletConnection';
+import {
+  AVAILABLE_WALLETS,
+  useWalletConnection,
+} from '@/hooks/useWalletConnection';
 
 // Test data fixtures
 const WALLET_FIXTURES = {

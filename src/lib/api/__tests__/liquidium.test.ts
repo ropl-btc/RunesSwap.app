@@ -1,4 +1,4 @@
-import { get, post } from '../../fetchWrapper';
+import { get, post } from '@/lib/fetchWrapper';
 import {
   fetchBorrowQuotesFromApi,
   fetchBorrowRangesFromApi,
@@ -6,7 +6,7 @@ import {
   repayLiquidiumLoan,
   submitLiquidiumBorrow,
   submitRepayPsbt,
-} from '../liquidium';
+} from '@/lib/api/liquidium';
 
 // Mock the fetchWrapper module
 jest.mock('../../fetchWrapper', () => ({

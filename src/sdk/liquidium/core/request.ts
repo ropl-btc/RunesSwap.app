@@ -2,12 +2,12 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import { ApiError } from './ApiError';
-import type { ApiRequestOptions } from './ApiRequestOptions';
-import type { ApiResult } from './ApiResult';
-import { CancelablePromise } from './CancelablePromise';
-import type { OnCancel } from './CancelablePromise';
-import type { OpenAPIConfig } from './OpenAPI';
+import { ApiError } from '@/sdk/liquidium/core/ApiError';
+import type { ApiRequestOptions } from '@/sdk/liquidium/core/ApiRequestOptions';
+import type { ApiResult } from '@/sdk/liquidium/core/ApiResult';
+import { CancelablePromise } from '@/sdk/liquidium/core/CancelablePromise';
+import type { OnCancel } from '@/sdk/liquidium/core/CancelablePromise';
+import type { OpenAPIConfig } from '@/sdk/liquidium/core/OpenAPI';
 
 export const isDefined = <T>(value: T | null | undefined): value is Exclude<T, null | undefined> => {
     return value !== undefined && value !== null;

@@ -4,7 +4,7 @@ import {
   expectSuccessResponse,
   testData,
 } from '@/test-utils';
-import { GET } from './route';
+import { GET } from '@/app/api/sats-terminal/search/route';
 
 const mockSearch = jest.fn();
 jest.mock('@/lib/serverUtils', () => ({

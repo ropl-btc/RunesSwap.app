@@ -4,8 +4,8 @@ import Image from 'next/image';
 import React from 'react';
 import useRunesSearch from '@/hooks/useRunesSearch';
 import type { Rune } from '@/types/satsTerminal';
-import RuneIcon from '../runes/RuneIcon';
-import styles from './RunesInfoTab.module.css';
+import RuneIcon from '@/components/runes/RuneIcon';
+import styles from '@/components/runes/RunesInfoTab.module.css';
 
 interface RuneSearchBarProps {
   onRuneSelect: (rune: Rune) => void;

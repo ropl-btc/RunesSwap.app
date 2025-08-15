@@ -3,7 +3,7 @@ import { fetchPopularFromApi, fetchRunesFromApi } from '@/lib/api';
 import { useRunesInfoStore } from '@/store/runesInfoStore';
 import type { Rune } from '@/types/satsTerminal';
 import { mapPopularToRune } from '@/utils/popularRunes';
-import { useDebouncedSearch } from './useDebouncedSearch';
+import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 
 interface UseRunesSearchOptions {
   cachedPopularRunes?: Record<string, unknown>[];

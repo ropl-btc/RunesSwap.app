@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import usePriceHistory from './usePriceHistory';
+import usePriceHistory from '@/hooks/usePriceHistory';
 
 export type Timeframe = '24h' | '7d' | '30d' | '90d';
 

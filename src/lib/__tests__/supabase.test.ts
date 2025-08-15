@@ -1,4 +1,4 @@
-import { hasSupabase, supabase } from '../supabase';
+import { hasSupabase, supabase } from '@/lib/supabase';
 
 describe('supabase client', () => {
   it('throws when accessed without configuration', () => {

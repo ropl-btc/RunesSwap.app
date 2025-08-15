@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import styles from '@/app/page.module.css';
-import { ConnectWalletButton } from '../wallet/ConnectWalletButton';
+import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 
 export type ActiveTab =
   | 'swap'

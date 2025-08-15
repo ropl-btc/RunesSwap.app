@@ -17,14 +17,14 @@ import { Asset } from '@/types/common';
 import { type RuneBalance as OrdiscanRuneBalance } from '@/types/ordiscan';
 import { percentageOfRawAmount } from '@/utils/amountFormatting';
 import { formatUsd } from '@/utils/formatters';
-import BorrowQuotesList from '../borrow/BorrowQuotesList';
-import BorrowSuccessMessage from '../borrow/BorrowSuccessMessage';
-import CollateralInput from '../borrow/CollateralInput';
-import { FormattedRuneAmount } from '../formatters/FormattedRuneAmount';
+import BorrowQuotesList from '@/components/borrow/BorrowQuotesList';
+import BorrowSuccessMessage from '@/components/borrow/BorrowSuccessMessage';
+import CollateralInput from '@/components/borrow/CollateralInput';
+import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
 import { Loading } from '@/components/loading/Loading';
-import Button from '../ui/Button';
-import FeeSelector from '../ui/FeeSelector';
-import styles from './BorrowTab.module.css';
+import Button from '@/components/ui/Button';
+import FeeSelector from '@/components/ui/FeeSelector';
+import styles from '@/components/borrow/BorrowTab.module.css';
 
 interface BorrowTabProps {
   connected: boolean;

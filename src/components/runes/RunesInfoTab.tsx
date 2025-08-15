@@ -6,9 +6,9 @@ import { useRuneMarketData } from '@/hooks/useRuneMarketData';
 import { useRunesInfoStore } from '@/store/runesInfoStore';
 import { type RuneInfo as OrdiscanRuneInfo } from '@/types/ordiscan';
 import type { Rune } from '@/types/satsTerminal';
-import RuneDetails from './RuneDetails';
-import RuneSearchBar from './RuneSearchBar';
-import styles from './RunesInfoTab.module.css';
+import RuneDetails from '@/components/runes/RuneDetails';
+import RuneSearchBar from '@/components/runes/RuneSearchBar';
+import styles from '@/components/runes/RunesInfoTab.module.css';
 
 interface RunesInfoTabProps {
   cachedPopularRunes?: Record<string, unknown>[];

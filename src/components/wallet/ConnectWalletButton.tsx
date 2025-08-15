@@ -6,8 +6,8 @@ import {
   useWalletConnection,
 } from '@/hooks/useWalletConnection';
 import { truncateAddress } from '@/utils/formatters';
-import styles from './ConnectWalletButton.module.css';
-import WalletOptionsList from './WalletOptionsList';
+import styles from '@/components/wallet/ConnectWalletButton.module.css';
+import WalletOptionsList from '@/components/wallet/WalletOptionsList';
 
 export function ConnectWalletButton() {
   const {

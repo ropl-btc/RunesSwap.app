@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import type { RuneData } from '@/lib/runesData';
-import { useBorrowProcess } from '../useBorrowProcess';
+import { useBorrowProcess } from '@/hooks/useBorrowProcess';
 
 // Mock the API functions
 jest.mock('@/lib/api', () => ({

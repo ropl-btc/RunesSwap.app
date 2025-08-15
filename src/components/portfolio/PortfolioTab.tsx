@@ -7,11 +7,11 @@ import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { useRepayModal } from '@/hooks/useRepayModal';
 import type { Asset } from '@/types/common';
 import { formatSatsToBtc } from '@/utils/formatters';
-import LiquidiumLoansSection from '../borrow/LiquidiumLoansSection';
-import styles from './PortfolioTab.module.css';
-import RunesPortfolioTable from './RunesPortfolioTable';
+import LiquidiumLoansSection from '@/components/borrow/LiquidiumLoansSection';
+import styles from '@/components/portfolio/PortfolioTab.module.css';
+import RunesPortfolioTable from '@/components/portfolio/RunesPortfolioTable';
 
-const RepayModal = dynamic(() => import('../borrow/RepayModal'), {
+const RepayModal = dynamic(() => import('@/components/borrow/RepayModal'), {
   ssr: false,
 });
 

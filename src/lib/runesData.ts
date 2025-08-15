@@ -1,6 +1,6 @@
-import { logApiError, logDbError } from './logger';
-import { getOrdiscanClient } from './serverUtils';
-import { fetchRuneByName, upsertRuneData } from './supabaseQueries';
+import { logApiError, logDbError } from '@/lib/logger';
+import { getOrdiscanClient } from '@/lib/serverUtils';
+import { fetchRuneByName, upsertRuneData } from '@/lib/supabaseQueries';
 
 export interface RuneData {
   id: string;

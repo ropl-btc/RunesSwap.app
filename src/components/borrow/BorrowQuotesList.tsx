@@ -1,7 +1,7 @@
 import React from 'react';
 import { LiquidiumBorrowQuoteOffer } from '@/lib/api';
 import { formatSatsToBtc } from '@/utils/formatters';
-import styles from './BorrowTab.module.css';
+import styles from '@/components/borrow/BorrowTab.module.css';
 
 interface BorrowQuotesListProps {
   quotes: LiquidiumBorrowQuoteOffer[];

@@ -1,4 +1,4 @@
-import { safeArrayAccess, safeArrayFirst } from './typeGuards';
+import { safeArrayAccess, safeArrayFirst } from '@/utils/typeGuards';
 import Big from 'big.js';
 
 // Function to truncate TXIDs for display

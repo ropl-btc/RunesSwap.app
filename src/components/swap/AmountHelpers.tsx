@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from './InputArea.module.css';
+import styles from '@/components/swap/InputArea.module.css';
 
 interface AmountHelpersProps {
   showPercentageShortcuts?: boolean | undefined;

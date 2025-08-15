@@ -6,8 +6,8 @@ import type {
   RepayLiquidiumLoanResponse,
   SubmitRepayResponse,
 } from '@/types/liquidium';
-import { get, post } from '../fetchWrapper';
-import { logFetchError } from '../logger';
+import { get, post } from '@/lib/fetchWrapper';
+import { logFetchError } from '@/lib/logger';
 
 export type {
   BorrowRangeResponse,

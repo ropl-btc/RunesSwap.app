@@ -5,7 +5,7 @@
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { BTC_ASSET } from '@/types/common';
-import InputArea from '../InputArea';
+import InputArea from '@/components/swap/InputArea';
 
 jest.mock('next/image', () => ({
   __esModule: true,

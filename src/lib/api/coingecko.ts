@@ -1,5 +1,5 @@
-import { fetchExternal } from '../fetchWrapper';
-import { logFetchError } from '../logger';
+import { fetchExternal } from '@/lib/fetchWrapper';
+import { logFetchError } from '@/lib/logger';
 
 export const COINGECKO_BTC_PRICE_URL =
   'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd';

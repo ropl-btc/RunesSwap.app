@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createErrorResponse, handleApiError } from './apiUtils';
+import { createErrorResponse, handleApiError } from '@/lib/apiUtils';
 
 /**
  * Handler function type that accepts a request and returns a NextResponse

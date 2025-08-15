@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { safeArrayAccess } from '@/utils/typeGuards';
-import styles from '../layout/Layout.module.css';
+import styles from '@/components/layout/Layout.module.css';
 
 // Constants
 const DEFAULT_TITLE = 'RunesSwap.app';

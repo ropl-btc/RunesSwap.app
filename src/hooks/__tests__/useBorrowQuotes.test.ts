@@ -11,8 +11,8 @@ import {
   createMockBorrowRange,
   createMockPopularRunes,
   createMockRuneInfo,
-} from '../__test-utils__';
-import useBorrowQuotes from '../useBorrowQuotes';
+} from '@/hooks/__test-utils__';
+import useBorrowQuotes from '@/hooks/useBorrowQuotes';
 
 jest.mock('@/lib/api', () => ({
   fetchBorrowQuotesFromApi: jest.fn(),

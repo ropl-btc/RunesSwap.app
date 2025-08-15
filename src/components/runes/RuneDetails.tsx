@@ -11,9 +11,9 @@ import {
   formatNumberWithLocale,
   truncateTxid,
 } from '@/utils/formatters';
-import { FormattedRuneAmount } from '../formatters/FormattedRuneAmount';
-import RuneIcon from '../runes/RuneIcon';
-import styles from './RunesInfoTab.module.css';
+import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
+import RuneIcon from '@/components/runes/RuneIcon';
+import styles from '@/components/runes/RunesInfoTab.module.css';
 
 interface RuneDetailsProps {
   selectedRune: OrdiscanRuneInfo | null;

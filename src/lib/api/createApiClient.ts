@@ -1,5 +1,5 @@
-import { get, post } from '../fetchWrapper';
-import { logFetchError } from '../logger';
+import { get, post } from '@/lib/fetchWrapper';
+import { logFetchError } from '@/lib/logger';
 
 type ApiResponse<T> = {
   success: boolean;

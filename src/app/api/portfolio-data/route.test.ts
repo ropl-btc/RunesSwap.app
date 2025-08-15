@@ -19,7 +19,7 @@ import { getOrdiscanClient } from '@/lib/serverUtils';
 import { supabase } from '@/lib/supabase';
 import { createTestRequest, testData } from '@/test-utils';
 import type { RuneMarketInfo } from '@/types/ordiscan';
-import { GET } from './route';
+import { GET } from '@/app/api/portfolio-data/route';
 
 const mockGetOrdiscanClient = jest.mocked(getOrdiscanClient);
 const mockSupabase = jest.mocked(supabase);

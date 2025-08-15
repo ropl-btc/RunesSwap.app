@@ -2,14 +2,14 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { BaseHttpRequest } from './core/BaseHttpRequest';
-import type { OpenAPIConfig } from './core/OpenAPI';
-import { FetchHttpRequest } from './core/FetchHttpRequest';
-import { AuthenticationService } from './services/AuthenticationService';
-import { BorrowerService } from './services/BorrowerService';
-import { PortfolioService } from './services/PortfolioService';
-import { RepayLoanService } from './services/RepayLoanService';
-import { StartLoanService } from './services/StartLoanService';
+import type { BaseHttpRequest } from '@/sdk/liquidium/core/BaseHttpRequest';
+import type { OpenAPIConfig } from '@/sdk/liquidium/core/OpenAPI';
+import { FetchHttpRequest } from '@/sdk/liquidium/core/FetchHttpRequest';
+import { AuthenticationService } from '@/sdk/liquidium/services/AuthenticationService';
+import { BorrowerService } from '@/sdk/liquidium/services/BorrowerService';
+import { PortfolioService } from '@/sdk/liquidium/services/PortfolioService';
+import { RepayLoanService } from '@/sdk/liquidium/services/RepayLoanService';
+import { StartLoanService } from '@/sdk/liquidium/services/StartLoanService';
 type HttpRequestConstructor = new (config: OpenAPIConfig) => BaseHttpRequest;
 export class LiquidiumApi {
     public readonly authentication: AuthenticationService;

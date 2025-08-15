@@ -1,5 +1,5 @@
 import { testData } from '@/test-utils';
-import { interpretRuneTransaction } from '../transactionHelpers';
+import { interpretRuneTransaction } from '@/utils/transactionHelpers';
 
 describe('interpretRuneTransaction', () => {
   const userAddress = 'bc1qtest123456789';

@@ -5,9 +5,9 @@ import Link from 'next/link';
 import React, { useRef, useState } from 'react';
 import { useBackground } from '@/context/BackgroundContext';
 import useBtcPrice from '@/hooks/useBtcPrice';
-import TitleText from '../ui/TitleText';
-import FooterComponent from './FooterComponent';
-import styles from './Layout.module.css';
+import TitleText from '@/components/ui/TitleText';
+import FooterComponent from '@/components/layout/FooterComponent';
+import styles from '@/components/layout/Layout.module.css';
 
 interface LayoutProps {
   children: React.ReactNode;

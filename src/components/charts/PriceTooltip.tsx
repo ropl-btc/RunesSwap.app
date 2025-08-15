@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from '../layout/AppInterface.module.css';
+import styles from '@/components/layout/AppInterface.module.css';
 
 interface PriceTooltipProps {
   show: boolean;

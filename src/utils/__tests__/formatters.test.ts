@@ -2,7 +2,7 @@ import {
   formatNumberString,
   truncateTxid,
   formatSatsToBtc,
-} from '../formatters';
+} from '@/utils/formatters';
 
 describe('truncateTxid', () => {
   const testCases = [

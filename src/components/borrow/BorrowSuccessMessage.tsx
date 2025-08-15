@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import React from 'react';
-import Button from '../ui/Button';
-import styles from './BorrowTab.module.css';
+import Button from '@/components/ui/Button';
+import styles from '@/components/borrow/BorrowTab.module.css';
 
 interface BorrowSuccessMessageProps {
   loanTxId: string | null;

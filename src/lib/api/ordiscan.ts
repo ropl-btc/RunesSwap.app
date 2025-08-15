@@ -5,8 +5,8 @@ import {
   type RuneActivityEvent,
 } from '@/types/ordiscan';
 import { normalizeRuneName } from '@/utils/runeUtils';
-import { type RuneData } from '../runesData';
-import { apiGet, apiPost } from './createApiClient';
+import { type RuneData } from '@/lib/runesData';
+import { apiGet, apiPost } from '@/lib/api/createApiClient';
 
 export const fetchBtcBalanceFromApi = async (
   address: string,

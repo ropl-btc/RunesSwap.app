@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 import { QuoteResponse } from 'satsterminal-sdk';
 import { initialSwapProcessState } from '@/components/swap/SwapProcessManager';
 import { BTC_ASSET } from '@/types/common';
-import useSwapExecution from '../useSwapExecution';
+import useSwapExecution from '@/hooks/useSwapExecution';
 
 jest.mock('@/lib/api', () => ({
   getPsbtFromApi: jest.fn(),

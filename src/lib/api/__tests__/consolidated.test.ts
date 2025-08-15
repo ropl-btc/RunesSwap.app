@@ -1,5 +1,5 @@
-import { runApiTests, setupApiMocks, testData } from '../../../test-utils';
-import { apiGet, apiPost } from '../createApiClient';
+import { runApiTests, setupApiMocks, testData } from '@/test-utils';
+import { apiGet, apiPost } from '@/lib/api/createApiClient';
 import {
   QUERY_KEYS,
   fetchBtcBalanceFromApi,
@@ -13,7 +13,7 @@ import {
   fetchRunePriceHistoryFromApi,
   fetchRunesFromApi,
   updateRuneDataViaApi,
-} from '../index';
+} from '@/lib/api';
 
 jest.mock('../createApiClient', () => ({
   apiGet: jest.fn(),

@@ -5,7 +5,7 @@ import {
   createSuccessResponse,
   handleApiError,
   validateRequest,
-} from '../apiUtils';
+} from '@/lib/apiUtils';
 
 // Mock NextResponse.json
 jest.mock('next/server', () => ({

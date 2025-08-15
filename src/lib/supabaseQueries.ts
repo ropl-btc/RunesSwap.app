@@ -4,8 +4,8 @@
  */
 
 import type { RuneMarketInfo } from '@/types/ordiscan';
-import type { RuneData } from './runesData';
-import { supabase } from './supabase';
+import type { RuneData } from '@/lib/runesData';
+import { supabase } from '@/lib/supabase';
 
 // Types for database tables
 export interface RuneRecord {
