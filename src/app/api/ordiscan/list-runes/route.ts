@@ -1,13 +1,10 @@
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  handleApiError,
-} from '@/lib/apiUtils';
+import { createSuccessResponse } from '@/lib/apiUtils';
 import { getOrdiscanClient } from '@/lib/serverUtils';
+import { withApiHandler } from '@/lib/withApiHandler';
 import { RuneInfo } from '@/types/ordiscan';
 
-export async function GET() {
-  try {
+export const GET = withApiHandler(
+  async () => {
     const ordiscan = getOrdiscanClient();
     const runes: RuneInfo[] = await ordiscan.rune.list({ sort: 'newest' });
 
@@ -15,12 +12,6 @@ export async function GET() {
     const validRunes = Array.isArray(runes) ? runes : [];
 
     return createSuccessResponse(validRunes);
-  } catch (error) {
-    const errorInfo = handleApiError(error, 'Failed to fetch runes list');
-    return createErrorResponse(
-      errorInfo.message,
-      errorInfo.details,
-      errorInfo.status,
-    );
-  }
-}
+  },
+  { defaultErrorMessage: 'Failed to fetch runes list' },
+);

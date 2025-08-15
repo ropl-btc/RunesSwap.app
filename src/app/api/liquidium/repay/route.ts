@@ -2,11 +2,12 @@ import { NextRequest } from 'next/server';
 import { createErrorResponse, createSuccessResponse } from '@/lib/apiUtils';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
 import { supabase } from '@/lib/supabase';
+import { withApiHandler } from '@/lib/withApiHandler';
 import { safeArrayFirst } from '@/utils/typeGuards';
 
 // POST /api/liquidium/repay
-export async function POST(request: NextRequest) {
-  try {
+export const POST = withApiHandler(
+  async (request: NextRequest) => {
     const {
       loanId,
       address,
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
         400,
       );
     }
-    // Look up JWT for this address using regular client
+
     const { data: tokenRows, error: tokenError } = await supabase
       .from('liquidium_tokens')
       .select('jwt')
@@ -56,7 +57,6 @@ export async function POST(request: NextRequest) {
       return createSuccessResponse(response);
     }
 
-    // prepare path – allow client to specify feeRate, default to 5
     const DEFAULT_FEE_RATE = 5;
     const feeRate =
       typeof feeRateInput === 'number' && feeRateInput > 0
@@ -70,11 +70,6 @@ export async function POST(request: NextRequest) {
       },
     });
     return createSuccessResponse(resp);
-  } catch (error) {
-    return createErrorResponse(
-      'Failed to process repayment',
-      error instanceof Error ? error.message : String(error),
-      500,
-    );
-  }
-}
+  },
+  { defaultErrorMessage: 'Failed to process repayment' },
+);

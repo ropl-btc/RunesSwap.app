@@ -1,12 +1,15 @@
-export { default as SwapDirectionButton } from './SwapDirectionButton';
-export { default as SwapButton, type SwapStep } from './SwapButton';
-export { default as PriceInfoPanel } from './PriceInfoPanel';
-export { default as SwapStatusMessages } from './SwapStatusMessages';
-export { default as SwapTabForm } from './SwapTabForm';
+export { default as SwapDirectionButton } from '@/components/swap/SwapDirectionButton';
+export {
+  default as SwapButton,
+  type SwapStep,
+} from '@/components/swap/SwapButton';
+export { default as PriceInfoPanel } from '@/components/swap/PriceInfoPanel';
+export { default as SwapStatusMessages } from '@/components/swap/SwapStatusMessages';
+export { default as SwapTabForm } from '@/components/swap/SwapTabForm';
 export {
   default as useSwapProcessManager,
   swapProcessReducer,
   initialSwapProcessState,
   type SwapProcessState,
   type SwapProcessAction,
-} from './SwapProcessManager';
+} from '@/components/swap/SwapProcessManager';

@@ -2,11 +2,12 @@ import { NextRequest } from 'next/server';
 import { createErrorResponse, createSuccessResponse } from '@/lib/apiUtils';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
 import { supabase } from '@/lib/supabase';
+import { withApiHandler } from '@/lib/withApiHandler';
 import { safeArrayFirst } from '@/utils/typeGuards';
 
 // GET /api/liquidium/portfolio?address=...
-export async function GET(request: NextRequest) {
-  try {
+export const GET = withApiHandler(
+  async (request: NextRequest) => {
     const searchParams = request.nextUrl.searchParams;
     const address = searchParams.get('address');
     if (!address) {
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
         400,
       );
     }
-    // Now using regular client as we have proper RLS policies in place
+
     const { data: tokenRows, error: tokenError } = await supabase
       .from('liquidium_tokens')
       .select('jwt')
@@ -43,11 +44,6 @@ export async function GET(request: NextRequest) {
     const client = createLiquidiumClient(userJwt);
     const portfolio = await client.portfolio.getApiV1Portfolio();
 
-    /*
-     * For UI compatibility we return borrower rune loans array directly.
-     * The full portfolio object is still included under `rawPortfolio`
-     * so callers can migrate later without breaking existing code.
-     */
     const loans =
       portfolio?.borrower?.runes?.loans ??
       portfolio?.lender?.runes?.loans ??
@@ -57,12 +53,6 @@ export async function GET(request: NextRequest) {
       loans,
       rawPortfolio: portfolio,
     });
-  } catch (error) {
-    console.error('[Liquidium] Portfolio route error:', error);
-    return createErrorResponse(
-      'Failed to fetch Liquidium portfolio',
-      error instanceof Error ? error.message : String(error),
-      500,
-    );
-  }
-}
+  },
+  { defaultErrorMessage: 'Failed to fetch Liquidium portfolio' },
+);

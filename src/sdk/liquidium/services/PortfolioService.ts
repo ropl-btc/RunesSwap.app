@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CancelablePromise } from '../core/CancelablePromise';
-import type { BaseHttpRequest } from '../core/BaseHttpRequest';
+import type { CancelablePromise } from '@/sdk/liquidium/core/CancelablePromise';
+import type { BaseHttpRequest } from '@/sdk/liquidium/core/BaseHttpRequest';
 export class PortfolioService {
     constructor(public readonly httpRequest: BaseHttpRequest) {}
     /**

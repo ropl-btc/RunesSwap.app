@@ -1,10 +1,11 @@
 import { NextRequest } from 'next/server';
 import { createErrorResponse, createSuccessResponse } from '@/lib/apiUtils';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
+import { withApiHandler } from '@/lib/withApiHandler';
 
 // GET /api/liquidium/challenge?ordinalsAddress=...&paymentAddress=...
-export async function GET(request: NextRequest) {
-  try {
+export const GET = withApiHandler(
+  async (request: NextRequest) => {
     const searchParams = request.nextUrl.searchParams;
     const ordinalsAddress = searchParams.get('ordinalsAddress');
     const paymentAddress = searchParams.get('paymentAddress');
@@ -15,7 +16,6 @@ export async function GET(request: NextRequest) {
         400,
       );
     }
-    // Allow caller to specify wallet type; fall back to 'xverse' for backwards compatibility
     const walletParam = searchParams.get('wallet') || 'xverse';
 
     const client = createLiquidiumClient();
@@ -27,11 +27,6 @@ export async function GET(request: NextRequest) {
       },
     });
     return createSuccessResponse(challenge);
-  } catch (error) {
-    return createErrorResponse(
-      'Failed to get Liquidium challenge',
-      error instanceof Error ? error.message : String(error),
-      500,
-    );
-  }
-}
+  },
+  { defaultErrorMessage: 'Failed to get Liquidium challenge' },
+);

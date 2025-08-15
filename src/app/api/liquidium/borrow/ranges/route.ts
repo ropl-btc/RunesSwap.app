@@ -180,6 +180,20 @@ export async function GET(request: NextRequest) {
     } catch (sdkError) {
       const message =
         sdkError instanceof Error ? sdkError.message : 'Unknown error';
+
+      // Handle 404 gracefully - this means no offers are available for this rune
+      if (message.includes('Not Found') || message.includes('404')) {
+        return createSuccessResponse({
+          runeId,
+          minAmount: '0',
+          maxAmount: '0',
+          loanTermDays: [],
+          cached: false,
+          updatedAt: new Date().toISOString(),
+          noOffersAvailable: true,
+        });
+      }
+
       return createErrorResponse('Liquidium API error', message, 500);
     }
 

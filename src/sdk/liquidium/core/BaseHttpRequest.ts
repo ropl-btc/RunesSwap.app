@@ -2,9 +2,9 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { ApiRequestOptions } from './ApiRequestOptions';
-import type { CancelablePromise } from './CancelablePromise';
-import type { OpenAPIConfig } from './OpenAPI';
+import type { ApiRequestOptions } from '@/sdk/liquidium/core/ApiRequestOptions';
+import type { CancelablePromise } from '@/sdk/liquidium/core/CancelablePromise';
+import type { OpenAPIConfig } from '@/sdk/liquidium/core/OpenAPI';
 
 export abstract class BaseHttpRequest {
 

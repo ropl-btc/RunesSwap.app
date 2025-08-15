@@ -1,6 +1,10 @@
 import { normalizeRuneName } from '@/utils/runeUtils';
-import { getOrdiscanClient } from './serverUtils';
-import { supabase } from './supabase';
+import { logApiError, logDbError } from '@/lib/logger';
+import { getOrdiscanClient } from '@/lib/serverUtils';
+import {
+  fetchRuneMarketDataByName,
+  upsertRuneMarketData,
+} from '@/lib/supabaseQueries';
 
 export interface RuneMarketData {
   price_in_sats: number;
@@ -15,26 +19,18 @@ export async function getRuneMarketData(
   try {
     const normalizedName = normalizeRuneName(runeName);
 
-    // First, try to get from Supabase
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
-
-    const { data: existingMarketData, error: dbError } = await supabase
-      .from('rune_market_data')
-      .select('*')
-      .eq('rune_name', normalizedName)
-      .gt('last_updated_at', tenMinutesAgo.toISOString())
-      .single();
-
-    if (dbError) {
-      console.error('[DEBUG] Error fetching from DB:', dbError);
-    }
+    // First, try to get from Supabase (10 minutes cache)
+    const existingMarketData = await fetchRuneMarketDataByName(
+      normalizedName,
+      0.17,
+    ); // 10 minutes
 
     if (existingMarketData) {
       return {
-        price_in_sats: existingMarketData.price_in_sats,
-        price_in_usd: existingMarketData.price_in_usd,
-        market_cap_in_btc: existingMarketData.market_cap_in_btc,
-        market_cap_in_usd: existingMarketData.market_cap_in_usd,
+        price_in_sats: existingMarketData.price_in_sats || 0,
+        price_in_usd: existingMarketData.price_in_usd || 0,
+        market_cap_in_btc: existingMarketData.market_cap_in_btc || 0,
+        market_cap_in_usd: existingMarketData.market_cap_in_usd || 0,
       };
     }
 
@@ -48,46 +44,16 @@ export async function getRuneMarketData(
       return null;
     }
 
-    // Store in Supabase
-    const upsertData = {
-      rune_name: normalizedName,
-      price_in_sats: marketData.price_in_sats,
-      price_in_usd: marketData.price_in_usd,
-      market_cap_in_btc: marketData.market_cap_in_btc,
-      market_cap_in_usd: marketData.market_cap_in_usd,
-      last_updated_at: new Date().toISOString(),
-    };
+    // Store in Supabase using centralized utility
+    const success = await upsertRuneMarketData(normalizedName, marketData);
 
-    const { error: upsertError } = await supabase
-      .from('rune_market_data')
-      .upsert(upsertData);
-
-    if (upsertError) {
-      console.error('[DEBUG] Error storing market data:', upsertError);
-      console.error('[DEBUG] Upsert error details:', {
-        code: upsertError.code,
-        message: upsertError.message,
-        details: upsertError.details,
-        hint: upsertError.hint,
-      });
+    if (!success) {
+      logDbError('upsertRuneMarketData', 'Failed to store market data');
     }
 
     return marketData as RuneMarketData;
   } catch (error: unknown) {
-    if (error instanceof TypeError) {
-      console.error('[ERROR] Type error in getRuneMarketData:', error);
-      return null;
-    }
-    if (typeof error === 'object' && error !== null && 'code' in error) {
-      const errObj = error as { code?: string; message?: string };
-      console.error('[ERROR] API error in getRuneMarketData:', {
-        code: errObj.code,
-        message: errObj.message,
-      });
-      return null;
-    }
-    // Default case
-    console.error('[ERROR] Unexpected error in getRuneMarketData:', error);
+    logApiError('getRuneMarketData', error);
     return null;
   }
 }

@@ -6,6 +6,7 @@ import type {
   SwapProcessState,
 } from '@/components/swap/SwapProcessManager';
 import { fetchQuoteFromApi } from '@/lib/api';
+import { logger } from '@/lib/logger';
 import { Asset } from '@/types/common';
 
 const MOCK_ADDRESS = '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo';
@@ -115,21 +116,8 @@ export function useSwapQuote({
         sell: isSell,
       };
 
-      let attempts = 0;
-      let quoteResponse: QuoteResponse | undefined;
-
-      while (attempts < 2) {
-        try {
-          quoteResponse = await fetchQuoteFromApi(params);
-          break;
-        } catch (fetchError) {
-          attempts++;
-          if (attempts >= 2) {
-            throw fetchError;
-          }
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-      }
+      // Single attempt to avoid doubling upstream load on transient errors
+      const quoteResponse = await fetchQuoteFromApi(params);
 
       if (requestId === latestQuoteRequestId.current) {
         setQuote(quoteResponse ?? null);
@@ -202,7 +190,16 @@ export function useSwapQuote({
             'Network error: Please check your connection and try again.';
         }
 
-        console.error(`Quote fetch error: ${errorMessage}`, err);
+        logger.error(
+          'API Error in fetchQuote',
+          {
+            operation: 'fetchQuote',
+            error: err instanceof Error ? err.message : String(err),
+            stack: err instanceof Error ? err.stack : undefined,
+            errorMessage,
+          },
+          'API',
+        );
 
         dispatchSwap({
           type: 'FETCH_QUOTE_ERROR',

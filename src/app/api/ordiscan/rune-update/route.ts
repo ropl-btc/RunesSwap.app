@@ -3,22 +3,20 @@ import { z } from 'zod';
 import {
   createErrorResponse,
   createSuccessResponse,
-  handleApiError,
   validateRequest,
 } from '@/lib/apiUtils';
 import { RuneData } from '@/lib/runesData';
 import { getOrdiscanClient } from '@/lib/serverUtils';
 import { supabase } from '@/lib/supabase';
+import { withApiHandler } from '@/lib/withApiHandler';
 
-export async function POST(request: NextRequest) {
-  // Zod validation for 'name'
-  const schema = z.object({ name: z.string().min(1) });
-  const validation = await validateRequest(request, schema, 'body');
-  if (!validation.success) return validation.errorResponse;
-  const { name: runeName } = validation.data;
+export const POST = withApiHandler(
+  async (request: NextRequest) => {
+    const schema = z.object({ name: z.string().min(1) });
+    const validation = await validateRequest(request, schema, 'body');
+    if (!validation.success) return validation.errorResponse;
+    const { name: runeName } = validation.data;
 
-  try {
-    // Use the serverUtils client that securely contains API keys
     const ordiscan = getOrdiscanClient();
     const runeData = await ordiscan.rune.getInfo({ name: runeName });
 
@@ -27,7 +25,6 @@ export async function POST(request: NextRequest) {
       return createSuccessResponse(null, 404);
     }
 
-    // Update in Supabase - ensure we're using the correct field names
     const dataToUpdate = {
       ...runeData,
       last_updated_at: new Date().toISOString(),
@@ -55,15 +52,6 @@ export async function POST(request: NextRequest) {
     }
 
     return createSuccessResponse(runeData as RuneData);
-  } catch (error: unknown) {
-    const errorInfo = handleApiError(
-      error,
-      `Failed to update info for rune ${runeName}`,
-    );
-    return createErrorResponse(
-      errorInfo.message,
-      errorInfo.details,
-      errorInfo.status,
-    );
-  }
-}
+  },
+  { defaultErrorMessage: 'Failed to update rune info' },
+);

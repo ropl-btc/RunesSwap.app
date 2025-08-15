@@ -4,100 +4,30 @@ import {
   type QuoteResponse,
 } from 'satsterminal-sdk';
 import type { Rune } from '@/types/satsTerminal';
-import { handleApiResponse } from './utils';
+import { apiGet, apiPost } from '@/lib/api/createApiClient';
 
 export const fetchRunesFromApi = async (query: string): Promise<Rune[]> => {
-  if (!query) return [];
+  const trimmed = query.trim();
+  // Guard: avoid spamming search for very short queries
+  if (trimmed.length < 2) return [];
 
-  const response = await fetch(
-    `/api/sats-terminal/search?query=${encodeURIComponent(query)}`,
-  );
-  let data;
-  try {
-    data = await response.json();
-  } catch {
-    throw new Error('Failed to parse search results');
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Search failed: ${response.statusText}`,
-    );
-  }
-
-  return handleApiResponse<Rune[]>(data, true);
+  const res = await apiGet<unknown>('/api/sats-terminal/search', {
+    query: trimmed,
+  });
+  return Array.isArray(res) ? (res as Rune[]) : [];
 };
 
 export const fetchQuoteFromApi = async (
   params: Record<string, unknown>,
-): Promise<QuoteResponse> => {
-  const response = await fetch('/api/sats-terminal/quote', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
-  });
-  let data;
-  try {
-    data = await response.json();
-  } catch {
-    throw new Error('Failed to parse quote response');
-  }
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to fetch quote: ${response.statusText}`,
-    );
-  }
-  return handleApiResponse<QuoteResponse>(data, false);
-};
+): Promise<QuoteResponse> =>
+  apiPost<QuoteResponse>('/api/sats-terminal/quote', params);
 
 export const getPsbtFromApi = async (
   params: GetPSBTParams,
-): Promise<Record<string, unknown>> => {
-  const response = await fetch('/api/sats-terminal/psbt/create', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
-  });
-  let data;
-  try {
-    data = await response.json();
-  } catch {
-    throw new Error('Failed to parse PSBT response');
-  }
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to create PSBT: ${response.statusText}`,
-    );
-  }
-  return data as Record<string, unknown>;
-};
+): Promise<Record<string, unknown>> =>
+  apiPost<Record<string, unknown>>('/api/sats-terminal/psbt/create', params);
 
 export const confirmPsbtViaApi = async (
   params: ConfirmPSBTParams,
-): Promise<Record<string, unknown>> => {
-  const response = await fetch('/api/sats-terminal/psbt/confirm', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
-  });
-  let data;
-  try {
-    data = await response.json();
-  } catch {
-    throw new Error('Failed to parse confirmation response');
-  }
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to confirm PSBT: ${response.statusText}`,
-    );
-  }
-  return data as Record<string, unknown>;
-};
+): Promise<Record<string, unknown>> =>
+  apiPost<Record<string, unknown>>('/api/sats-terminal/psbt/confirm', params);

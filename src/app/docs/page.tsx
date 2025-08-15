@@ -4,7 +4,7 @@ import Link from 'next/link';
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import styles from '../page.module.css';
+import styles from '@/app/page.module.css';
 
 export default function DocsPage() {
   const readmePath = path.join(process.cwd(), 'README.md');

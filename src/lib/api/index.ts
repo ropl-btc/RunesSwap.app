@@ -1,7 +1,11 @@
-export * from './satsTerminal';
-export * from './ordiscan';
-export * from './liquidium';
-export * from './coingecko';
+export * from '@/lib/api/satsTerminal';
+export * from '@/lib/api/ordiscan';
+export * from '@/lib/api/liquidium';
+export * from '@/lib/api/coingecko';
+
+import { fetchExternal } from '@/lib/fetchWrapper';
+import { logFetchError } from '@/lib/logger';
+import { apiGet } from '@/lib/api/createApiClient';
 
 export const QUERY_KEYS = {
   POPULAR_RUNES: 'popularRunes',
@@ -19,27 +23,9 @@ export const QUERY_KEYS = {
 
 export type QueryKey = (typeof QUERY_KEYS)[keyof typeof QUERY_KEYS];
 
-import { handleApiResponse } from './utils';
-
 export const fetchPopularFromApi = async (): Promise<
   Record<string, unknown>[]
-> => {
-  const response = await fetch('/api/cached-popular-runes');
-  let data;
-  try {
-    data = await response.json();
-  } catch {
-    throw new Error('Failed to parse popular collections');
-  }
-  if (!response.ok) {
-    throw new Error(
-      data?.error?.message ||
-        data?.error ||
-        `Failed to fetch popular collections: ${response.statusText}`,
-    );
-  }
-  return handleApiResponse<Record<string, unknown>[]>(data, true);
-};
+> => apiGet<Record<string, unknown>[]>('/api/popular-runes');
 
 export interface BitcoinFeeRates {
   fastestFee: number;
@@ -50,34 +36,22 @@ export interface BitcoinFeeRates {
 }
 
 export const fetchRecommendedFeeRates = async (): Promise<BitcoinFeeRates> => {
+  const defaultRates: BitcoinFeeRates = {
+    fastestFee: 25,
+    halfHourFee: 20,
+    hourFee: 15,
+    economyFee: 10,
+    minimumFee: 5,
+  };
+
   try {
-    const response = await fetch(
+    const { data } = await fetchExternal<BitcoinFeeRates>(
       'https://mempool.space/api/v1/fees/recommended',
+      { timeout: 10000, retries: 2 },
     );
-
-    if (!response.ok) {
-      console.warn(
-        `Failed to fetch fee rates: ${response.status} ${response.statusText}`,
-      );
-      return {
-        fastestFee: 25,
-        halfHourFee: 20,
-        hourFee: 15,
-        economyFee: 10,
-        minimumFee: 5,
-      };
-    }
-
-    const data = await response.json();
-    return data as BitcoinFeeRates;
+    return data;
   } catch (error) {
-    console.warn('Error fetching recommended fee rates:', error);
-    return {
-      fastestFee: 25,
-      halfHourFee: 20,
-      hourFee: 15,
-      economyFee: 10,
-      minimumFee: 5,
-    };
+    logFetchError('https://mempool.space/api/v1/fees/recommended', error);
+    return defaultRates;
   }
 };

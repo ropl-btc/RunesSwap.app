@@ -1,6 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { QUERY_KEYS, fetchPortfolioDataFromApi } from '@/lib/api';
+import {
+  calculateActualBalance,
+  calculateBtcValue,
+  calculateUsdValue,
+} from '@/utils/runeFormatting';
 import { safeArrayAccess } from '@/utils/typeGuards';
 
 export type SortField = 'name' | 'balance' | 'value';
@@ -86,12 +91,14 @@ export function usePortfolioData(address: string | null) {
         const marketInfo = portfolioData.marketData?.[rune.name];
         const runeInfo = portfolioData.runeInfos?.[rune.name];
         const decimals = runeInfo?.decimals || 0;
-        const actualBalance = Number(rune.balance) / Math.pow(10, decimals);
+
+        // Use unified utilities for precise calculations
+        const actualBalance = calculateActualBalance(rune.balance, decimals);
         const btcValue = marketInfo?.price_in_sats
-          ? (actualBalance * marketInfo.price_in_sats) / 1e8
+          ? calculateBtcValue(rune.balance, decimals, marketInfo.price_in_sats)
           : 0;
         const usdValue = marketInfo?.price_in_usd
-          ? actualBalance * marketInfo.price_in_usd
+          ? calculateUsdValue(rune.balance, decimals, marketInfo.price_in_usd)
           : 0;
         const imageURI = `https://icon.unisat.io/icon/runes/${encodeURIComponent(
           rune.name,

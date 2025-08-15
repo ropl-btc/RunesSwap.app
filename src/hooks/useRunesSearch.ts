@@ -1,8 +1,9 @@
-import debounce from 'lodash.debounce';
-import { useEffect, useMemo, useState } from 'react';
-import { fetchPopularFromApi, fetchRunesFromApi } from '@/lib/apiClient';
+import { useEffect, useState } from 'react';
+import { fetchPopularFromApi, fetchRunesFromApi } from '@/lib/api';
 import { useRunesInfoStore } from '@/store/runesInfoStore';
 import type { Rune } from '@/types/satsTerminal';
+import { mapPopularToRune } from '@/utils/popularRunes';
+import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 
 interface UseRunesSearchOptions {
   cachedPopularRunes?: Record<string, unknown>[];
@@ -21,9 +22,14 @@ export function useRunesSearch({
   const [searchQuery, setSearchQuery] = useState(persistedQuery);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<Rune[]>([]);
-  const [searchError, setSearchError] = useState<string | null>(null);
+  const search = useDebouncedSearch<Rune>(
+    async (q) => {
+      const results: Rune[] = await fetchRunesFromApi(q);
+      return results;
+    },
+    300,
+    persistedQuery,
+  );
 
   const [isPopularLoading, setIsPopularLoading] = useState(
     isPopularRunesLoading,
@@ -46,81 +52,25 @@ export function useRunesSearch({
         return;
       }
 
-      if (cachedPopularRunes && cachedPopularRunes.length > 0) {
-        const liquidiumToken: Rune = {
-          id: 'liquidiumtoken',
-          name: 'LIQUIDIUM•TOKEN',
-          imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
-        };
-        const fetchedRunes: Rune[] = cachedPopularRunes
-          .map((collection: Record<string, unknown>) => ({
-            id: (collection?.rune as string) || `unknown_${Math.random()}`,
-            name:
-              ((collection?.etching as Record<string, unknown>)
-                ?.runeName as string) ||
-              (collection?.rune as string) ||
-              'Unknown',
-            imageURI:
-              (collection?.icon_content_url_data as string) ||
-              (collection?.imageURI as string),
-          }))
-          .filter(
-            (rune) =>
-              rune.id !== liquidiumToken.id &&
-              rune.name !== liquidiumToken.name,
-          );
-        setPopularRunes([liquidiumToken, ...fetchedRunes]);
-        setPopularError(null);
-        setIsPopularLoading(false);
-        return;
-      }
-
       setIsPopularLoading(true);
-      setPopularError(null);
-      setPopularRunes([]);
       try {
-        const liquidiumToken: Rune = {
-          id: 'liquidiumtoken',
-          name: 'LIQUIDIUM•TOKEN',
-          imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
-        };
-        const response = await fetchPopularFromApi();
-        let mappedRunes: Rune[] = [];
-        if (!Array.isArray(response)) {
-          mappedRunes = [liquidiumToken];
-        } else {
-          const fetchedRunes: Rune[] = response
-            .map((collection: Record<string, unknown>) => ({
-              id: (collection?.rune as string) || `unknown_${Math.random()}`,
-              name:
-                ((collection?.etching as Record<string, unknown>)
-                  ?.runeName as string) ||
-                (collection?.rune as string) ||
-                'Unknown',
-              imageURI:
-                (collection?.icon_content_url_data as string) ||
-                (collection?.imageURI as string),
-            }))
-            .filter(
-              (rune) =>
-                rune.id !== liquidiumToken.id &&
-                rune.name !== liquidiumToken.name,
-            );
-          mappedRunes = [liquidiumToken, ...fetchedRunes];
-        }
+        // Try cached data first, then fetch if needed
+        const runesData =
+          cachedPopularRunes && cachedPopularRunes.length > 0
+            ? cachedPopularRunes
+            : await fetchPopularFromApi();
+
+        // Convert to Rune format - LIQUIDIUM•TOKEN is already first in our list
+        const mappedRunes: Rune[] = mapPopularToRune(runesData);
         setPopularRunes(mappedRunes);
+        setPopularError(null);
       } catch (error) {
         setPopularError(
           error instanceof Error
             ? error.message
             : 'Failed to fetch popular runes',
         );
-        const liquidiumTokenOnError: Rune = {
-          id: 'liquidiumtoken',
-          name: 'LIQUIDIUM•TOKEN',
-          imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
-        };
-        setPopularRunes([liquidiumTokenOnError]);
+        setPopularRunes([]);
       } finally {
         setIsPopularLoading(false);
       }
@@ -129,39 +79,10 @@ export function useRunesSearch({
     fetchPopular();
   }, [cachedPopularRunes, isPopularRunesLoading, popularRunesError]);
 
-  const debouncedSearch = useMemo(
-    () =>
-      debounce(async (query: string) => {
-        if (!query) {
-          setSearchResults([]);
-          setIsSearching(false);
-          setSearchError(null);
-          return;
-        }
-        setIsSearching(true);
-        setSearchError(null);
-        try {
-          const results: Rune[] = await fetchRunesFromApi(query);
-          setSearchResults(results);
-        } catch (error: unknown) {
-          setSearchError(
-            error instanceof Error ? error.message : 'Failed to search',
-          );
-          setSearchResults([]);
-        } finally {
-          setIsSearching(false);
-        }
-      }, 300),
-    [],
-  );
-
-  useEffect(() => () => debouncedSearch.cancel(), [debouncedSearch]);
-
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     setRuneSearchQuery(query);
-    setIsSearching(true);
-    debouncedSearch(query);
+    search.onQueryChange(query);
   };
 
   const handleSearchFocus = () => {
@@ -176,9 +97,11 @@ export function useRunesSearch({
     }, 200);
   };
 
-  const availableRunes = searchQuery.trim() ? searchResults : popularRunes;
-  const isLoadingRunes = searchQuery.trim() ? isSearching : isPopularLoading;
-  const currentRunesError = searchQuery.trim() ? searchError : popularError;
+  const availableRunes = searchQuery.trim() ? search.results : popularRunes;
+  const isLoadingRunes = searchQuery.trim()
+    ? search.isSearching
+    : isPopularLoading;
+  const currentRunesError = searchQuery.trim() ? search.error : popularError;
 
   return {
     searchQuery,

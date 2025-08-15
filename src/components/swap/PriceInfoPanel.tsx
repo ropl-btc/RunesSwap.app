@@ -1,6 +1,6 @@
 import React from 'react';
 import { Asset } from '@/types/common';
-import styles from './PriceInfoPanel.module.css';
+import styles from '@/components/swap/PriceInfoPanel.module.css';
 
 interface PriceInfoPanelProps {
   /**

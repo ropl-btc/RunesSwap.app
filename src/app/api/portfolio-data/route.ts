@@ -1,29 +1,26 @@
 import { NextRequest } from 'next/server';
-import { z } from 'zod';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  handleApiError,
-  validateRequest,
-} from '@/lib/apiUtils';
+import { createSuccessResponse, validateRequest } from '@/lib/apiUtils';
 import { RuneData } from '@/lib/runesData';
 import { getOrdiscanClient } from '@/lib/serverUtils';
-import { supabase } from '@/lib/supabase';
+import {
+  batchFetchRuneMarketData,
+  batchFetchRunes,
+} from '@/lib/supabaseQueries';
+import { requestSchemas } from '@/lib/validationSchemas';
+import { withApiHandler } from '@/lib/withApiHandler';
 import { RuneBalance, RuneMarketInfo } from '@/types/ordiscan';
 
-export async function GET(request: NextRequest) {
-  // const { searchParams } = new URL(request.url);
-  // const address = searchParams.get('address');
-
-  // Zod validation for 'address'
-  const schema = z.object({ address: z.string().min(1) });
-  const validation = await validateRequest(request, schema, 'query');
-  if (!validation.success) {
-    return validation.errorResponse;
-  }
-  const { address: validAddress } = validation.data;
-
-  try {
+export const GET = withApiHandler(
+  async (request: NextRequest) => {
+    const validation = await validateRequest(
+      request,
+      requestSchemas.addressRequest,
+      'query',
+    );
+    if (!validation.success) {
+      return validation.errorResponse;
+    }
+    const { address: validAddress } = validation.data;
     // Fetch balances from Ordiscan (always fresh)
     const ordiscan = getOrdiscanClient();
     const balancesPromise = ordiscan.address.getRunes({
@@ -47,34 +44,11 @@ export async function GET(request: NextRequest) {
     // Extract all rune names
     const runeNames = validBalances.map((balance) => balance.name);
 
-    // Fetch rune info and market data in parallel from Supabase
-    const [runeInfoResult, marketDataResult] = await Promise.all([
-      // Batch fetch rune info from Supabase
-      supabase.from('runes').select('*').in('name', runeNames),
-
-      // Batch fetch market data from Supabase
-      supabase
-        .from('rune_market_data')
-        .select('*')
-        .in('rune_name', runeNames)
-        .gt(
-          'last_updated_at',
-          new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-        ),
+    // Fetch rune info and market data in parallel using centralized utilities
+    const [runeInfos, marketData] = await Promise.all([
+      batchFetchRunes(runeNames),
+      batchFetchRuneMarketData(runeNames),
     ]);
-
-    const runeInfos = runeInfoResult.data;
-    const runeInfoError = runeInfoResult.error;
-    const marketData = marketDataResult.data;
-    const marketError = marketDataResult.error;
-
-    if (runeInfoError) {
-      console.error('Error fetching rune infos:', runeInfoError);
-    }
-
-    if (marketError) {
-      console.error('Error fetching market data:', marketError);
-    }
 
     // Convert array data to maps for easy client-side lookup
     const runeInfoMap: Record<string, RuneData> = {};
@@ -86,10 +60,10 @@ export async function GET(request: NextRequest) {
 
     (marketData || []).forEach((market) => {
       marketDataMap[market.rune_name] = {
-        price_in_sats: market.price_in_sats,
-        price_in_usd: market.price_in_usd,
-        market_cap_in_btc: market.market_cap_in_btc,
-        market_cap_in_usd: market.market_cap_in_usd,
+        price_in_sats: market.price_in_sats || 0,
+        price_in_usd: market.price_in_usd || 0,
+        market_cap_in_btc: market.market_cap_in_btc || 0,
+        market_cap_in_usd: market.market_cap_in_usd || 0,
       };
     });
 
@@ -125,21 +99,20 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Return the combined data
+    // Transform balances to match documented API format (amount -> balance)
+    const formattedBalances = validBalances.map((balance) => {
+      const amt =
+        (balance as { amount?: string; balance?: string }).amount ??
+        (balance as { amount?: string; balance?: string }).balance ??
+        '0';
+      return { name: balance.name, balance: amt };
+    });
+
     return createSuccessResponse({
-      balances: validBalances,
+      balances: formattedBalances,
       runeInfos: runeInfoMap,
       marketData: marketDataMap,
     });
-  } catch (error) {
-    const errorInfo = handleApiError(
-      error,
-      `Failed to fetch portfolio data for ${validAddress}`,
-    );
-    return createErrorResponse(
-      errorInfo.message,
-      errorInfo.details,
-      errorInfo.status,
-    );
-  }
-}
+  },
+  { defaultErrorMessage: 'Failed to fetch portfolio data' },
+);

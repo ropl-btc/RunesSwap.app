@@ -1,3 +1,5 @@
+//
+import { convertToRawAmount } from '@/utils/amountFormatting';
 import { useState } from 'react';
 import {
   LiquidiumPrepareBorrowResponse,
@@ -64,16 +66,11 @@ export function useBorrowProcess({
       const decimals = collateralRuneInfo?.decimals ?? 0;
       let rawTokenAmount: string;
       try {
-        const amountFloat = parseFloat(collateralAmount);
-        const scale8 = BigInt(10) ** BigInt(Math.min(8, decimals));
-        const scaleRest = BigInt(10) ** BigInt(Math.max(0, decimals - 8));
-        const amountInteger = BigInt(Math.floor(amountFloat * Number(scale8)));
-        const amountBigInt = amountInteger * scaleRest;
-        rawTokenAmount = amountBigInt.toString();
+        rawTokenAmount = convertToRawAmount(collateralAmount, decimals);
       } catch {
-        rawTokenAmount = String(
-          Math.floor(parseFloat(collateralAmount) * 10 ** decimals),
-        );
+        setLoanProcessError('Invalid collateral amount.');
+        setIsPreparing(false);
+        return;
       }
 
       const prepareResult: LiquidiumPrepareBorrowResponse =

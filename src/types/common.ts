@@ -8,6 +8,9 @@ export interface Asset {
   isBTC?: boolean | undefined; // Flag to explicitly identify BTC
 }
 
+// Re-export RuneData for tests
+export type { RuneData } from '@/lib/runesData';
+
 /**
  * Represents Bitcoin (BTC) as a selectable asset.
  */

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { fetchPopularFromApi, fetchRunesFromApi } from '@/lib/api';
 import { Asset, BTC_ASSET } from '@/types/common';
+import { mapPopularToAsset } from '@/utils/popularRunes';
 import { normalizeRuneName } from '@/utils/runeUtils';
 import { safeArrayFirst } from '@/utils/typeGuards';
 
@@ -55,145 +56,45 @@ export function useSwapRunes({
     const fetchPopular = async () => {
       if (hasLoadedPopularRunes.current) return;
 
-      if (cachedPopularRunes && cachedPopularRunes.length > 0) {
-        const liquidiumToken: Asset = {
-          id: 'liquidiumtoken',
-          name: 'LIQUIDIUM•TOKEN',
-          imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
-          isBTC: false,
-        };
+      // Try cached data first, then fetch if needed
+      const runesData =
+        cachedPopularRunes && cachedPopularRunes.length > 0
+          ? cachedPopularRunes
+          : await fetchPopularFromApi();
 
-        const fetchedRunes: Asset[] = cachedPopularRunes
-          .map((collection: Record<string, unknown>) => {
-            const runeName =
-              ((collection?.etching as Record<string, unknown>)
-                ?.runeName as string) ||
-              (collection?.rune as string) ||
-              'Unknown';
-            return {
-              id: (collection?.rune as string) || `unknown_${Math.random()}`,
-              name: runeName,
-              imageURI:
-                (collection?.icon_content_url_data as string) ||
-                (collection?.imageURI as string),
-              isBTC: false,
-            };
-          })
-          .filter(
-            (rune) =>
-              rune.id !== liquidiumToken.id &&
-              normalizeRuneName(rune.name) !==
-                normalizeRuneName(liquidiumToken.name),
-          );
+      // Convert to Asset format - LIQUIDIUM•TOKEN is already first in our list
+      let mappedRunes: Asset[] = mapPopularToAsset(runesData);
 
-        let mappedRunes = preSelectedRune
-          ? fetchedRunes
-          : [liquidiumToken, ...fetchedRunes];
-
-        if (preSelectedAsset) {
-          const exists = mappedRunes.some((r) => r.id === preSelectedAsset.id);
-          if (!exists) {
-            mappedRunes = [preSelectedAsset, ...mappedRunes];
-          }
+      // Add preselected asset if it's not in the list
+      if (preSelectedAsset) {
+        const exists = mappedRunes.some((r) => r.id === preSelectedAsset.id);
+        if (!exists) {
+          mappedRunes = [preSelectedAsset, ...mappedRunes];
         }
-
-        setPopularRunes(mappedRunes);
-
-        if (!preSelectedRune && !assetOut && mappedRunes.length > 0) {
-          const firstRune = safeArrayFirst(mappedRunes);
-          if (firstRune) {
-            setAssetOut(firstRune);
-          }
-        }
-
-        setIsPopularLoading(false);
-        hasLoadedPopularRunes.current = true;
-        return;
       }
 
-      setIsPopularLoading(true);
-      setPopularError(null);
-      setPopularRunes([]);
-      try {
-        const liquidiumToken: Asset = {
-          id: 'liquidiumtoken',
-          name: 'LIQUIDIUM•TOKEN',
-          imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
-          isBTC: false,
-        };
+      setPopularRunes(mappedRunes);
 
-        const response = await fetchPopularFromApi();
-        let mappedRunes: Asset[] = [];
-
-        if (!Array.isArray(response)) {
-          mappedRunes = [liquidiumToken];
-        } else {
-          const fetchedRunes: Asset[] = response
-            .map((collection: Record<string, unknown>) => ({
-              id: (collection?.rune as string) || `unknown_${Math.random()}`,
-              name:
-                ((collection?.etching as Record<string, unknown>)
-                  ?.runeName as string) ||
-                (collection?.rune as string) ||
-                'Unknown',
-              imageURI:
-                (collection?.icon_content_url_data as string) ||
-                (collection?.imageURI as string),
-              isBTC: false,
-            }))
-            .filter(
-              (rune) =>
-                rune.id !== liquidiumToken.id &&
-                normalizeRuneName(rune.name) !==
-                  normalizeRuneName(liquidiumToken.name),
-            );
-
-          mappedRunes = [liquidiumToken, ...fetchedRunes];
+      // Set first rune as output if no preselection and no current output
+      if (!preSelectedRune && !assetOut && mappedRunes.length > 0) {
+        const firstRune = safeArrayFirst(mappedRunes);
+        if (firstRune) {
+          setAssetOut(firstRune);
         }
-
-        if (preSelectedAsset) {
-          const exists = mappedRunes.some((r) => r.id === preSelectedAsset.id);
-          if (!exists) {
-            mappedRunes = [preSelectedAsset, ...mappedRunes];
-          }
-        }
-
-        setPopularRunes(mappedRunes);
-        if (!preSelectedRune && !assetOut && mappedRunes.length > 0) {
-          const firstRune = safeArrayFirst(mappedRunes);
-          if (firstRune) {
-            setAssetOut(firstRune);
-          }
-        }
-      } catch (error) {
-        setPopularError(
-          error instanceof Error
-            ? error.message
-            : 'Failed to fetch popular runes',
-        );
-        const fallback: Asset = {
-          id: 'liquidiumtoken',
-          name: 'LIQUIDIUM•TOKEN',
-          imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
-          isBTC: false,
-        };
-        let fallbackList = preSelectedRune ? [] : [fallback];
-        if (
-          preSelectedAsset &&
-          !fallbackList.find((r) => r.id === preSelectedAsset.id)
-        ) {
-          fallbackList = [preSelectedAsset, ...fallbackList];
-        }
-        setPopularRunes(fallbackList);
-        if (!preSelectedRune && !assetOut) {
-          setAssetOut(fallback);
-        }
-      } finally {
-        setIsPopularLoading(false);
-        hasLoadedPopularRunes.current = true;
       }
+
+      setIsPopularLoading(false);
+      hasLoadedPopularRunes.current = true;
     };
-    fetchPopular();
+
+    fetchPopular().catch((error) => {
+      setPopularError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to fetch popular runes',
+      );
+      setIsPopularLoading(false);
+    });
   }, [
     cachedPopularRunes,
     preSelectedRune,

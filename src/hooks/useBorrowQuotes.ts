@@ -1,3 +1,5 @@
+import Big from 'big.js';
+import { convertToRawAmount } from '@/utils/amountFormatting';
 import { useEffect, useState } from 'react';
 import {
   LiquidiumBorrowQuoteOffer,
@@ -5,10 +7,11 @@ import {
   fetchBorrowQuotesFromApi,
   fetchBorrowRangesFromApi,
   fetchPopularFromApi,
-} from '@/lib/apiClient';
+} from '@/lib/api';
 import type { RuneData } from '@/lib/runesData';
 import { Asset } from '@/types/common';
-import { normalizeRuneName } from '@/utils/runeUtils';
+import { mapPopularToAsset } from '@/utils/popularRunes';
+import { formatRuneAmount } from '@/utils/runeFormatting';
 import { safeArrayAccess, safeArrayFirst } from '@/utils/typeGuards';
 
 interface UseBorrowQuotesArgs {
@@ -26,7 +29,7 @@ export function useBorrowQuotes({
   collateralAmount,
   address,
   collateralRuneInfo,
-  cachedPopularRunes = [],
+  cachedPopularRunes,
   isPopularRunesLoading = false,
   popularRunesError = null,
 }: UseBorrowQuotesArgs) {
@@ -41,11 +44,15 @@ export function useBorrowQuotes({
   const [minMaxRange, setMinMaxRange] = useState<string | null>(null);
   const [borrowRangeError, setBorrowRangeError] = useState<string | null>(null);
 
+  // Use cached popular runes directly; effect depends on the array reference
+
   // Fetch popular runes on mount or when cached data updates
   useEffect(() => {
     const fetchPopular = async () => {
+      // Use external loading/error states directly instead of duplicating
       if (isPopularRunesLoading) {
         setIsPopularLoading(true);
+        setPopularError(null);
         return;
       }
 
@@ -55,88 +62,27 @@ export function useBorrowQuotes({
         return;
       }
 
-      if (cachedPopularRunes && cachedPopularRunes.length > 0) {
-        const liquidiumToken: Asset = {
-          id: 'liquidiumtoken',
-          name: 'LIQUIDIUM•TOKEN',
-          imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
-          isBTC: false,
-        };
-        const fetchedRunes: Asset[] = cachedPopularRunes
-          .map((collection: Record<string, unknown>) => ({
-            id: (collection?.rune_id as string) || `unknown_${Math.random()}`,
-            name: (
-              (collection?.slug as string) ||
-              (collection?.rune as string) ||
-              'Unknown'
-            ).replace(/-/g, '•'),
-            imageURI:
-              (collection?.icon_content_url_data as string) ||
-              (collection?.imageURI as string),
-            isBTC: false,
-          }))
-          .filter(
-            (rune) =>
-              rune.id !== liquidiumToken.id &&
-              normalizeRuneName(rune.name) !==
-                normalizeRuneName(liquidiumToken.name),
-          );
-        setPopularRunes([liquidiumToken, ...fetchedRunes]);
-        setPopularError(null);
-        setIsPopularLoading(false);
-        return;
-      }
-
       setIsPopularLoading(true);
       setPopularError(null);
-      setPopularRunes([]);
+
       try {
-        const liquidiumToken: Asset = {
-          id: 'liquidiumtoken',
-          name: 'LIQUIDIUM•TOKEN',
-          imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
-          isBTC: false,
-        };
-        const response = await fetchPopularFromApi();
-        let mappedRunes: Asset[] = [];
-        if (!Array.isArray(response)) {
-          mappedRunes = [liquidiumToken];
-        } else {
-          const fetchedRunes: Asset[] = response
-            .map((collection: Record<string, unknown>) => ({
-              id: (collection?.rune_id as string) || `unknown_${Math.random()}`,
-              name: (
-                (collection?.slug as string) ||
-                (collection?.rune as string) ||
-                'Unknown'
-              ).replace(/-/g, '•'),
-              imageURI:
-                (collection?.icon_content_url_data as string) ||
-                (collection?.imageURI as string),
-              isBTC: false,
-            }))
-            .filter(
-              (rune) =>
-                rune.id !== liquidiumToken.id &&
-                normalizeRuneName(rune.name) !==
-                  normalizeRuneName(liquidiumToken.name),
-            );
-          mappedRunes = [liquidiumToken, ...fetchedRunes];
-        }
+        // Try cached data first, then fetch if needed
+        const runesData =
+          cachedPopularRunes && cachedPopularRunes.length > 0
+            ? cachedPopularRunes
+            : await fetchPopularFromApi();
+
+        // Convert to Asset format - LIQUIDIUM•TOKEN is already first in our list
+        const mappedRunes = mapPopularToAsset(runesData);
         setPopularRunes(mappedRunes);
+        setPopularError(null);
       } catch (error) {
         setPopularError(
           error instanceof Error
             ? error.message
             : 'Failed to fetch popular runes',
         );
-        const fallback: Asset = {
-          id: 'liquidiumtoken',
-          name: 'LIQUIDIUM•TOKEN',
-          imageURI: 'https://icon.unisat.io/icon/runes/LIQUIDIUM%E2%80%A2TOKEN',
-          isBTC: false,
-        };
-        setPopularRunes([fallback]);
+        setPopularRunes([]);
       } finally {
         setIsPopularLoading(false);
       }
@@ -164,10 +110,24 @@ export function useBorrowQuotes({
         }
         const result = await fetchBorrowRangesFromApi(runeIdForApi, address);
         if (result.success && result.data) {
-          const { minAmount, maxAmount } = result.data;
+          const { minAmount, maxAmount, noOffersAvailable } = result.data;
+
+          // Check if no offers are available for this rune
+          if (noOffersAvailable || (minAmount === '0' && maxAmount === '0')) {
+            setMinMaxRange(null);
+            setBorrowRangeError(
+              'There are currently no available loan offers for this Rune on Liquidium.',
+            );
+            return;
+          }
+
           const decimals = collateralRuneInfo?.decimals ?? 0;
-          const minFormatted = formatRuneAmount(minAmount, decimals);
-          const maxFormatted = formatRuneAmount(maxAmount, decimals);
+          const minFormatted = formatRuneAmount(minAmount, decimals, {
+            maxDecimals: 2,
+          });
+          const maxFormatted = formatRuneAmount(maxAmount, decimals, {
+            maxDecimals: 2,
+          });
           setMinMaxRange(`Min: ${minFormatted} - Max: ${maxFormatted}`);
           setBorrowRangeError(null);
         } else {
@@ -182,7 +142,9 @@ export function useBorrowQuotes({
           errorMessage.includes('No valid ranges found') ||
           errorMessage.includes(
             'Could not find valid borrow ranges for this rune',
-          )
+          ) ||
+          errorMessage.includes('Not Found') ||
+          errorMessage.includes('does not exist')
         ) {
           setBorrowRangeError(
             'This rune is not currently available for borrowing on Liquidium.',
@@ -195,18 +157,6 @@ export function useBorrowQuotes({
     fetchMinMaxRange();
   }, [collateralAsset, address, collateralRuneInfo]);
 
-  const formatRuneAmount = (rawAmount: string, decimals: number): string => {
-    try {
-      const rawAmountBigInt = BigInt(rawAmount);
-      const divisorBigInt = BigInt(10) ** BigInt(decimals);
-      const scaledAmount = (rawAmountBigInt * BigInt(100)) / divisorBigInt;
-      const scaledNumber = Number(scaledAmount) / 100;
-      return scaledNumber.toFixed(decimals > 0 ? 2 : 0);
-    } catch {
-      return (Number(rawAmount) / 10 ** decimals).toFixed(decimals > 0 ? 2 : 0);
-    }
-  };
-
   const resetQuotes = () => {
     setQuotes([]);
     setSelectedQuoteId(null);
@@ -216,9 +166,14 @@ export function useBorrowQuotes({
   const handleGetQuotes = async () => {
     if (!collateralAsset || !collateralAmount || !address) return;
 
-    // Validate collateral amount before proceeding
-    const amountFloat = parseFloat(collateralAmount);
-    if (isNaN(amountFloat) || amountFloat <= 0) {
+    // Validate collateral amount using Big for precision
+    try {
+      const amountBig = new Big(collateralAmount);
+      if (amountBig.lte(0)) {
+        setQuotesError('Please enter a valid collateral amount.');
+        return;
+      }
+    } catch {
       setQuotesError('Please enter a valid collateral amount.');
       return;
     }
@@ -227,39 +182,8 @@ export function useBorrowQuotes({
     resetQuotes();
     try {
       const decimals = collateralRuneInfo?.decimals ?? 0;
-      let rawAmount: string;
-      try {
-        // Fix floating point precision issues by using string manipulation
-        // for high precision decimal conversions
-        if (decimals > 8) {
-          // For high decimals, use string-based conversion to avoid precision loss
-          // Trim whitespace to ensure consistency with parseFloat validation
-          const amountStr = collateralAmount.trim();
-          const [integerPart = '0', decimalPart = ''] = amountStr.split('.');
-
-          // Truncate decimal part to supported precision, then pad to required length
-          const truncatedDecimal = decimalPart.slice(0, decimals);
-          const paddedDecimal = truncatedDecimal.padEnd(decimals, '0');
-
-          // Combine integer and decimal parts
-          const fullAmountStr = integerPart + paddedDecimal;
-
-          // Remove leading zeros and convert to BigInt
-          rawAmount = BigInt(
-            fullAmountStr.replace(/^0+/, '') || '0',
-          ).toString();
-        } else {
-          // For lower decimals, use the original method but with better precision handling
-          const amountInteger = Math.floor(
-            amountFloat * 10 ** Math.min(8, decimals),
-          );
-          const multiplier = BigInt(10) ** BigInt(Math.max(0, decimals - 8));
-          const amountBigInt = BigInt(amountInteger) * multiplier;
-          rawAmount = amountBigInt.toString();
-        }
-      } catch {
-        rawAmount = String(Math.floor(amountFloat * 10 ** decimals));
-      }
+      // Use centralized helper to convert display amount to raw integer string
+      const rawAmount = convertToRawAmount(collateralAmount, decimals);
 
       let runeIdForApi = collateralAsset.id;
       if (collateralRuneInfo?.id?.includes(':')) {
@@ -288,10 +212,12 @@ export function useBorrowQuotes({
             const minFormatted = formatRuneAmount(
               globalMin.toString(),
               decimals,
+              { maxDecimals: 2 },
             );
             const maxFormatted = formatRuneAmount(
               globalMax.toString(),
               decimals,
+              { maxDecimals: 2 },
             );
             setMinMaxRange(`Min: ${minFormatted} - Max: ${maxFormatted}`);
           }

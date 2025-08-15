@@ -1,3 +1,4 @@
+import Big from 'big.js';
 import { useMemo } from 'react';
 import { QuoteResponse } from 'satsterminal-sdk';
 import { Asset } from '@/types/common';
@@ -39,16 +40,16 @@ export default function useUsdValues({
     }
 
     try {
-      const amountNum = parseFloat(inputAmount);
-      if (isNaN(amountNum) || amountNum <= 0) {
+      const amountBig = new Big(inputAmount);
+      if (amountBig.lte(0)) {
         return { inputUsdValue: null, outputUsdValue: null };
       }
 
-      let inputUsdVal: number | null = null;
+      let inputUsdVal: Big | null = null;
       if (assetIn.isBTC && btcPriceUsd) {
-        inputUsdVal = amountNum * btcPriceUsd;
+        inputUsdVal = amountBig.times(btcPriceUsd);
       } else if (!assetIn.isBTC && inputRuneMarketInfo) {
-        inputUsdVal = amountNum * inputRuneMarketInfo.price_in_usd;
+        inputUsdVal = amountBig.times(inputRuneMarketInfo.price_in_usd);
       } else if (
         !assetIn.isBTC &&
         quote &&
@@ -56,26 +57,27 @@ export default function useUsdValues({
         btcPriceUsd &&
         !quoteError
       ) {
-        const btcPerRune =
-          quote.totalFormattedAmount &&
-          parseFloat(quote.totalFormattedAmount.replace(/,/g, '')) > 0
-            ? parseFloat(quote.totalPrice.replace(/,/g, '')) /
-              parseFloat(quote.totalFormattedAmount.replace(/,/g, ''))
-            : 0;
-        if (btcPerRune > 0) {
-          inputUsdVal = amountNum * btcPerRune * btcPriceUsd;
+        const totalFormattedClean =
+          quote.totalFormattedAmount?.replace(/,/g, '') || '0';
+        const totalPriceClean = quote.totalPrice.replace(/,/g, '');
+
+        if (new Big(totalFormattedClean).gt(0)) {
+          const btcPerRune = new Big(totalPriceClean).div(totalFormattedClean);
+          inputUsdVal = amountBig.times(btcPerRune).times(btcPriceUsd);
         }
       }
 
-      let outputUsdVal: number | null = null;
+      let outputUsdVal: Big | null = null;
       if (outputAmount && assetOut) {
         const sanitizedOutputAmount = outputAmount.replace(/,/g, '');
-        const outputAmountNum = parseFloat(sanitizedOutputAmount);
-        if (!isNaN(outputAmountNum) && outputAmountNum > 0) {
+        const outputAmountBig = new Big(sanitizedOutputAmount);
+        if (outputAmountBig.gt(0)) {
           if (assetOut.isBTC && btcPriceUsd) {
-            outputUsdVal = outputAmountNum * btcPriceUsd;
+            outputUsdVal = outputAmountBig.times(btcPriceUsd);
           } else if (!assetOut.isBTC && outputRuneMarketInfo) {
-            outputUsdVal = outputAmountNum * outputRuneMarketInfo.price_in_usd;
+            outputUsdVal = outputAmountBig.times(
+              outputRuneMarketInfo.price_in_usd,
+            );
           } else if (
             !assetOut.isBTC &&
             quote &&
@@ -83,22 +85,25 @@ export default function useUsdValues({
             btcPriceUsd &&
             !quoteError
           ) {
-            const btcPerRune =
-              quote.totalFormattedAmount &&
-              parseFloat(quote.totalFormattedAmount.replace(/,/g, '')) > 0
-                ? parseFloat(quote.totalPrice.replace(/,/g, '')) /
-                  parseFloat(quote.totalFormattedAmount.replace(/,/g, ''))
-                : 0;
-            if (btcPerRune > 0) {
-              outputUsdVal = outputAmountNum * btcPerRune * btcPriceUsd;
+            const totalFormattedClean =
+              quote.totalFormattedAmount?.replace(/,/g, '') || '0';
+            const totalPriceClean = quote.totalPrice.replace(/,/g, '');
+
+            if (new Big(totalFormattedClean).gt(0)) {
+              const btcPerRune = new Big(totalPriceClean).div(
+                totalFormattedClean,
+              );
+              outputUsdVal = outputAmountBig
+                .times(btcPerRune)
+                .times(btcPriceUsd);
             }
           }
         }
       }
 
-      const format = (v: number | null) =>
-        v !== null && v > 0
-          ? v.toLocaleString(undefined, {
+      const format = (v: Big | null) =>
+        v !== null && v.gt(0)
+          ? parseFloat(v.toFixed(2)).toLocaleString(undefined, {
               style: 'currency',
               currency: 'USD',
               minimumFractionDigits: 2,
