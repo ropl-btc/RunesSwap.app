@@ -35,6 +35,7 @@ describe('rune info route', () => {
       url: 'https://example.com/api?name=BTC',
       expectedStatus: 200,
       expectedData: mockRuneData,
+      expectedSuccess: true,
     },
     {
       name: 'rune not found',
@@ -42,22 +43,32 @@ describe('rune info route', () => {
       url: 'https://example.com/api?name=UNKNOWN',
       expectedStatus: 404,
       expectedData: null,
+      expectedSuccess: true,
     },
   ];
 
-  testCases.forEach(({ name, mockData, url, expectedStatus, expectedData }) => {
-    it(`returns ${expectedStatus} when ${name}`, async () => {
-      mockGetRuneData.mockResolvedValue(mockData);
-      const response = await GET(createTestRequest(url));
+  testCases.forEach(
+    ({
+      name,
+      mockData,
+      url,
+      expectedStatus,
+      expectedData,
+      expectedSuccess,
+    }) => {
+      it(`returns ${expectedStatus} when ${name}`, async () => {
+        mockGetRuneData.mockResolvedValue(mockData);
+        const response = await GET(createTestRequest(url));
 
-      expect(mockGetRuneData).toHaveBeenCalledWith(
-        name === 'rune found' ? 'BTC' : 'UNKNOWN',
-      );
-      expect(response.status).toBe(expectedStatus);
+        expect(mockGetRuneData).toHaveBeenCalledWith(
+          name === 'rune found' ? 'BTC' : 'UNKNOWN',
+        );
+        expect(response.status).toBe(expectedStatus);
 
-      const data = await response.json();
-      expect(data.success).toBe(true);
-      expect(data.data).toEqual(expectedData);
-    });
-  });
+        const data = await response.json();
+        expect(data.success).toBe(expectedSuccess);
+        expect(data.data).toEqual(expectedData);
+      });
+    },
+  );
 });

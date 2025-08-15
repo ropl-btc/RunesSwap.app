@@ -114,7 +114,12 @@ export const requestSchemas = {
 
   // Rune info by ID request
   runeInfoByIdRequest: z.object({
-    runeId: validators.nonEmptyString,
+    runeId: z
+      .string()
+      .regex(
+        /^\d+(?::\d+){1,2}$/,
+        'Invalid runeId format (expected block:tx or block:tx:index)',
+      ),
   }),
 
   // Search request

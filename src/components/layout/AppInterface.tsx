@@ -8,7 +8,7 @@ import { useSharedLaserEyes } from '@/context/LaserEyesContext';
 import useBtcPrice from '@/hooks/useBtcPrice';
 import { QUERY_KEYS, fetchPopularFromApi } from '@/lib/api';
 import type { Asset } from '@/types/common';
-import { Loading } from '@/components/loading/Loading';
+import { Loading } from '@/components/loading';
 import styles from '@/components/layout/AppInterface.module.css';
 
 // Dynamic imports for tab components (performance optimization)

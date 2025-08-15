@@ -21,7 +21,7 @@ import BorrowQuotesList from '@/components/borrow/BorrowQuotesList';
 import BorrowSuccessMessage from '@/components/borrow/BorrowSuccessMessage';
 import CollateralInput from '@/components/borrow/CollateralInput';
 import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
-import { Loading } from '@/components/loading/Loading';
+import { Loading } from '@/components/loading';
 import Button from '@/components/ui/Button';
 import FeeSelector from '@/components/ui/FeeSelector';
 import styles from '@/components/borrow/BorrowTab.module.css';

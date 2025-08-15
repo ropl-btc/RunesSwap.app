@@ -20,7 +20,7 @@ import {
 } from '@/utils/amountFormatting';
 import { formatNumberWithLocale } from '@/utils/formatters';
 import { calculateActualBalance } from '@/utils/runeFormatting';
-import { Loading } from '@/components/loading/Loading';
+import { Loading } from '@/components/loading';
 import FeeSelector from '@/components/ui/FeeSelector';
 import styles from '@/components/swap/SwapTab.module.css';
 import { SwapTabForm, useSwapProcessManager } from '@/components/swap';
