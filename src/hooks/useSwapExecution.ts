@@ -162,9 +162,20 @@ export default function useSwapExecution({
         )?.rbfProtected?.base64;
 
         if (!mainPsbtBase64 || !swapId) {
-          throw new Error(
-            `Invalid PSBT data received from API: ${JSON.stringify(psbtResult)}`,
+          // Log rich context for diagnostics
+          logger.error(
+            'Invalid PSBT data received from API',
+            {
+              hasPsbtBase64: !!mainPsbtBase64,
+              hasSwapId: !!swapId,
+              runeName: runeAsset.name,
+              sell: !isBtcToRune,
+            },
+            'API',
           );
+
+          // Throw a sanitized message for UI
+          throw new Error('Invalid PSBT data received from API.');
         }
 
         // 2. Sign PSBT(s) - Remains client-side via LaserEyes
@@ -215,9 +226,21 @@ export default function useSwapExecution({
           (confirmResult as SwapConfirmationResult)?.rbfProtection
             ?.fundsPreparationTxId;
         if (!finalTxId) {
-          throw new Error(
-            `Confirmation failed or transaction ID missing. Response: ${JSON.stringify(confirmResult)}`,
+          // Log rich context for diagnostics
+          logger.error(
+            'Confirmation failed or transaction ID missing',
+            {
+              hasTxid: !!(confirmResult as SwapConfirmationResult)?.txid,
+              hasRbfTxId: !!(confirmResult as SwapConfirmationResult)
+                ?.rbfProtection?.fundsPreparationTxId,
+              runeName: runeAsset.name,
+              sell: !isBtcToRune,
+            },
+            'API',
           );
+
+          // Throw a sanitized message for UI
+          throw new Error('Confirmation failed or transaction ID missing.');
         }
         dispatchSwap({ type: 'SWAP_SUCCESS', txId: finalTxId });
 
@@ -289,9 +312,21 @@ export default function useSwapExecution({
           )?.rbfProtected?.base64;
 
           if (!mainPsbtBase64 || !swapId) {
-            throw new Error(
-              `Invalid PSBT data received from API: ${JSON.stringify(psbtResult)}`,
+            // Log rich context for diagnostics
+            logger.error(
+              'Invalid PSBT data received from API (retry)',
+              {
+                hasPsbtBase64: !!mainPsbtBase64,
+                hasSwapId: !!swapId,
+                runeName: runeAsset.name,
+                sell: !isBtcToRune,
+                retryAttempt: true,
+              },
+              'API',
             );
+
+            // Throw a sanitized message for UI
+            throw new Error('Invalid PSBT data received from API.');
           }
 
           // Continue with the original flow using the new PSBT
@@ -343,9 +378,22 @@ export default function useSwapExecution({
             (confirmResult as SwapConfirmationResult)?.rbfProtection
               ?.fundsPreparationTxId;
           if (!finalTxId) {
-            throw new Error(
-              `Confirmation failed or transaction ID missing. Response: ${JSON.stringify(confirmResult)}`,
+            // Log rich context for diagnostics
+            logger.error(
+              'Confirmation failed or transaction ID missing (retry)',
+              {
+                hasTxid: !!(confirmResult as SwapConfirmationResult)?.txid,
+                hasRbfTxId: !!(confirmResult as SwapConfirmationResult)
+                  ?.rbfProtection?.fundsPreparationTxId,
+                runeName: runeAsset.name,
+                sell: !isBtcToRune,
+                retryAttempt: true,
+              },
+              'API',
             );
+
+            // Throw a sanitized message for UI
+            throw new Error('Confirmation failed or transaction ID missing.');
           }
 
           dispatchSwap({ type: 'SWAP_SUCCESS', txId: finalTxId });

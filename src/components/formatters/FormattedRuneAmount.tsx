@@ -40,7 +40,7 @@ export function FormattedRuneAmount({
 
   if (error) {
     // 404 is handled by runeInfo being null, so this only catches other errors
-    return <span>{rawAmount} (&apos;Error fetching decimals&apos;)</span>;
+    return <span>{rawAmount} (Error fetching decimals)</span>;
   }
 
   if (

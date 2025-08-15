@@ -5,6 +5,7 @@
 
 import { z } from 'zod';
 import { validate as validateBitcoinAddress } from 'bitcoin-address-validation';
+import Big from 'big.js';
 
 // Common field validators
 export const validators = {
@@ -35,13 +36,26 @@ export const validators = {
   // Amount validation (can be string or number, converted to string)
   amount: z
     .union([z.string().min(1), z.number().positive()])
-    .transform((val) => String(val)),
+    .transform((val) => String(val).trim())
+    .refine((val) => {
+      try {
+        return new Big(val).gt(0);
+      } catch {
+        return false;
+      }
+    }, 'Invalid amount (must be a positive number)'),
 
   // BTC amount validation
   btcAmount: z
     .union([z.string().min(1), z.number().positive()])
-    .transform((val) => String(val))
-    .refine((val) => !isNaN(parseFloat(val)), 'Invalid BTC amount'),
+    .transform((val) => String(val).trim())
+    .refine((val) => {
+      try {
+        return new Big(val).gt(0);
+      } catch {
+        return false;
+      }
+    }, 'Invalid BTC amount (must be a positive number)'),
 
   // Positive integer
   positiveInt: z.number().int().positive(),
@@ -184,7 +198,9 @@ export const responseSchemas = {
 };
 
 // Helper function to create paginated query schema
-export function createPaginatedQuerySchema(additionalFields?: z.ZodRawShape) {
+export function createPaginatedQuerySchema(
+  additionalFields: z.ZodRawShape = {},
+) {
   const baseSchema = {
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(100).default(20),
