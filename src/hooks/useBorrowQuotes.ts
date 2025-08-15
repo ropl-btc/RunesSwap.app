@@ -1,4 +1,5 @@
 import Big from 'big.js';
+import { convertToRawAmount } from '@/utils/amountFormatting';
 import { useEffect, useState } from 'react';
 import {
   LiquidiumBorrowQuoteOffer,
@@ -165,9 +166,14 @@ export function useBorrowQuotes({
   const handleGetQuotes = async () => {
     if (!collateralAsset || !collateralAmount || !address) return;
 
-    // Validate collateral amount before proceeding
-    const amountFloat = parseFloat(collateralAmount);
-    if (isNaN(amountFloat) || amountFloat <= 0) {
+    // Validate collateral amount using Big for precision
+    try {
+      const amountBig = new Big(collateralAmount);
+      if (amountBig.lte(0)) {
+        setQuotesError('Please enter a valid collateral amount.');
+        return;
+      }
+    } catch {
       setQuotesError('Please enter a valid collateral amount.');
       return;
     }
@@ -176,45 +182,8 @@ export function useBorrowQuotes({
     resetQuotes();
     try {
       const decimals = collateralRuneInfo?.decimals ?? 0;
-      let rawAmount: string;
-      try {
-        // Fix floating point precision issues by using string manipulation
-        // for high precision decimal conversions
-        if (decimals > 8) {
-          // For high decimals, use string-based conversion to avoid precision loss
-          // Trim whitespace to ensure consistency with parseFloat validation
-          const amountStr = collateralAmount.trim();
-          const [integerPart = '0', decimalPart = ''] = amountStr.split('.');
-
-          // Truncate decimal part to supported precision, then pad to required length
-          const truncatedDecimal = decimalPart.slice(0, decimals);
-          const paddedDecimal = truncatedDecimal.padEnd(decimals, '0');
-
-          // Combine integer and decimal parts
-          const fullAmountStr = integerPart + paddedDecimal;
-
-          // Remove leading zeros and convert to BigInt
-          rawAmount = BigInt(
-            fullAmountStr.replace(/^0+/, '') || '0',
-          ).toString();
-        } else {
-          // For lower decimals, use the original method but with better precision handling
-          const amountInteger = Math.floor(
-            amountFloat * 10 ** Math.min(8, decimals),
-          );
-          const multiplier = BigInt(10) ** BigInt(Math.max(0, decimals - 8));
-          const amountBigInt = BigInt(amountInteger) * multiplier;
-          rawAmount = amountBigInt.toString();
-        }
-      } catch {
-        // Use Big.js for precise calculation
-        const amountBig = new Big(amountFloat);
-        const multiplier = new Big(10).pow(decimals);
-        rawAmount = amountBig
-          .times(multiplier)
-          .round(0, Big.roundDown)
-          .toFixed();
-      }
+      // Use centralized helper to convert display amount to raw integer string
+      const rawAmount = convertToRawAmount(collateralAmount, decimals);
 
       let runeIdForApi = collateralAsset.id;
       if (collateralRuneInfo?.id?.includes(':')) {

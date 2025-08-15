@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { formatSatsToBtc } from '@/utils/formatters';
 import React, { useEffect, useState } from 'react';
 import {
   CartesianGrid,
@@ -169,8 +170,12 @@ const PriceChart: React.FC<PriceChartProps> = ({
                   return `${time} · ${day}`;
                 }}
                 formatter={(value: number) => {
-                  // value is sats
-                  const usd = btcPriceUsd ? (value / 1e8) * btcPriceUsd : null;
+                  // value is sats; use shared formatter for BTC for DRY/precision
+                  const btcStr = formatSatsToBtc(value);
+                  const usd =
+                    btcPriceUsd !== undefined
+                      ? Number((parseFloat(btcStr) * btcPriceUsd).toFixed(6))
+                      : null;
                   return [
                     `${formatNumberWithLocale(value)} sats`,
                     usd !== null

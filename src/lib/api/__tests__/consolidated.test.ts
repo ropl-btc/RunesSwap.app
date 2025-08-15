@@ -55,7 +55,7 @@ describe('API Client Functions', () => {
     it('handles non-array responses and errors', async () => {
       const mockResponse = { notAnArray: true };
       (apiGet as jest.Mock).mockResolvedValue(mockResponse);
-      expect(await fetchRunesFromApi('test')).toEqual(mockResponse);
+      expect(await fetchRunesFromApi('test')).toEqual([]);
 
       (apiGet as jest.Mock).mockRejectedValue(new Error('API failed'));
       await expect(fetchRunesFromApi('test')).rejects.toThrow('API failed');

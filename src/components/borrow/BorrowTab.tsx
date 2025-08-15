@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+//
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
@@ -14,9 +15,8 @@ import { useRuneMarketData } from '@/hooks/useRuneMarketData';
 import { QUERY_KEYS, fetchRuneBalancesFromApi } from '@/lib/api';
 import { Asset } from '@/types/common';
 import { type RuneBalance as OrdiscanRuneBalance } from '@/types/ordiscan';
-import { formatAmountWithPrecision } from '@/utils/amountFormatting';
+import { percentageOfRawAmount } from '@/utils/amountFormatting';
 import { formatUsd } from '@/utils/formatters';
-import { calculateActualBalance } from '@/utils/runeFormatting';
 import BorrowQuotesList from '../borrow/BorrowQuotesList';
 import BorrowSuccessMessage from '../borrow/BorrowSuccessMessage';
 import CollateralInput from '../borrow/CollateralInput';
@@ -212,16 +212,11 @@ export function BorrowTab({
           if (!connected || !collateralAsset) return;
           const rawBalance = collateralRawBalance;
           if (!rawBalance) return;
-          const balanceNum = parseFloat(rawBalance);
-          if (isNaN(balanceNum)) return;
           const decimals = collateralRuneInfo?.decimals ?? 0;
-          const availableBalance = calculateActualBalance(rawBalance, decimals);
-          const newAmount =
-            percentage === 1 ? availableBalance : availableBalance * percentage;
-          // Format with appropriate decimal places using shared utility
-          const formattedAmount = formatAmountWithPrecision(
-            newAmount,
+          const formattedAmount = percentageOfRawAmount(
+            rawBalance,
             decimals,
+            percentage,
           );
           setCollateralAmount(formattedAmount);
           resetQuotes();

@@ -60,7 +60,7 @@ export function useSwapRunes({
       const runesData =
         cachedPopularRunes && cachedPopularRunes.length > 0
           ? cachedPopularRunes
-          : await fetchPopularFromApi().catch(() => []);
+          : await fetchPopularFromApi();
 
       // Convert to Asset format - LIQUIDIUM•TOKEN is already first in our list
       let mappedRunes: Asset[] = mapPopularToAsset(runesData);

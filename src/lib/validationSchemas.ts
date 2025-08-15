@@ -4,14 +4,23 @@
  */
 
 import { z } from 'zod';
+import { validate as validateBitcoinAddress } from 'bitcoin-address-validation';
 
 // Common field validators
 export const validators = {
-  // Bitcoin address validation (basic format check - relaxed for tests)
+  // Bitcoin address validation with proper format and checksum verification
   btcAddress: z
     .string()
     .min(1, 'Bitcoin address is required')
-    .max(100, 'Bitcoin address too long'),
+    .max(100, 'Bitcoin address too long')
+    .refine((address) => {
+      try {
+        // Validate address format; library infers network from the address
+        return validateBitcoinAddress(address);
+      } catch {
+        return false;
+      }
+    }, 'Invalid Bitcoin address format'),
 
   // Rune name validation (allows bullet characters as they're normalized in API)
   runeName: z

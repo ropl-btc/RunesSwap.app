@@ -14,7 +14,13 @@ if [[ "$COMMAND" == *"git commit"* ]]; then
     echo "🔍 Running pre-commit checks..."
     
     # Change to project directory
-    cd "$CLAUDE_PROJECT_DIR" || exit 1
+    if [[ -n "${CLAUDE_PROJECT_DIR:-}" ]]; then
+        cd "$CLAUDE_PROJECT_DIR" || { echo "❌ Could not cd to CLAUDE_PROJECT_DIR"; exit 1; }
+    else
+        REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+        echo "ℹ️ CLAUDE_PROJECT_DIR not set; using repo root: $REPO_ROOT"
+        cd "$REPO_ROOT" || { echo "❌ Could not cd to repo root"; exit 1; }
+    fi
     
     # Run linting
     echo "📝 Running linter..."
@@ -37,8 +43,8 @@ if [[ "$COMMAND" == *"git commit"* ]]; then
         exit 1
     fi
     
-    # Run AI check (if configured in package.json)
-    if grep -q "ai-check" package.json; then
+    # Run AI check (if configured in package.json scripts)
+    if node -e 'const p=require("./package.json");process.exit(p.scripts&&p.scripts["ai-check"]?0:1)'; then
         echo "🤖 Running AI checks..."
         if ! pnpm ai-check; then
             echo "❌ AI checks failed. Please review the issues before committing."

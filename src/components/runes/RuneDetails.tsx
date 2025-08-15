@@ -169,7 +169,8 @@ const RuneDetails: React.FC<RuneDetailsProps> = ({
         {detailedRuneInfo.current_mint_count !== undefined && (
           <p>
             <strong>Current Mint Count:</strong>{' '}
-            {detailedRuneInfo.current_mint_count
+            {detailedRuneInfo.current_mint_count !== null &&
+            detailedRuneInfo.current_mint_count !== undefined
               ? formatNumberWithLocale(detailedRuneInfo.current_mint_count)
               : 'N/A'}
           </p>

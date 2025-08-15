@@ -15,15 +15,29 @@ export function formatAmountWithPrecision(
   const newAmountBig = new Big(amount);
   const multiplier = new Big(10).pow(decimals);
 
-  const formattedAmount = parseFloat(
-    newAmountBig
-      .times(multiplier)
-      .round(0, Big.roundDown)
-      .div(multiplier)
-      .toFixed(),
-  );
+  // Return Big.js string directly to prevent precision loss and exponential notation
+  return newAmountBig
+    .times(multiplier)
+    .round(0, Big.roundDown)
+    .div(multiplier)
+    .toFixed();
+}
 
-  return formattedAmount.toString();
+/**
+ * Converts a raw token amount (integer string) to a human display string
+ * using Big.js for precise division.
+ *
+ * @param rawAmount - Raw on-chain amount as string or number
+ * @param decimals - Token decimals
+ * @returns Display amount as string (no exponential notation)
+ */
+export function rawToDisplayAmount(
+  rawAmount: number | string,
+  decimals: number,
+): string {
+  const raw = new Big(rawAmount);
+  const divisor = new Big(10).pow(decimals);
+  return raw.div(divisor).toFixed();
 }
 
 /**
@@ -41,4 +55,24 @@ export function convertToRawAmount(
   const multiplier = new Big(10).pow(decimals);
 
   return amountBig.times(multiplier).round(0, Big.roundDown).toFixed();
+}
+
+/**
+ * Calculates a percentage of a raw balance and returns a display string
+ * with correct decimal precision.
+ *
+ * @param rawAmount - Raw on-chain balance as string or number
+ * @param decimals - Token decimals
+ * @param percentage - Percentage as decimal (e.g., 0.25 for 25%)
+ * @returns Display amount string respecting token decimals
+ */
+export function percentageOfRawAmount(
+  rawAmount: number | string,
+  decimals: number,
+  percentage: number,
+): string {
+  const available = new Big(rawAmount).div(new Big(10).pow(decimals));
+  const desired = percentage === 1 ? available : available.times(percentage);
+  // Ensure we do not exceed decimal precision
+  return formatAmountWithPrecision(desired.toString(), decimals);
 }

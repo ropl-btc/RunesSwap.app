@@ -43,37 +43,42 @@ export async function fetchWithRetry<T = unknown>(
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-      const response = await fetch(url, {
-        ...fetchOptions,
-        signal: controller.signal,
-      });
+      try {
+        const response = await fetch(url, {
+          ...fetchOptions,
+          signal: controller.signal,
+        });
 
-      clearTimeout(timeoutId);
+        if (!response.ok) {
+          throw new FetchError(
+            `HTTP ${response.status}: ${response.statusText}`,
+            response.status,
+            response.statusText,
+            url,
+          );
+        }
 
-      if (!response.ok) {
-        throw new FetchError(
-          `HTTP ${response.status}: ${response.statusText}`,
-          response.status,
-          response.statusText,
-          url,
-        );
+        const data = parseJson ? await response.json() : await response.text();
+
+        return {
+          data: data as T,
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers,
+        };
+      } finally {
+        clearTimeout(timeoutId);
       }
-
-      const data = parseJson ? await response.json() : await response.text();
-
-      return {
-        data: data as T,
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-      };
     } catch (error) {
       lastError = error as Error;
 
       // Don't retry on certain errors
       if (
         error instanceof FetchError &&
-        (error.status === 400 || error.status === 401 || error.status === 403)
+        (error.status === 400 ||
+          error.status === 401 ||
+          error.status === 403 ||
+          error.status === 404)
       ) {
         throw error;
       }

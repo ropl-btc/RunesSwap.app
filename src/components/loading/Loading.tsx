@@ -53,7 +53,8 @@ export function Loading({
 
   // Determine if we should show dots based on variant and showDots prop
   const shouldShowDots =
-    variant === 'dots' || (variant === 'spinner' && showDots);
+    variant === 'dots' ||
+    ((variant === 'spinner' || variant === 'balance') && !!showDots);
 
   React.useEffect(() => {
     if (!shouldShowDots) return;
@@ -79,6 +80,7 @@ export function Loading({
               }}
             >
               <div
+                role="progressbar"
                 style={{
                   width: '100%',
                   height: 20,
@@ -112,7 +114,12 @@ export function Loading({
       );
 
     case 'balance':
-      return <span className={className || 'loadingText'}>Loading{dots}</span>;
+      return (
+        <span className={className || 'loadingText'}>
+          {message || 'Loading'}
+          {shouldShowDots ? dots : ''}
+        </span>
+      );
 
     case 'dots':
     case 'spinner':

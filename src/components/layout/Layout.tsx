@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import React, { useRef, useState } from 'react';
 import { useBackground } from '@/context/BackgroundContext';
 import useBtcPrice from '@/hooks/useBtcPrice';
@@ -14,7 +14,6 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
-  const router = useRouter();
   const { backgroundImage, setBackgroundImage, clearBackgroundImage } =
     useBackground();
   const { btcPriceUsd, isBtcPriceLoading, btcPriceError } = useBtcPrice();
@@ -98,26 +97,19 @@ export function Layout({ children }: LayoutProps) {
       <div className={styles.window}>
         <div className={styles.titleBar}>
           <span className={styles.titleBarRow}>
-            <Image
-              src="/icons/runesswap_logo.png"
-              alt="RunesSwap.app Logo"
-              width={18}
-              height={18}
-              style={{
-                imageRendering: 'pixelated',
-                cursor: 'pointer',
-              }}
-              priority
-              onClick={() => router.push('/?tab=swap')}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  router.push('/?tab=swap');
-                }
-              }}
-            />
+            <Link href="/?tab=swap" aria-label="Go to Swap tab">
+              <Image
+                src="/icons/runesswap_logo.png"
+                alt="RunesSwap.app Logo"
+                width={18}
+                height={18}
+                style={{
+                  imageRendering: 'pixelated',
+                  cursor: 'pointer',
+                }}
+                priority
+              />
+            </Link>
             <TitleText />
           </span>
         </div>

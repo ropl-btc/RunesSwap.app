@@ -81,7 +81,7 @@ export function calculateActualBalance(
   try {
     const rawAmountBig = new Big(rawAmount.toString());
     const divisor = new Big(10).pow(decimals);
-    return parseFloat(rawAmountBig.div(divisor).toFixed());
+    return rawAmountBig.div(divisor).toNumber();
   } catch (error) {
     console.warn('Error calculating actual balance:', error);
     return 0;
@@ -105,7 +105,7 @@ export function calculateBtcValue(
     const divisor = new Big(10).pow(decimals);
     const priceInBtc = new Big(priceInSats).div(1e8);
 
-    return parseFloat(balanceBig.div(divisor).times(priceInBtc).toFixed());
+    return balanceBig.div(divisor).times(priceInBtc).toNumber();
   } catch (error) {
     console.warn('Error calculating BTC value:', error);
     return 0;
@@ -128,7 +128,7 @@ export function calculateUsdValue(
     const balanceBig = new Big(rawAmount.toString());
     const divisor = new Big(10).pow(decimals);
 
-    return parseFloat(balanceBig.div(divisor).times(priceInUsd).toFixed());
+    return balanceBig.div(divisor).times(priceInUsd).toNumber();
   } catch (error) {
     console.warn('Error calculating USD value:', error);
     return 0;

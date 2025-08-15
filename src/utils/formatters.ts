@@ -1,4 +1,5 @@
 import { safeArrayAccess, safeArrayFirst } from './typeGuards';
+import Big from 'big.js';
 
 // Function to truncate TXIDs for display
 export const truncateTxid = (txid: string, length: number = 8): string => {
@@ -55,8 +56,10 @@ export function formatNumber(value: number): string {
  * @param sats - Amount in satoshis
  * @returns Formatted BTC amount as string with 8 decimal places
  */
-export function formatSatsToBtc(sats: number): string {
-  return (sats / 1e8).toFixed(8);
+export function formatSatsToBtc(sats: number | string | bigint): string {
+  const s = typeof sats === 'bigint' ? sats.toString() : String(sats);
+  // Round down to integer satoshis, then convert to BTC and format to 8 dp.
+  return new Big(s).round(0, Big.roundDown).div(1e8).toFixed(8);
 }
 
 /**

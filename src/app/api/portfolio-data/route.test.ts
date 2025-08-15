@@ -26,7 +26,9 @@ const mockSupabase = jest.mocked(supabase);
 const mockGetRuneData = jest.mocked(getRuneData);
 const mockGetRuneMarketData = jest.mocked(getRuneMarketData);
 
-const createRequest = (address = 'bc1p123...test') =>
+const createRequest = (
+  address = 'bc1p70u2wvle72p5g89thzprx9zdp3fuzvtwfm5j2pyefl0cuwy83gkqvdmvdn',
+) =>
   createTestRequest(
     `http://localhost:3000/api/portfolio-data${address ? `?address=${address}` : ''}`,
   );

@@ -91,7 +91,7 @@ const LiquidiumLoansSection: React.FC<LiquidiumLoansSectionProps> = ({
                 {formatSatsToBtc(
                   loan.loan_details.total_repayment_sats ??
                     loan.loan_details.principal_amount_sats *
-                      (1 + loan.loan_details.discount.discount_rate),
+                      (1 + (loan.loan_details.discount?.discount_rate ?? 0)),
                 )}
               </div>
               <div className={styles.btcLabel}>BTC</div>

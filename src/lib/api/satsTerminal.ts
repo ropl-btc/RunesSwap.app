@@ -11,7 +11,10 @@ export const fetchRunesFromApi = async (query: string): Promise<Rune[]> => {
   // Guard: avoid spamming search for very short queries
   if (trimmed.length < 2) return [];
 
-  return apiGet<Rune[]>('/api/sats-terminal/search', { query: trimmed });
+  const res = await apiGet<unknown>('/api/sats-terminal/search', {
+    query: trimmed,
+  });
+  return Array.isArray(res) ? (res as Rune[]) : [];
 };
 
 export const fetchQuoteFromApi = async (

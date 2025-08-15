@@ -231,7 +231,12 @@ describe('liquidium API', () => {
       ['network error', () => new Error('Network error')],
       ['API error', () => mockResponse(mockErrorResponse('API Error'))],
     ])('handles %s', async (_, errorFactory) => {
-      (post as jest.Mock).mockRejectedValue(errorFactory());
+      const v = errorFactory();
+      if (v instanceof Error) {
+        (post as jest.Mock).mockRejectedValue(v);
+      } else {
+        (post as jest.Mock).mockResolvedValue(v);
+      }
       await expect(prepareLiquidiumBorrow(params)).rejects.toThrow(
         'Failed to prepare borrow',
       );
@@ -260,7 +265,12 @@ describe('liquidium API', () => {
       ['network error', () => new Error('Network error')],
       ['API error', () => mockResponse(mockErrorResponse('API Error'))],
     ])('handles %s', async (_, errorFactory) => {
-      (post as jest.Mock).mockRejectedValue(errorFactory());
+      const v = errorFactory();
+      if (v instanceof Error) {
+        (post as jest.Mock).mockRejectedValue(v);
+      } else {
+        (post as jest.Mock).mockResolvedValue(v);
+      }
       await expect(submitLiquidiumBorrow(params)).rejects.toThrow(
         'Failed to submit borrow',
       );

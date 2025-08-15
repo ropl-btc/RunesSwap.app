@@ -367,7 +367,11 @@ export default function useSwapExecution({
             'API Error in retryTransaction',
             {
               operation: 'retryTransaction',
-              error: 'Transaction failed even with higher fee rate',
+              error:
+                retryError instanceof Error
+                  ? retryError.message
+                  : String(retryError),
+              stack: retryError instanceof Error ? retryError.stack : undefined,
             },
             'API',
           );

@@ -44,7 +44,7 @@ export const repayLiquidiumLoan = async (
             data.data.psbt,
           repaymentAmountSats:
             ((data.data as Record<string, unknown>)
-              .repayment_amount_sats as number) ||
+              .repayment_amount_sats as number) ??
             data.data.repaymentAmountSats,
           loanId:
             ((data.data as Record<string, unknown>).offer_id as string) ||
@@ -193,8 +193,10 @@ export const fetchBorrowRangesFromApi = async (
   runeId: string,
   address: string,
 ): Promise<BorrowRangeResponse> => {
+  const url = `/api/liquidium/borrow/ranges?runeId=${encodeURIComponent(
+    runeId,
+  )}&address=${encodeURIComponent(address)}`;
   try {
-    const url = `/api/liquidium/borrow/ranges?runeId=${encodeURIComponent(runeId)}&address=${encodeURIComponent(address)}`;
     const { data } = await get<BorrowRangeResponse>(url);
 
     if (!data.success) {
@@ -203,7 +205,7 @@ export const fetchBorrowRangesFromApi = async (
 
     return data as BorrowRangeResponse;
   } catch (error) {
-    logFetchError(`/api/liquidium/borrow/ranges?runeId=${runeId}`, error);
+    logFetchError(url, error);
     throw error;
   }
 };

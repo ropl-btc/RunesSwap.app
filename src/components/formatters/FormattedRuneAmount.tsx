@@ -43,7 +43,13 @@ export function FormattedRuneAmount({
     return <span>{rawAmount} (&apos;Error fetching decimals&apos;)</span>;
   }
 
-  if (!runeInfo || typeof runeInfo.decimals !== 'number') {
+  if (
+    !runeInfo ||
+    typeof runeInfo.decimals !== 'number' ||
+    !Number.isFinite(runeInfo.decimals) ||
+    !Number.isInteger(runeInfo.decimals) ||
+    runeInfo.decimals < 0
+  ) {
     // Rune info loaded but no decimals found (or invalid format), show raw amount
     return <span>{rawAmount} (Decimals N/A)</span>;
   }
@@ -53,5 +59,25 @@ export function FormattedRuneAmount({
   // Use the unified formatting utility
   const formattedAmount = formatRuneAmount(rawAmount, decimals);
 
-  return <span>{formattedAmount}</span>;
+  // Convert to number for toLocaleString formatting if safe
+  const formattedNumber = parseFloat(formattedAmount);
+
+  // Check if conversion to number would lose precision
+  if (
+    isNaN(formattedNumber) ||
+    !Number.isSafeInteger(formattedNumber * Math.pow(10, decimals)) ||
+    formattedNumber > Number.MAX_SAFE_INTEGER
+  ) {
+    // For very large numbers, use string formatting to preserve precision
+    return <span>{formattedAmount}</span>;
+  }
+
+  // Format the number with appropriate decimal places
+  return (
+    <span>
+      {formattedNumber.toLocaleString(undefined, {
+        maximumFractionDigits: decimals,
+      })}
+    </span>
+  );
 }

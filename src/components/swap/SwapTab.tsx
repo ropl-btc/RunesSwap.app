@@ -14,7 +14,10 @@ import useUsdValues from '@/hooks/useUsdValues';
 import { fetchBtcBalanceFromApi, fetchRuneBalancesFromApi } from '@/lib/api';
 import { Asset, BTC_ASSET } from '@/types/common';
 import { type RuneBalance as OrdiscanRuneBalance } from '@/types/ordiscan';
-import { formatAmountWithPrecision } from '@/utils/amountFormatting';
+import {
+  formatAmountWithPrecision,
+  percentageOfRawAmount,
+} from '@/utils/amountFormatting';
 import { formatNumberWithLocale } from '@/utils/formatters';
 import { calculateActualBalance } from '@/utils/runeFormatting';
 import { Loading } from '@/components/loading/Loading';
@@ -291,23 +294,23 @@ export function SwapTab({
     } else {
       const rawBalance = inputRuneRawBalance;
       if (rawBalance === null) return;
-
       try {
-        const balanceNum = parseFloat(rawBalance);
-        if (isNaN(balanceNum)) return;
-
         decimals = swapRuneInfo?.decimals ?? 0;
-        availableBalance = calculateActualBalance(rawBalance, decimals);
+        const formattedAmount = percentageOfRawAmount(
+          rawBalance,
+          decimals,
+          percentage,
+        );
+        setInputAmount(formattedAmount);
+        return;
       } catch {
         return;
       }
     }
 
-    // Calculate percentage of available balance
+    // BTC path: Calculate percentage of available BTC balance
     const newAmount =
       percentage === 1 ? availableBalance : availableBalance * percentage;
-
-    // Format with appropriate decimal places using shared utility
     const formattedAmount = formatAmountWithPrecision(newAmount, decimals);
     setInputAmount(formattedAmount);
   };

@@ -1,4 +1,5 @@
-import Big from 'big.js';
+//
+import { convertToRawAmount } from '@/utils/amountFormatting';
 import { useState } from 'react';
 import {
   LiquidiumPrepareBorrowResponse,
@@ -65,20 +66,11 @@ export function useBorrowProcess({
       const decimals = collateralRuneInfo?.decimals ?? 0;
       let rawTokenAmount: string;
       try {
-        const amountFloat = parseFloat(collateralAmount);
-        const scale8 = BigInt(10) ** BigInt(Math.min(8, decimals));
-        const scaleRest = BigInt(10) ** BigInt(Math.max(0, decimals - 8));
-        const amountInteger = BigInt(Math.floor(amountFloat * Number(scale8)));
-        const amountBigInt = amountInteger * scaleRest;
-        rawTokenAmount = amountBigInt.toString();
+        rawTokenAmount = convertToRawAmount(collateralAmount, decimals);
       } catch {
-        // Use Big.js for precise calculation
-        const amountBig = new Big(collateralAmount);
-        const multiplier = new Big(10).pow(decimals);
-        rawTokenAmount = amountBig
-          .times(multiplier)
-          .round(0, Big.roundDown)
-          .toFixed();
+        setLoanProcessError('Invalid collateral amount.');
+        setIsPreparing(false);
+        return;
       }
 
       const prepareResult: LiquidiumPrepareBorrowResponse =

@@ -119,7 +119,7 @@ The pre‑commit hook runs `lint-staged`, the test suite, and a production build
 ### Typical Data Flow
 
 1. A UI component fetches data using React Query.
-2. The query calls a helper method from `src/lib/api/` modules (re-exported by `src/lib/apiClient.ts`).
+2. The query calls a helper method from `src/lib/api/` modules (re-exported by `src/lib/api/index.ts`).
 3. The client sends a request to a Next.js API route under `src/app/api`.
 4. The API route fetches data from Ordiscan, SatsTerminal, or Liquidium, optionally caching results in Supabase, and returns a standardized JSON response.
 5. The UI updates based on the React Query result.
@@ -564,8 +564,6 @@ Bitcoin fee rates are fetched from mempool.space API with the following response
   "minimumFee": 1
 }
 ```
-
-The application uses `fastestFee` for optimal transaction speed across all swap operations.
 
 # General Instructions
 * IMPORTANT: Always use context7 to read relevant up-to-date docs when dealing with any external dependency/package/library!
