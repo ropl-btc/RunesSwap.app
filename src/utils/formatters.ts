@@ -1,36 +1,72 @@
 import Big from 'big.js';
-import { NumberParser } from '@internationalized/number';
+// Removed dependency on @internationalized/number by normalizing via sanitizeForBig
 
 /**
- * Sanitizes user input for Big.js constructor while preserving precision
- * Uses @internationalized/number for international format parsing, then converts to clean string
+ * Sanitizes user input for Big.js constructor while preserving precision.
+ * Pure string normalization: handles grouping, decimal separators, and exponent.
  */
 export function sanitizeForBig(input: string | null | undefined): string {
-  if (!input?.trim()) return '0';
+  if (input == null) return '0';
+  let s = String(input).trim();
+  if (s === '') return '0';
 
-  const trimmed = input.trim();
-
-  // Check if this looks like European format (dot before comma)
-  // Pattern: digits.digits,digits (like "1.234,56")
-  const europeanPattern = /^\d{1,3}(\.\d{3})*,\d+$/;
-  const isEuropeanFormat = europeanPattern.test(trimmed);
-
-  let parsed: number | null = null;
-
-  if (isEuropeanFormat) {
-    // Use German parser for European format
-    const deParser = new NumberParser('de-DE');
-    parsed = deParser.parse(trimmed);
-  } else {
-    // Use US parser for standard formats
-    const usParser = new NumberParser('en-US');
-    parsed = usParser.parse(trimmed);
+  // Preserve a single leading minus; drop '+'
+  let sign = '';
+  if (s.startsWith('-')) {
+    sign = '-';
+    s = s.slice(1);
+  } else if (s.startsWith('+')) {
+    s = s.slice(1);
   }
 
-  if (parsed === null || !Number.isFinite(parsed)) return '0';
+  // Remove common group separators: spaces (incl. NBSP, thin), underscores, apostrophes/quotes
+  s = s.replace(/[\s\u00A0\u202F_]/g, '');
+  s = s.replace(/[’'`]/g, '');
 
-  // Convert parsed number back to string for Big.js - this maintains precision
-  return parsed.toString();
+  // Normalize decimal separator: if both '.' and ',' occur, treat the last as decimal
+  const hasDot = s.includes('.');
+  const hasComma = s.includes(',');
+  if (hasDot && hasComma) {
+    const lastDot = s.lastIndexOf('.');
+    const lastComma = s.lastIndexOf(',');
+    const decimalSep = lastDot > lastComma ? '.' : ',';
+    const thousandSep = decimalSep === '.' ? ',' : '.';
+    s = s.split(thousandSep).join('');
+    if (decimalSep === ',') s = s.replace(/,/g, '.');
+  } else if (hasComma && !hasDot) {
+    s = s.replace(/,/g, '.');
+  }
+
+  // Allow digits, dot, and exponent markers for now
+  // Strip any remaining invalid characters
+  s = s.replace(/[^0-9.eE+-]/g, '');
+
+  // Collapse multiple dots in mantissa (keep first)
+  // Split around exponent if present
+  let mantissa = s;
+  let exponent = '';
+  const expMatch = s.match(/[eE][+-]?\d+$/);
+  if (expMatch) {
+    exponent = expMatch[0];
+    mantissa = s.slice(0, s.length - exponent.length);
+  }
+  const firstDot = mantissa.indexOf('.');
+  if (firstDot !== -1) {
+    const intPart = mantissa.slice(0, firstDot).replace(/\./g, '');
+    const fracPart = mantissa.slice(firstDot + 1).replace(/\./g, '');
+    mantissa = intPart + (fracPart ? '.' + fracPart : '');
+  }
+  if (mantissa === '' || mantissa === '.') return '0';
+
+  const candidate = sign + mantissa + exponent;
+
+  // Validate with Big and return canonical fixed form to avoid exponential notation
+  try {
+    const b = new Big(candidate);
+    return b.toFixed();
+  } catch {
+    return '0';
+  }
 }
 
 /**
@@ -53,29 +89,26 @@ export function formatNumberString(
   numStr?: string | null,
   defaultDisplay = 'N/A',
 ): string {
-  if (!numStr) return defaultDisplay;
-
-  try {
-    // First try US format
-    const usParser = new NumberParser('en-US');
-    let parsed = usParser.parse(numStr);
-
-    // If US format fails, try European format (comma as decimal separator)
-    if (parsed === null && numStr.includes(',')) {
-      const deParser = new NumberParser('de-DE');
-      parsed = deParser.parse(numStr);
-    }
-
-    if (parsed === null || !Number.isFinite(parsed)) return defaultDisplay;
-
-    const numString = parsed.toString();
-    if (!/^-?\d+(\.\d+)?$/.test(numString)) return defaultDisplay;
-    const [intPart, decPart] = numString.split('.') as [string, string?];
-    const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    return decPart ? `${withCommas}.${decPart}` : withCommas;
-  } catch {
-    return defaultDisplay;
+  if (numStr == null) return defaultDisplay;
+  const cleaned = sanitizeForBig(numStr);
+  // If sanitize collapses to '0', ensure original looked like zero; else invalid
+  if (cleaned === '0') {
+    const original = String(numStr)
+      .trim()
+      .replace(/[\s\u00A0\u202F_’'`]/g, '')
+      .replace(/,/g, '.');
+    const zeroish = /^[-+]?0*(?:\.?0*)?$/.test(original);
+    if (!zeroish) return defaultDisplay;
   }
+  if (!/^[-+]?\d+(?:\.\d+)?$/.test(cleaned)) return defaultDisplay;
+  const sign = cleaned.startsWith('-') ? '-' : '';
+  const [rawInt, rawDec] = cleaned.replace(/^[-+]/, '').split('.') as [
+    string,
+    string?,
+  ];
+  const intWithCommas = rawInt.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const formatted = rawDec ? `${intWithCommas}.${rawDec}` : intWithCommas;
+  return sign + formatted;
 }
 
 export function formatNumber(value: number): string {

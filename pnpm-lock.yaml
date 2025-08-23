@@ -14,9 +14,6 @@ importers:
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.1.0)
-      '@internationalized/number':
-        specifier: ^3.6.4
-        version: 3.6.4
       '@omnisat/lasereyes':
         specifier: ^0.0.134
         version: 0.0.134(@popperjs/core@2.11.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3)(vite@6.2.6(@types/node@20.17.30)(jiti@2.4.2)(yaml@2.7.1))
@@ -961,9 +958,6 @@ packages:
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [x64]
     os: [win32]
-
-  '@internationalized/number@3.6.4':
-    resolution: {integrity: sha512-P+/h+RDaiX8EGt3shB9AYM1+QgkvHmJ5rKi4/59k4sg9g58k9rqsRW0WxRO7jCoHyvVbFRRFKmVTdFYdehrxHg==}
 
   '@istanbuljs/load-nyc-config@1.1.0':
     resolution: {integrity: sha512-VjeHSlIzpv/NyD3N0YuHfXOPDIixcA1q2ZV98wsMqcYlPmv2n3Yb2lYP9XMElnaFVXg5A7YLTeLu6V84uQDjmQ==}
@@ -5675,10 +5669,6 @@ snapshots:
 
   '@img/sharp-win32-x64@0.33.5':
     optional: true
-
-  '@internationalized/number@3.6.4':
-    dependencies:
-      '@swc/helpers': 0.5.17
 
   '@istanbuljs/load-nyc-config@1.1.0':
     dependencies:

@@ -16,7 +16,8 @@ import { QUERY_KEYS, fetchRuneBalancesFromApi } from '@/lib/api';
 import { Asset } from '@/types/common';
 import { type RuneBalance as OrdiscanRuneBalance } from '@/types/ordiscan';
 import { percentageOfRawAmount } from '@/utils/runeFormatting';
-import { formatUsd, parseAmount } from '@/utils/formatters';
+import { formatUsd, parseAmount, sanitizeForBig } from '@/utils/formatters';
+import Big from 'big.js';
 import BorrowQuotesList from '@/components/borrow/BorrowQuotesList';
 import BorrowSuccessMessage from '@/components/borrow/BorrowSuccessMessage';
 import CollateralInput from '@/components/borrow/CollateralInput';
@@ -182,9 +183,11 @@ export function BorrowTab({
     collateralAmount &&
     parseAmount(collateralAmount) > 0 &&
     collateralRuneMarketInfo?.price_in_usd
-      ? formatUsd(
-          parseAmount(collateralAmount) * collateralRuneMarketInfo.price_in_usd,
-        )
+      ? (() => {
+          const amt = new Big(sanitizeForBig(collateralAmount));
+          const usd = amt.times(collateralRuneMarketInfo.price_in_usd);
+          return formatUsd(Number(usd.toFixed(2)));
+        })()
       : undefined;
 
   return (
