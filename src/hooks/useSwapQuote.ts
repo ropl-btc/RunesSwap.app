@@ -139,38 +139,45 @@ export function useSwapQuote({
         let calculatedOutputAmount = '';
         let calculatedRate: string | null = null;
         if (quoteResponse) {
-          const inputVal = parseAmount(inputAmount);
-          let outputVal = 0;
-          let btcValue = 0;
-          let runeValue = 0;
+          const inputBig = new Big(sanitizeForBig(inputAmount));
+          let outputBig = new Big(0);
+          let btcValueBig = new Big(0);
+          let runeValueBig = new Big(0);
           try {
             if (assetIn?.isBTC) {
-              const parsedOutput = parseAmount(
-                quoteResponse.totalFormattedAmount || '0',
+              const parsedOutputBig = new Big(
+                sanitizeForBig(quoteResponse.totalFormattedAmount || '0'),
               );
-              if (!Number.isFinite(parsedOutput) || parsedOutput <= 0) {
+              if (parsedOutputBig.lte(0)) {
                 throw new Error('Invalid quote output amount');
               }
-              outputVal = parsedOutput;
-              btcValue = inputVal;
-              runeValue = outputVal;
-              calculatedOutputAmount = outputVal.toLocaleString(undefined, {});
+              outputBig = parsedOutputBig;
+              btcValueBig = inputBig;
+              runeValueBig = outputBig;
+              // display only
+              calculatedOutputAmount = Number(
+                outputBig.toString(),
+              ).toLocaleString(undefined, {});
             } else {
-              const parsedPrice = parseAmount(quoteResponse.totalPrice || '0');
-              if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+              const parsedPriceBig = new Big(
+                sanitizeForBig(quoteResponse.totalPrice || '0'),
+              );
+              if (parsedPriceBig.lte(0)) {
                 throw new Error('Invalid quote price');
               }
-              outputVal = parsedPrice;
-              runeValue = inputVal;
-              btcValue = outputVal;
-              calculatedOutputAmount = outputVal.toLocaleString(undefined, {
+              outputBig = parsedPriceBig;
+              runeValueBig = inputBig;
+              btcValueBig = outputBig;
+              calculatedOutputAmount = Number(
+                outputBig.toString(),
+              ).toLocaleString(undefined, {
                 maximumFractionDigits: 8,
               });
             }
-            if (btcValue > 0 && runeValue > 0 && btcPriceUsd) {
-              const btcUsdAmount = new Big(btcValue).times(btcPriceUsd);
-              const pricePerRune = btcUsdAmount.div(runeValue);
-              const pricePerRuneNum = Number(pricePerRune.toString());
+            if (btcPriceUsd && btcValueBig.gt(0) && runeValueBig.gt(0)) {
+              const btcUsdAmount = btcValueBig.times(btcPriceUsd);
+              const pricePerRune = btcUsdAmount.div(runeValueBig);
+              const pricePerRuneNum = Number(pricePerRune.toFixed(6));
               calculatedRate = `${pricePerRuneNum.toLocaleString(undefined, {
                 style: 'currency',
                 currency: 'USD',
