@@ -1,0 +1,54 @@
+name: Validate Changelog Version
+
+on:
+  pull_request:
+    paths:
+      - 'CHANGELOG.md'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure top section is a version (not Unreleased)
+        run: |
+          set -euo pipefail
+          TOP_LINE=$(grep -m1 -E '^## \[' CHANGELOG.md || true)
+          if echo "$TOP_LINE" | grep -qE '^## \[Unreleased\]'; then
+            echo "Top CHANGELOG section is [Unreleased]." >&2
+            echo "If you intend to release, convert it to a version like ## [0.2.2] - YYYY-MM-DD." >&2
+            exit 1
+          fi
+
+      - name: Extract latest version from CHANGELOG.md
+        id: extract
+        run: |
+          set -euo pipefail
+          VERSION_LINE=$(grep -m1 -E '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md || true)
+          if [ -z "${VERSION_LINE}" ]; then
+            echo "No version section found; failing validation." >&2
+            exit 1
+          fi
+          VERSION=$(echo "$VERSION_LINE" | sed -E 's/^## \[([0-9]+\.[0-9]+\.[0-9]+)\].*/\1/')
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify package.json version matches
+        run: |
+          set -euo pipefail
+          FILE_VERSION="${{ steps.extract.outputs.version }}"
+          PKG_VERSION=$(node -pe "require('./package.json').version")
+          echo "CHANGELOG version: $FILE_VERSION"
+          echo "package.json version: $PKG_VERSION"
+          if [ "$FILE_VERSION" != "$PKG_VERSION" ]; then
+            echo "Version mismatch: CHANGELOG ($FILE_VERSION) != package.json ($PKG_VERSION)" >&2
+            exit 1
+          fi
+

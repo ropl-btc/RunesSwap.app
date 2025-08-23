@@ -23,6 +23,13 @@ jobs:
         id: extract
         run: |
           set -euo pipefail
+          # Ensure the top section is a version, not Unreleased
+          TOP_LINE=$(grep -m1 -E '^## \[' CHANGELOG.md || true)
+          if echo "$TOP_LINE" | grep -qE '^## \[Unreleased\]'; then
+            echo "Top CHANGELOG section is [Unreleased]; skipping release." >&2
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           VERSION_LINE=$(grep -m1 -E '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md || true)
           if [ -z "${VERSION_LINE}" ]; then
             echo "No version section found; skipping."
@@ -44,6 +51,20 @@ jobs:
             exit 0
           fi
 
+      - name: Verify package.json version matches
+        if: steps.extract.outputs.skip != 'true'
+        id: verify
+        run: |
+          set -euo pipefail
+          FILE_VERSION="${{ steps.extract.outputs.version }}"
+          PKG_VERSION=$(node -pe "require('./package.json').version")
+          echo "CHANGELOG version: $FILE_VERSION"
+          echo "package.json version: $PKG_VERSION"
+          if [ "$FILE_VERSION" != "$PKG_VERSION" ]; then
+            echo "Version mismatch: CHANGELOG ($FILE_VERSION) != package.json ($PKG_VERSION)" >&2
+            exit 1
+          fi
+
       - name: Create or update GitHub Release
         if: steps.extract.outputs.skip != 'true'
         env:
@@ -59,4 +80,3 @@ jobs:
           else
             gh release create "$TAG" --title "$TITLE" --latest -F RELEASE_NOTES.md --target "${GITHUB_SHA}"
           fi
-
