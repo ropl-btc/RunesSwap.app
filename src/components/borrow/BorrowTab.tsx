@@ -15,7 +15,7 @@ import { useRuneMarketData } from '@/hooks/useRuneMarketData';
 import { QUERY_KEYS, fetchRuneBalancesFromApi } from '@/lib/api';
 import { Asset } from '@/types/common';
 import { type RuneBalance as OrdiscanRuneBalance } from '@/types/ordiscan';
-import { percentageOfRawAmount } from '@/utils/amountFormatting';
+import { percentageOfRawAmount } from '@/utils/runeFormatting';
 import { formatUsd } from '@/utils/formatters';
 import BorrowQuotesList from '@/components/borrow/BorrowQuotesList';
 import BorrowSuccessMessage from '@/components/borrow/BorrowSuccessMessage';
