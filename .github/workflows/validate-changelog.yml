@@ -10,7 +10,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
-
+  issues: write
 jobs:
   validate:
     runs-on: ubuntu-latest
