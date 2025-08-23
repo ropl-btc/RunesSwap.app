@@ -2,9 +2,6 @@ name: Validate Changelog Version
 
 on:
   pull_request:
-    paths:
-      - 'CHANGELOG.md'
-      - 'package.json'
   workflow_dispatch:
 
 permissions:
