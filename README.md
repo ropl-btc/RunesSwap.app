@@ -114,3 +114,5 @@ runs linting, tests and a production build. Please ensure:
 ## License
 
 MIT © RunesSwap.app
+
+<!-- test validator trigger -->
