@@ -1,0 +1,21 @@
+name: Ensure Changelog Updated
+
+on:
+  pull_request:
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify CHANGELOG.md was modified
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth=1
+          if git diff --name-only origin/${{ github.base_ref }}..HEAD | grep -q '^CHANGELOG.md$'; then
+            echo 'CHANGELOG.md updated.'
+          else
+            echo 'Please update CHANGELOG.md' >&2
+            exit 1
+          fi
