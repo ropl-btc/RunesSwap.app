@@ -35,6 +35,11 @@ export function FooterComponent({
             Docs
           </a>
         </Link>
+        <Link href="/changelog" legacyBehavior passHref>
+          <a className={buttonStyles.root} title="Changelog">
+            Changelog
+          </a>
+        </Link>
         <Link href="/legal" legacyBehavior passHref>
           <a className={buttonStyles.root} title="Legal">
             Legal
