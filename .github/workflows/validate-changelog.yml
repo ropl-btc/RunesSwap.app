@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   validate:
@@ -18,37 +19,85 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Ensure top section is a version (not Unreleased)
+      - name: Collect validation results
+        id: validate
         run: |
           set -euo pipefail
+          unreleased=0
+          mismatch=0
+          missing=0
           TOP_LINE=$(grep -m1 -E '^## \[' CHANGELOG.md || true)
           if echo "$TOP_LINE" | grep -qE '^## \[Unreleased\]'; then
-            echo "Top CHANGELOG section is [Unreleased]." >&2
-            echo "If you intend to release, convert it to a version like ## [0.2.2] - YYYY-MM-DD." >&2
-            exit 1
+            unreleased=1
           fi
-
-      - name: Extract latest version from CHANGELOG.md
-        id: extract
-        run: |
-          set -euo pipefail
-          VERSION_LINE=$(grep -m1 -E '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md || true)
+          VERSION_LINE=$(grep -m1 -E '^## \[([0-9]+\.[0-9]+\.[0-9]+)\]' CHANGELOG.md || true)
           if [ -z "${VERSION_LINE}" ]; then
-            echo "No version section found; failing validation." >&2
-            exit 1
+            missing=1
+            VERSION=""
+          else
+            VERSION=$(echo "$VERSION_LINE" | sed -E 's/^## \[([0-9]+\.[0-9]+\.[0-9]+)\].*/\1/')
           fi
-          VERSION=$(echo "$VERSION_LINE" | sed -E 's/^## \[([0-9]+\.[0-9]+\.[0-9]+)\].*/\1/')
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-
-      - name: Verify package.json version matches
-        run: |
-          set -euo pipefail
-          FILE_VERSION="${{ steps.extract.outputs.version }}"
           PKG_VERSION=$(node -pe "require('./package.json').version")
-          echo "CHANGELOG version: $FILE_VERSION"
-          echo "package.json version: $PKG_VERSION"
-          if [ "$FILE_VERSION" != "$PKG_VERSION" ]; then
-            echo "Version mismatch: CHANGELOG ($FILE_VERSION) != package.json ($PKG_VERSION)" >&2
-            exit 1
+          if [ -n "$VERSION" ] && [ "$VERSION" != "$PKG_VERSION" ]; then
+            mismatch=1
           fi
+          ok=true
+          if [ $unreleased -eq 1 ] || [ $missing -eq 1 ] || [ $mismatch -eq 1 ]; then
+            ok=false
+          fi
+          echo "unreleased=$unreleased" >> "$GITHUB_OUTPUT"
+          echo "missing=$missing" >> "$GITHUB_OUTPUT"
+          echo "mismatch=$mismatch" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "pkg_version=$PKG_VERSION" >> "$GITHUB_OUTPUT"
+          echo "ok=$ok" >> "$GITHUB_OUTPUT"
 
+      - name: Comment guidance on PR
+        if: ${{ steps.validate.outputs.ok != 'true' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const unreleased = `${{ steps.validate.outputs.unreleased }}`;
+            const missing    = `${{ steps.validate.outputs.missing }}`;
+            const mismatch   = `${{ steps.validate.outputs.mismatch }}`;
+            const version    = `${{ steps.validate.outputs.version }}`;
+            const pkg        = `${{ steps.validate.outputs.pkg_version }}`;
+            const pr = context.payload.pull_request;
+            const failing = [];
+            if (unreleased === '1') failing.push('Top section is [Unreleased]');
+            if (missing === '1')    failing.push('No version section found');
+            if (mismatch === '1')   failing.push(`CHANGELOG version (${version||'n/a'}) != package.json (${pkg})`);
+            const today = new Date().toISOString().slice(0,10);
+            const suggested = version || pkg || '0.0.0';
+            const repo = `${context.repo.owner}/${context.repo.repo}`;
+            const body = [
+              `❌ Changelog validation failed: ${failing.join('; ')}`,
+              '',
+              'Copy-paste prompt for your AI agent:',
+              '',
+              'You are updating the changelog for this PR to pass CI.',
+              '',
+              'Do the following in a single commit:',
+              `- Decide the next SemVer (patch/minor) for this PR (suggested: ${suggested}).`,
+              `- Update package.json "version" to the chosen version.`,
+              '- In CHANGELOG.md:',
+              `  - Add a new top section: \`## [<version>] - ${today}\` with Keep a Changelog categories (Added/Changed/Fixed/Removed/Security) summarizing this PR.`,
+              '  - Ensure footer links include:',
+              `    - [<version>]: https://github.com/${repo}/compare/<prev_tag>...v<version>`,
+              '    - Optionally update [Unreleased] to compare v<version>...HEAD if you keep it.',
+              '- Keep formatting consistent (headers, list bullets, links).',
+              '',
+              'Then push the commit to this PR.'
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body,
+            });
+
+      - name: Fail if invalid
+        if: ${{ steps.validate.outputs.ok != 'true' }}
+        run: |
+          echo "Changelog validation failed." >&2
+          exit 1
