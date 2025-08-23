@@ -95,11 +95,8 @@ jobs:
               const major=+m[1], minor=+m[2], patch=+m[3]+1;
               return `${major}.${minor}.${patch}`;
             }
-            let suggested = cl || pkg;
-            if(!suggested){
-              const bumped = nextPatch(pkg);
-              suggested = bumped || '0.0.1';
-            }
+            // Prefer suggesting the next patch of package.json; else next patch of CHANGELOG; else textual hint
+            let suggested = nextPatch(pkg) || nextPatch(cl) || 'next patch version';
             const prompt = [
               'You are updating the changelog for this PR to pass CI.',
               '',
@@ -107,7 +104,7 @@ jobs:
               `- Decide the next SemVer (patch/minor) for this PR (suggested: ${suggested}).`,
               `- Update package.json "version" to the chosen version.`,
               '- In CHANGELOG.md:',
-              `  - Add a new top section: \`## [<version>] - ${today}\` with Keep a Changelog categories (Added/Changed/Fixed/Removed/Security) summarizing this PR.`,
+              `  - Add a new top section: \`## [<version>] - ${today}\` with changelog categories (Added/Changed/Fixed/Removed/Security) summarizing this PR.`,
               '  - Ensure footer links include:',
               `    - [<version>]: https://github.com/${repo}/compare/<prev_tag>...v<version>`,
               '    - Optionally update [Unreleased] to compare v<version>...HEAD if you keep it.',
