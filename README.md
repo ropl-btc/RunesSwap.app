@@ -1,5 +1,7 @@
 # RunesSwap.app
 
+[![Release](https://img.shields.io/github/v/release/ropl-btc/RunesSwap.app)](https://github.com/ropl-btc/RunesSwap.app/releases)
+
 A Uniswap‑style swap interface for Bitcoin Runes, built with Next.js, TypeScript, and the SatsTerminal SDK, styled in a classic Windows 98 UI theme.
 
 ## Features
