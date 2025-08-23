@@ -119,7 +119,7 @@ export function useSwapQuote({
       const isSell = !assetIn.isBTC;
 
       const params = {
-        btcAmount: amount,
+        btcAmount: amount.toString(),
         runeName,
         address: effectiveAddress,
         sell: isSell,
