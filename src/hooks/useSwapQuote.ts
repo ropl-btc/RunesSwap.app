@@ -8,6 +8,7 @@ import type {
 import { fetchQuoteFromApi } from '@/lib/api';
 import { logger } from '@/lib/logger';
 import { Asset } from '@/types/common';
+import { sanitizeNumberString } from '@/utils/formatters';
 
 const MOCK_ADDRESS = '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo';
 
@@ -132,14 +133,14 @@ export function useSwapQuote({
           try {
             if (assetIn?.isBTC) {
               outputVal = parseFloat(
-                (quoteResponse.totalFormattedAmount || '0').replace(/,/g, ''),
+                sanitizeNumberString(quoteResponse.totalFormattedAmount || '0'),
               );
               btcValue = inputVal;
               runeValue = outputVal;
               calculatedOutputAmount = outputVal.toLocaleString(undefined, {});
             } else {
               outputVal = parseFloat(
-                (quoteResponse.totalPrice || '0').replace(/,/g, ''),
+                sanitizeNumberString(quoteResponse.totalPrice || '0'),
               );
               runeValue = inputVal;
               btcValue = outputVal;

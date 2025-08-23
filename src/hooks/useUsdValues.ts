@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { QuoteResponse } from 'satsterminal-sdk';
 import { Asset } from '@/types/common';
 import { RuneMarketInfo as OrdiscanRuneMarketInfo } from '@/types/ordiscan';
+import { sanitizeNumberString } from '@/utils/formatters';
 
 export interface UseUsdValuesArgs {
   inputAmount: string;
@@ -57,9 +58,10 @@ export default function useUsdValues({
         btcPriceUsd &&
         !quoteError
       ) {
-        const totalFormattedClean =
-          quote.totalFormattedAmount?.replace(/,/g, '') || '0';
-        const totalPriceClean = quote.totalPrice.replace(/,/g, '');
+        const totalFormattedClean = sanitizeNumberString(
+          quote.totalFormattedAmount ?? '0',
+        );
+        const totalPriceClean = sanitizeNumberString(quote.totalPrice);
 
         if (new Big(totalFormattedClean).gt(0)) {
           const btcPerRune = new Big(totalPriceClean).div(totalFormattedClean);
@@ -69,7 +71,7 @@ export default function useUsdValues({
 
       let outputUsdVal: Big | null = null;
       if (outputAmount && assetOut) {
-        const sanitizedOutputAmount = outputAmount.replace(/,/g, '');
+        const sanitizedOutputAmount = sanitizeNumberString(outputAmount);
         const outputAmountBig = new Big(sanitizedOutputAmount);
         if (outputAmountBig.gt(0)) {
           if (assetOut.isBTC && btcPriceUsd) {
@@ -85,9 +87,10 @@ export default function useUsdValues({
             btcPriceUsd &&
             !quoteError
           ) {
-            const totalFormattedClean =
-              quote.totalFormattedAmount?.replace(/,/g, '') || '0';
-            const totalPriceClean = quote.totalPrice.replace(/,/g, '');
+            const totalFormattedClean = sanitizeNumberString(
+              quote.totalFormattedAmount ?? '0',
+            );
+            const totalPriceClean = sanitizeNumberString(quote.totalPrice);
 
             if (new Big(totalFormattedClean).gt(0)) {
               const btcPerRune = new Big(totalPriceClean).div(

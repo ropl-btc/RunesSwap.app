@@ -1,6 +1,8 @@
 import { safeArrayAccess, safeArrayFirst } from '@/utils/typeGuards';
 import Big from 'big.js';
 
+export const sanitizeNumberString = (v: string) => v.replace(/,/g, '');
+
 // Function to truncate TXIDs for display
 export const truncateTxid = (txid: string, length: number = 8): string => {
   if (!txid) return '';
@@ -21,7 +23,7 @@ export function formatNumberString(
     // Remove any existing commas and validate the string contains only digits
     // and an optional decimal part. This avoids precision issues with
     // `parseFloat` on very large numbers.
-    const cleaned = String(numStr).replace(/,/g, '');
+    const cleaned = sanitizeNumberString(String(numStr));
     const isNegative = cleaned.startsWith('-');
     const numericPart = isNegative ? cleaned.slice(1) : cleaned;
     if (!/^\d+(\.\d+)?$/.test(numericPart)) return defaultDisplay;

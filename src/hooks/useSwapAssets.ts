@@ -1,6 +1,7 @@
 import { type QuoteResponse } from 'satsterminal-sdk';
 import type { SwapProcessAction } from '@/components/swap/SwapProcessManager';
 import { Asset, BTC_ASSET } from '@/types/common';
+import { sanitizeNumberString } from '@/utils/formatters';
 import { safeArrayFirst } from '@/utils/typeGuards';
 
 interface UseSwapAssetsArgs {
@@ -58,7 +59,7 @@ export function useSwapAssets({
     // Remove commas and other locale formatting that could break parseFloat
     // This fixes the issue where formatted quote amounts (e.g., "1,234.56")
     // would break subsequent quote fetching when used as input
-    const cleanedOutputAmount = outputAmount.replace(/,/g, '');
+    const cleanedOutputAmount = sanitizeNumberString(outputAmount);
     const tempAmount = inputAmount;
     setInputAmount(cleanedOutputAmount);
     setOutputAmount(tempAmount);

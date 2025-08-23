@@ -2,6 +2,7 @@ import {
   formatNumberString,
   truncateTxid,
   formatSatsToBtc,
+  sanitizeNumberString,
 } from '@/utils/formatters';
 
 describe('truncateTxid', () => {
@@ -101,5 +102,15 @@ describe('formatSatsToBtc', () => {
     it(`handles ${name}`, () => {
       expect(formatSatsToBtc(input)).toBe(expected);
     });
+  });
+});
+
+describe('sanitizeNumberString', () => {
+  it('removes commas from number string', () => {
+    expect(sanitizeNumberString('1,234,567')).toBe('1234567');
+  });
+
+  it('returns same string when no commas present', () => {
+    expect(sanitizeNumberString('1234567')).toBe('1234567');
   });
 });
