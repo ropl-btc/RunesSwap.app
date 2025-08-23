@@ -571,3 +571,7 @@ Bitcoin fee rates are fetched from mempool.space API with the following response
 * Run `pnpm ai-check` after every bigger change.
 * Use the supabase tools to interact with our database!
 * SatsTerminal SDK is very aggressive with rate-limiting, we shouldn't increase the amount of queries we're doing to SatsTerminal!
+* Changelog discipline: For any noticeable change (new feature, significant refactor, important fix), add an entry under `## [Unreleased]` in `CHANGELOG.md`.
+  * If `[Unreleased]` does not exist, create it at the top and use Keep a Changelog categories (Added/Changed/Fixed/Removed/Security).
+  * If it exists, append your items under the relevant category.
+  * Do not bump the version or convert `Unreleased` to a dated release in feature PRs — that happens in the release PR.
