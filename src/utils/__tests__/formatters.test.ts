@@ -2,6 +2,7 @@ import {
   formatNumberString,
   truncateTxid,
   formatSatsToBtc,
+  sanitizeForBig,
 } from '@/utils/formatters';
 
 describe('truncateTxid', () => {
@@ -110,6 +111,62 @@ describe('formatSatsToBtc', () => {
   testCases.forEach(({ input, expected, name }) => {
     it(`handles ${name}`, () => {
       expect(formatSatsToBtc(input)).toBe(expected);
+    });
+  });
+});
+
+describe('sanitizeForBig', () => {
+  const testCases = [
+    { input: undefined, expected: '0', name: 'undefined input' },
+    { input: null, expected: '0', name: 'null input' },
+    { input: '', expected: '0', name: 'empty string' },
+    { input: '   ', expected: '0', name: 'whitespace string' },
+    { input: '123', expected: '123', name: 'simple number string' },
+    { input: '123.45', expected: '123.45', name: 'decimal number' },
+    { input: '1,234.56', expected: '1234.56', name: 'US format with comma' },
+    {
+      input: '1.234,56',
+      expected: '1234.56',
+      name: 'European format (dot as thousands, comma as decimal)',
+    },
+    { input: '-123.45', expected: '-123.45', name: 'negative number' },
+    { input: '1,234,567.89', expected: '1234567.89', name: 'multiple commas' },
+    { input: 'invalid', expected: '0', name: 'invalid string' },
+    { input: '0', expected: '0', name: 'zero' },
+    { input: '0.0', expected: '0', name: 'zero with decimal' },
+    { input: '1e6', expected: '1000000', name: 'scientific notation' },
+    { input: '  123.45  ', expected: '123.45', name: 'string with whitespace' },
+    {
+      input: '12.345,67',
+      expected: '12345.67',
+      name: 'larger European format',
+    },
+    {
+      input: '123,45',
+      expected: '123.45',
+      name: 'simple European decimal (ambiguous case)',
+    },
+  ];
+
+  testCases.forEach(({ input, expected, name }) => {
+    it(`handles ${name}`, () => {
+      expect(sanitizeForBig(input)).toBe(expected);
+    });
+  });
+
+  it('produces strings that work with Big.js constructor', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Big = require('big.js');
+
+    const testValues = ['1,234.56', '1.234,56', '123.45', '-999.99'];
+
+    testValues.forEach((value) => {
+      const sanitized = sanitizeForBig(value);
+      expect(() => new Big(sanitized)).not.toThrow();
+
+      // Verify the Big.js number has the expected value
+      const bigNum = new Big(sanitized);
+      expect(bigNum.toString()).toMatch(/^-?\d+(\.\d+)?$/);
     });
   });
 });

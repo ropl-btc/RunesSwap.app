@@ -4,6 +4,7 @@ import {
   RunicInput,
   RunicOutput,
 } from '@/types/ordiscan';
+import { parseAmount } from '@/utils/formatters';
 
 /**
  * Result of interpreting a Rune transaction
@@ -93,7 +94,7 @@ export function interpretRuneTransaction(
           (o: RunicOutput) =>
             o.address !== userAddress &&
             o.rune &&
-            parseFloat(o.rune_amount) > 0,
+            parseAmount(o.rune_amount) > 0,
         );
 
         if (sentOutput) {
@@ -122,7 +123,7 @@ export function interpretRuneTransaction(
               (o: RunicOutput) =>
                 o.address === userAddress &&
                 o.rune &&
-                parseFloat(o.rune_amount) > 0,
+                parseAmount(o.rune_amount) > 0,
             );
 
             if (anyUserOutput) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import useFeeRates from '@/hooks/useFeeRates';
 import styles from '@/components/ui/FeeSelector.module.css';
+import { parseAmount } from '@/utils/formatters';
 
 export type FeeOption = 'slow' | 'medium' | 'fast' | 'custom';
 
@@ -38,7 +39,7 @@ const FeeSelector: React.FC<FeeSelectorProps> = ({
     if (option === 'slow') rate = low;
     else if (option === 'fast') rate = high;
     else if (option === 'custom') {
-      const customRate = parseFloat(custom) || 0;
+      const customRate = parseAmount(custom) || 0;
       if (customRate < medium && custom !== '') {
         setValidationError(
           `Custom fee must be at least ${medium} sats/vB (medium fee)`,
@@ -59,7 +60,7 @@ const FeeSelector: React.FC<FeeSelectorProps> = ({
       return;
     }
 
-    const numValue = parseFloat(value);
+    const numValue = parseAmount(value);
     if (isNaN(numValue)) {
       setValidationError('Please enter a valid number');
     } else if (numValue < medium) {

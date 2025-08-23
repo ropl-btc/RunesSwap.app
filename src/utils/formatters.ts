@@ -1,6 +1,48 @@
 import Big from 'big.js';
 import { NumberParser } from '@internationalized/number';
 
+/**
+ * Sanitizes user input for Big.js constructor while preserving precision
+ * Uses @internationalized/number for international format parsing, then converts to clean string
+ */
+export function sanitizeForBig(input: string | null | undefined): string {
+  if (!input?.trim()) return '0';
+
+  const trimmed = input.trim();
+
+  // Check if this looks like European format (dot before comma)
+  // Pattern: digits.digits,digits (like "1.234,56")
+  const europeanPattern = /^\d{1,3}(\.\d{3})*,\d+$/;
+  const isEuropeanFormat = europeanPattern.test(trimmed);
+
+  let parsed: number | null = null;
+
+  if (isEuropeanFormat) {
+    // Use German parser for European format
+    const deParser = new NumberParser('de-DE');
+    parsed = deParser.parse(trimmed);
+  } else {
+    // Use US parser for standard formats
+    const usParser = new NumberParser('en-US');
+    parsed = usParser.parse(trimmed);
+  }
+
+  if (parsed === null || !Number.isFinite(parsed)) return '0';
+
+  // Convert parsed number back to string for Big.js - this maintains precision
+  return parsed.toString();
+}
+
+/**
+ * Parses a human-entered numeric string into a number consistently.
+ * Uses sanitizeForBig under the hood to handle localized formats.
+ */
+export function parseAmount(input: string | null | undefined): number {
+  const s = sanitizeForBig(input);
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export const truncateTxid = (txid: string, length = 8): string => {
   if (!txid) return '';
   if (txid.length <= length * 2 + 3) return txid;

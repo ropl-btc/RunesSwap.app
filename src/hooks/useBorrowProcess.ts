@@ -1,5 +1,6 @@
 //
 import { convertToRawAmount } from '@/utils/runeFormatting';
+import { parseAmount } from '@/utils/formatters';
 import { useState } from 'react';
 import {
   LiquidiumPrepareBorrowResponse,
@@ -47,7 +48,7 @@ export function useBorrowProcess({
     collateralAmount: string,
     feeRate: number,
   ) => {
-    const parsed = Number(collateralAmount);
+    const parsed = parseAmount(collateralAmount);
     if (
       !selectedQuoteId ||
       !collateralAmount.trim() ||

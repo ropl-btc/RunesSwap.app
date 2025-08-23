@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { type QuoteResponse } from 'satsterminal-sdk';
 import { useDebounce } from 'use-debounce';
-import { NumberParser } from '@internationalized/number';
 import type {
   SwapProcessAction,
   SwapProcessState,
@@ -9,6 +8,7 @@ import type {
 import { fetchQuoteFromApi } from '@/lib/api';
 import { logger } from '@/lib/logger';
 import { Asset } from '@/types/common';
+import { parseAmount } from '@/utils/formatters';
 
 const MOCK_ADDRESS = '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo';
 
@@ -45,7 +45,8 @@ export function useSwapQuote({
   setExchangeRate,
   setQuoteTimestamp,
 }: UseSwapQuoteArgs) {
-  const parsedInput = new NumberParser('en-US').parse(inputAmount) || 0;
+  // Parse for debouncing using centralized helper
+  const parsedInput = parseAmount(inputAmount) || 0;
   const [debouncedInputAmount] = useDebounce(
     !isNaN(parsedInput) && parsedInput > 0 ? parsedInput : 0,
     1500,
@@ -58,8 +59,8 @@ export function useSwapQuote({
   const latestQuoteRequestId = useRef(0);
 
   const handleFetchQuote = useCallback(async () => {
-    const parser = new NumberParser('en-US');
-    const amount = parser.parse(inputAmount) ?? NaN;
+    // Use centralized helper for input amount
+    const amount = parseAmount(inputAmount);
     if (
       !inputAmount ||
       Number.isNaN(amount) ||
@@ -133,14 +134,15 @@ export function useSwapQuote({
         let calculatedOutputAmount = '';
         let calculatedRate: string | null = null;
         if (quoteResponse) {
-          const inputVal = parser.parse(inputAmount) || 0;
+          const inputVal = parseAmount(inputAmount);
           let outputVal = 0;
           let btcValue = 0;
           let runeValue = 0;
           try {
             if (assetIn?.isBTC) {
-              const parsedOutput =
-                parser.parse(quoteResponse.totalFormattedAmount || '0') || 0;
+              const parsedOutput = parseAmount(
+                quoteResponse.totalFormattedAmount || '0',
+              );
               if (!Number.isFinite(parsedOutput)) {
                 throw new Error('Invalid quote output amount');
               }
@@ -149,8 +151,7 @@ export function useSwapQuote({
               runeValue = outputVal;
               calculatedOutputAmount = outputVal.toLocaleString(undefined, {});
             } else {
-              const parsedPrice =
-                parser.parse(quoteResponse.totalPrice || '0') || 0;
+              const parsedPrice = parseAmount(quoteResponse.totalPrice || '0');
               if (!Number.isFinite(parsedPrice)) {
                 throw new Error('Invalid quote price');
               }

@@ -1,8 +1,8 @@
 import { type QuoteResponse } from 'satsterminal-sdk';
-import { NumberParser } from '@internationalized/number';
 import type { SwapProcessAction } from '@/components/swap/SwapProcessManager';
 import { Asset, BTC_ASSET } from '@/types/common';
 import { safeArrayFirst } from '@/utils/typeGuards';
+import { sanitizeForBig } from '@/utils/formatters';
 
 interface UseSwapAssetsArgs {
   popularRunes: Asset[];
@@ -56,12 +56,10 @@ export function useSwapAssets({
     setAssetOut(tempAsset);
 
     // Clean the output amount before setting it as input amount
-    // Parse and re-stringify to ensure clean numeric format
+    // Use sanitizeForBig to ensure clean numeric format for financial calculations
     // This fixes the issue where formatted quote amounts (e.g., "1,234.56")
     // would break subsequent quote fetching when used as input
-    const parser = new NumberParser('en-US');
-    const parsedOutputAmount = parser.parse(outputAmount) || 0;
-    const cleanedOutputAmount = parsedOutputAmount.toString();
+    const cleanedOutputAmount = sanitizeForBig(outputAmount);
     const tempAmount = inputAmount;
     setInputAmount(cleanedOutputAmount);
     setOutputAmount(tempAmount);
