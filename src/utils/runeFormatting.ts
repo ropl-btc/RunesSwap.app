@@ -1,4 +1,18 @@
 import Big from 'big.js';
+import {
+  formatAmountWithPrecision,
+  rawToDisplayAmount,
+  convertToRawAmount,
+  percentageOfRawAmount,
+} from './amountFormatting';
+
+// Re-export core amount utilities for convenience
+export {
+  formatAmountWithPrecision,
+  rawToDisplayAmount,
+  convertToRawAmount,
+  percentageOfRawAmount,
+};
 
 /**
  * Unified rune amount formatting utility using Big.js for precision
@@ -33,36 +47,20 @@ export function formatRuneAmount(
   const { maxDecimals, removeTrailingZeros = true } = options;
 
   try {
-    // Convert to Big.js for precise calculations
-    const rawAmountBig = new Big(rawAmount.toString());
+    // Convert using shared utility then apply formatting
+    const displayBig = new Big(rawToDisplayAmount(rawAmount, decimals));
 
-    if (decimals === 0) {
-      // No decimal places needed, just format for display
-      return rawAmountBig.toFixed(0);
-    }
-
-    // Create divisor using Big.js to maintain precision
-    const divisor = new Big(10).pow(decimals);
-
-    // Perform precise division
-    const formattedAmountBig = rawAmountBig.div(divisor);
-
-    // Determine decimal places to show
     const displayDecimals =
       maxDecimals !== undefined ? Math.min(maxDecimals, decimals) : decimals;
 
-    // Format with appropriate decimal places
-    let formattedString = formattedAmountBig.toFixed(displayDecimals);
+    let formattedString = displayBig.toFixed(displayDecimals);
 
-    // Remove trailing zeros if requested
     if (removeTrailingZeros && formattedString.includes('.')) {
       formattedString = formattedString.replace(/\.?0+$/, '');
     }
 
-    // Use Big.js for all formatting to preserve precision
     return formattedString;
   } catch (error) {
-    // Fallback to raw amount on any error
     console.warn('Error formatting rune amount:', error);
     return rawAmount.toString();
   }
@@ -79,9 +77,7 @@ export function calculateActualBalance(
   decimals: number,
 ): number {
   try {
-    const rawAmountBig = new Big(rawAmount.toString());
-    const divisor = new Big(10).pow(decimals);
-    return rawAmountBig.div(divisor).toNumber();
+    return parseFloat(rawToDisplayAmount(rawAmount, decimals));
   } catch (error) {
     console.warn('Error calculating actual balance:', error);
     return 0;
@@ -101,11 +97,9 @@ export function calculateBtcValue(
   priceInSats: number,
 ): number {
   try {
-    const balanceBig = new Big(rawAmount.toString());
-    const divisor = new Big(10).pow(decimals);
+    const balanceBig = new Big(rawToDisplayAmount(rawAmount, decimals));
     const priceInBtc = new Big(priceInSats).div(1e8);
-
-    return balanceBig.div(divisor).times(priceInBtc).toNumber();
+    return balanceBig.times(priceInBtc).toNumber();
   } catch (error) {
     console.warn('Error calculating BTC value:', error);
     return 0;
@@ -125,10 +119,8 @@ export function calculateUsdValue(
   priceInUsd: number,
 ): number {
   try {
-    const balanceBig = new Big(rawAmount.toString());
-    const divisor = new Big(10).pow(decimals);
-
-    return balanceBig.div(divisor).times(priceInUsd).toNumber();
+    const balanceBig = new Big(rawToDisplayAmount(rawAmount, decimals));
+    return balanceBig.times(priceInUsd).toNumber();
   } catch (error) {
     console.warn('Error calculating USD value:', error);
     return 0;

@@ -1,5 +1,5 @@
 //
-import { convertToRawAmount } from '@/utils/amountFormatting';
+import { convertToRawAmount } from '@/utils/runeFormatting';
 import { useState } from 'react';
 import {
   LiquidiumPrepareBorrowResponse,
