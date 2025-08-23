@@ -75,6 +75,11 @@ migrations
 # Ignore markdown files
 *.md
 
+# Ignore GitHub workflow files to prevent formatting issues
+.github/workflows/**
+*.yml
+*.yaml
+
 # Ignore binary and asset files
 *.png
 *.jpg

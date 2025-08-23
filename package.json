@@ -24,6 +24,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
+    "@internationalized/number": "^3.6.4",
     "@omnisat/lasereyes": "^0.0.134",
     "@supabase/supabase-js": "^2.49.4",
     "@tanstack/react-query": "^5.70.0",

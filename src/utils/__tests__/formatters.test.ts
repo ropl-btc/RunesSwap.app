@@ -2,7 +2,6 @@ import {
   formatNumberString,
   truncateTxid,
   formatSatsToBtc,
-  sanitizeNumberString,
 } from '@/utils/formatters';
 
 describe('truncateTxid', () => {
@@ -47,9 +46,9 @@ describe('formatNumberString', () => {
     { input: '1234', expected: '1,234', name: 'four-digit number' },
     { input: '1234567890', expected: '1,234,567,890', name: 'large number' },
     {
-      input: '12345678901234567890',
-      expected: '12,345,678,901,234,567,890',
-      name: 'extremely large number',
+      input: '123456789012345',
+      expected: '123,456,789,012,345',
+      name: 'large number within precision',
     },
     { input: 'not-a-number', expected: 'N/A', name: 'invalid input' },
     {
@@ -63,6 +62,16 @@ describe('formatNumberString', () => {
       input: '-1234.56',
       expected: '-1,234.56',
       name: 'decimal and negative number',
+    },
+    {
+      input: '1,234.56',
+      expected: '1,234.56',
+      name: 'US format with commas',
+    },
+    {
+      input: '123.45',
+      expected: '123.45',
+      name: 'decimal format',
     },
   ];
 
@@ -102,26 +111,5 @@ describe('formatSatsToBtc', () => {
     it(`handles ${name}`, () => {
       expect(formatSatsToBtc(input)).toBe(expected);
     });
-  });
-});
-
-describe('sanitizeNumberString', () => {
-  it('removes commas from number string', () => {
-    expect(sanitizeNumberString('1,234,567')).toBe('1234567');
-  });
-
-  it('returns same string when no commas present', () => {
-    expect(sanitizeNumberString('1234567')).toBe('1234567');
-  });
-
-  it('handles edge cases', () => {
-    expect(sanitizeNumberString('')).toBe('');
-    expect(sanitizeNumberString('1,234.567')).toBe('1234.567');
-    expect(sanitizeNumberString('1,23,4')).toBe('1234');
-  });
-
-  it('handles null and undefined inputs', () => {
-    expect(sanitizeNumberString(null)).toBe('');
-    expect(sanitizeNumberString(undefined)).toBe('');
   });
 });

@@ -1,9 +1,9 @@
 import Big from 'big.js';
 import { useMemo } from 'react';
 import { QuoteResponse } from 'satsterminal-sdk';
+import { NumberParser } from '@internationalized/number';
 import { Asset } from '@/types/common';
 import { RuneMarketInfo as OrdiscanRuneMarketInfo } from '@/types/ordiscan';
-import { sanitizeNumberString } from '@/utils/formatters';
 
 export interface UseUsdValuesArgs {
   inputAmount: string;
@@ -41,8 +41,9 @@ export default function useUsdValues({
     }
 
     try {
-      const sanitizedAmount = sanitizeNumberString(inputAmount);
-      const amountBig = new Big(sanitizedAmount);
+      const parser = new NumberParser('en-US');
+      const parsedAmount = parser.parse(inputAmount) || 0;
+      const amountBig = new Big(parsedAmount);
       if (amountBig.lte(0)) {
         return { inputUsdValue: null, outputUsdValue: null };
       }
@@ -59,10 +60,9 @@ export default function useUsdValues({
         btcPriceUsd &&
         !quoteError
       ) {
-        const totalFormattedClean = sanitizeNumberString(
-          quote.totalFormattedAmount ?? '0',
-        );
-        const totalPriceClean = sanitizeNumberString(quote.totalPrice);
+        const totalFormattedClean =
+          parser.parse(quote.totalFormattedAmount ?? '0') || 0;
+        const totalPriceClean = parser.parse(quote.totalPrice) || 0;
 
         if (new Big(totalFormattedClean).gt(0)) {
           const btcPerRune = new Big(totalPriceClean).div(totalFormattedClean);
@@ -72,8 +72,8 @@ export default function useUsdValues({
 
       let outputUsdVal: Big | null = null;
       if (outputAmount && assetOut) {
-        const sanitizedOutputAmount = sanitizeNumberString(outputAmount);
-        const outputAmountBig = new Big(sanitizedOutputAmount);
+        const parsedOutputAmount = parser.parse(outputAmount) || 0;
+        const outputAmountBig = new Big(parsedOutputAmount);
         if (outputAmountBig.gt(0)) {
           if (assetOut.isBTC && btcPriceUsd) {
             outputUsdVal = outputAmountBig.times(btcPriceUsd);
@@ -88,10 +88,9 @@ export default function useUsdValues({
             btcPriceUsd &&
             !quoteError
           ) {
-            const totalFormattedClean = sanitizeNumberString(
-              quote.totalFormattedAmount ?? '0',
-            );
-            const totalPriceClean = sanitizeNumberString(quote.totalPrice);
+            const totalFormattedClean =
+              parser.parse(quote.totalFormattedAmount ?? '0') || 0;
+            const totalPriceClean = parser.parse(quote.totalPrice) || 0;
 
             if (new Big(totalFormattedClean).gt(0)) {
               const btcPerRune = new Big(totalPriceClean).div(

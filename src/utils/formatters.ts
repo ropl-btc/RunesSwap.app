@@ -1,13 +1,5 @@
 import Big from 'big.js';
-
-/**
- * Removes comma separators from number strings to prevent parsing errors
- * @param v - The number string to sanitize
- * @returns String with commas removed, or empty string if input is null/undefined
- * @example sanitizeNumberString('1,234.56') // '1234.56'
- */
-export const sanitizeNumberString = (v: string | null | undefined): string =>
-  v?.replace(/,/g, '') ?? '';
+import { NumberParser } from '@internationalized/number';
 
 export const truncateTxid = (txid: string, length = 8): string => {
   if (!txid) return '';
@@ -22,10 +14,21 @@ export function formatNumberString(
   if (!numStr) return defaultDisplay;
 
   try {
-    // Use our sanitizeNumberString utility to remove commas and handle null/undefined
-    const cleaned = sanitizeNumberString(numStr);
-    if (!/^-?\d+(\.\d+)?$/.test(cleaned)) return defaultDisplay;
-    const [intPart, decPart] = cleaned.split('.') as [string, string?];
+    // First try US format
+    const usParser = new NumberParser('en-US');
+    let parsed = usParser.parse(numStr);
+
+    // If US format fails, try European format (comma as decimal separator)
+    if (parsed === null && numStr.includes(',')) {
+      const deParser = new NumberParser('de-DE');
+      parsed = deParser.parse(numStr);
+    }
+
+    if (parsed === null || !Number.isFinite(parsed)) return defaultDisplay;
+
+    const numString = parsed.toString();
+    if (!/^-?\d+(\.\d+)?$/.test(numString)) return defaultDisplay;
+    const [intPart, decPart] = numString.split('.') as [string, string?];
     const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     return decPart ? `${withCommas}.${decPart}` : withCommas;
   } catch {
