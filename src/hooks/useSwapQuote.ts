@@ -49,7 +49,7 @@ export function useSwapQuote({
   // Parse for debouncing using centralized helper
   const parsedInput = parseAmount(inputAmount) || 0;
   const [debouncedInputAmount] = useDebounce(
-    !isNaN(parsedInput) && parsedInput > 0 ? parsedInput : 0,
+    parsedInput > 0 ? parsedInput : 0,
     1500,
   );
 
@@ -62,13 +62,7 @@ export function useSwapQuote({
   const handleFetchQuote = useCallback(async () => {
     // Use centralized helper for input amount
     const amount = parseAmount(inputAmount);
-    if (
-      !inputAmount ||
-      Number.isNaN(amount) ||
-      amount <= 0 ||
-      !assetIn ||
-      !assetOut
-    ) {
+    if (!inputAmount || amount <= 0 || !assetIn || !assetOut) {
       return;
     }
 
@@ -96,12 +90,6 @@ export function useSwapQuote({
         type: 'FETCH_QUOTE_ERROR',
         error: 'Internal error: Missing address for quote.',
       });
-      return;
-    }
-
-    if (amount <= 0) {
-      setOutputAmount('0.0');
-      dispatchSwap({ type: 'FETCH_QUOTE_SUCCESS' });
       return;
     }
 
