@@ -16,7 +16,8 @@ import { QUERY_KEYS, fetchRuneBalancesFromApi } from '@/lib/api';
 import { Asset } from '@/types/common';
 import { type RuneBalance as OrdiscanRuneBalance } from '@/types/ordiscan';
 import { percentageOfRawAmount } from '@/utils/runeFormatting';
-import { formatUsd } from '@/utils/formatters';
+import { formatUsd, parseAmount, sanitizeForBig } from '@/utils/formatters';
+import Big from 'big.js';
 import BorrowQuotesList from '@/components/borrow/BorrowQuotesList';
 import BorrowSuccessMessage from '@/components/borrow/BorrowSuccessMessage';
 import CollateralInput from '@/components/borrow/CollateralInput';
@@ -161,7 +162,7 @@ export function BorrowTab({
   const canGetQuotes =
     connected &&
     collateralAsset &&
-    parseFloat(collateralAmount) > 0 &&
+    parseAmount(collateralAmount) > 0 &&
     !isLoading &&
     liquidiumAuthenticated;
   const canStartLoan = connected && selectedQuoteId && !isLoading && !loanTxId;
@@ -180,11 +181,13 @@ export function BorrowTab({
 
   const usdValue =
     collateralAmount &&
-    parseFloat(collateralAmount) > 0 &&
+    parseAmount(collateralAmount) > 0 &&
     collateralRuneMarketInfo?.price_in_usd
-      ? formatUsd(
-          parseFloat(collateralAmount) * collateralRuneMarketInfo.price_in_usd,
-        )
+      ? (() => {
+          const amt = new Big(sanitizeForBig(collateralAmount));
+          const usd = amt.times(collateralRuneMarketInfo.price_in_usd);
+          return formatUsd(Number(usd.toFixed(2)));
+        })()
       : undefined;
 
   return (

@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { formatSatsToBtc } from '@/utils/formatters';
+import Big from 'big.js';
 import React, { useEffect, useState } from 'react';
 import {
   CartesianGrid,
@@ -174,7 +175,7 @@ const PriceChart: React.FC<PriceChartProps> = ({
                   const btcStr = formatSatsToBtc(value);
                   const usd =
                     btcPriceUsd !== undefined
-                      ? Number((parseFloat(btcStr) * btcPriceUsd).toFixed(6))
+                      ? Number(new Big(btcStr).times(btcPriceUsd).toFixed(6))
                       : null;
                   return [
                     `${formatNumberWithLocale(value)} sats`,

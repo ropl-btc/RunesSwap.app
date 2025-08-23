@@ -2,6 +2,7 @@ import React from 'react';
 import { type QuoteResponse } from 'satsterminal-sdk';
 import { Asset } from '@/types/common';
 import styles from '@/components/swap/SwapButton.module.css';
+import { parseAmount } from '@/utils/formatters';
 
 export type SwapStep =
   | 'idle'
@@ -113,14 +114,14 @@ export const SwapButton: React.FC<SwapButtonProps> = ({
     if (!connected) return 'Connect Wallet';
     if (isQuoteLoading) return `Fetching Quote${loadingDots}`;
     if (!assetIn || !assetOut) return 'Select Assets';
-    if (!inputAmount || parseFloat(inputAmount) <= 0) return 'Enter Amount';
+    if (!inputAmount || parseAmount(inputAmount) <= 0) return 'Enter Amount';
     // Special case for user cancellation - allow immediate retry
     if (quoteError?.includes('User canceled')) return 'Swap';
 
     // If quote expired, we already returned. If quoteError exists BUT it wasn't expiry or cancellation, show error.
     if (quoteError && !quoteExpired) return 'Quote Error';
     // Show loading quote only if not expired and amount > 0
-    if (!quote && !quoteError && !quoteExpired && parseFloat(inputAmount) > 0)
+    if (!quote && !quoteError && !quoteExpired && parseAmount(inputAmount) > 0)
       return `Getting Quote${loadingDots}`;
     if (!quote && !quoteExpired) return 'Get Quote'; // Before debounce or if amount is 0
     if (isSwapping) {
@@ -153,7 +154,7 @@ export const SwapButton: React.FC<SwapButtonProps> = ({
     (!quoteExpired &&
       (!connected ||
         !inputAmount ||
-        parseFloat(inputAmount) <= 0 ||
+        parseAmount(inputAmount) <= 0 ||
         !assetIn ||
         !assetOut ||
         // CRITICAL FIX: Allow button to be enabled even during loading if it's a user cancellation

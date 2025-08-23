@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { QuoteResponse } from 'satsterminal-sdk';
 import { Asset } from '@/types/common';
 import { RuneMarketInfo as OrdiscanRuneMarketInfo } from '@/types/ordiscan';
+import { sanitizeForBig } from '@/utils/formatters';
 
 export interface UseUsdValuesArgs {
   inputAmount: string;
@@ -40,7 +41,7 @@ export default function useUsdValues({
     }
 
     try {
-      const amountBig = new Big(inputAmount);
+      const amountBig = new Big(sanitizeForBig(inputAmount));
       if (amountBig.lte(0)) {
         return { inputUsdValue: null, outputUsdValue: null };
       }
@@ -57,20 +58,20 @@ export default function useUsdValues({
         btcPriceUsd &&
         !quoteError
       ) {
-        const totalFormattedClean =
-          quote.totalFormattedAmount?.replace(/,/g, '') || '0';
-        const totalPriceClean = quote.totalPrice.replace(/,/g, '');
+        const totalFormattedAmount = new Big(
+          sanitizeForBig(quote.totalFormattedAmount),
+        );
+        const totalPrice = new Big(sanitizeForBig(quote.totalPrice));
 
-        if (new Big(totalFormattedClean).gt(0)) {
-          const btcPerRune = new Big(totalPriceClean).div(totalFormattedClean);
+        if (totalFormattedAmount.gt(0)) {
+          const btcPerRune = totalPrice.div(totalFormattedAmount);
           inputUsdVal = amountBig.times(btcPerRune).times(btcPriceUsd);
         }
       }
 
       let outputUsdVal: Big | null = null;
       if (outputAmount && assetOut) {
-        const sanitizedOutputAmount = outputAmount.replace(/,/g, '');
-        const outputAmountBig = new Big(sanitizedOutputAmount);
+        const outputAmountBig = new Big(sanitizeForBig(outputAmount));
         if (outputAmountBig.gt(0)) {
           if (assetOut.isBTC && btcPriceUsd) {
             outputUsdVal = outputAmountBig.times(btcPriceUsd);
@@ -85,14 +86,13 @@ export default function useUsdValues({
             btcPriceUsd &&
             !quoteError
           ) {
-            const totalFormattedClean =
-              quote.totalFormattedAmount?.replace(/,/g, '') || '0';
-            const totalPriceClean = quote.totalPrice.replace(/,/g, '');
+            const totalFormattedAmount = new Big(
+              sanitizeForBig(quote.totalFormattedAmount),
+            );
+            const totalPrice = new Big(sanitizeForBig(quote.totalPrice));
 
-            if (new Big(totalFormattedClean).gt(0)) {
-              const btcPerRune = new Big(totalPriceClean).div(
-                totalFormattedClean,
-              );
+            if (totalFormattedAmount.gt(0)) {
+              const btcPerRune = totalPrice.div(totalFormattedAmount);
               outputUsdVal = outputAmountBig
                 .times(btcPerRune)
                 .times(btcPriceUsd);

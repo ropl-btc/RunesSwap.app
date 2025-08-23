@@ -1,4 +1,5 @@
 import Big from 'big.js';
+import { sanitizeForBig } from '@/utils/formatters';
 import { convertToRawAmount } from '@/utils/runeFormatting';
 import { useEffect, useState } from 'react';
 import {
@@ -168,7 +169,7 @@ export function useBorrowQuotes({
 
     // Validate collateral amount using Big for precision
     try {
-      const amountBig = new Big(collateralAmount);
+      const amountBig = new Big(sanitizeForBig(collateralAmount));
       if (amountBig.lte(0)) {
         setQuotesError('Please enter a valid collateral amount.');
         return;
@@ -183,7 +184,10 @@ export function useBorrowQuotes({
     try {
       const decimals = collateralRuneInfo?.decimals ?? 0;
       // Use centralized helper to convert display amount to raw integer string
-      const rawAmount = convertToRawAmount(collateralAmount, decimals);
+      const rawAmount = convertToRawAmount(
+        sanitizeForBig(collateralAmount),
+        decimals,
+      );
 
       let runeIdForApi = collateralAsset.id;
       if (collateralRuneInfo?.id?.includes(':')) {

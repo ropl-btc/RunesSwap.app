@@ -1,4 +1,5 @@
 import Big from 'big.js';
+import { parseAmount } from '@/utils/formatters';
 import {
   formatAmountWithPrecision,
   rawToDisplayAmount,
@@ -77,7 +78,8 @@ export function calculateActualBalance(
   decimals: number,
 ): number {
   try {
-    return parseFloat(rawToDisplayAmount(rawAmount, decimals));
+    const displayAmount = rawToDisplayAmount(rawAmount, decimals);
+    return parseAmount(displayAmount);
   } catch (error) {
     console.warn('Error calculating actual balance:', error);
     return 0;

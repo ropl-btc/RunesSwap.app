@@ -1,4 +1,5 @@
 import type { Order } from 'satsterminal-sdk';
+import { parseAmount } from '@/utils/formatters';
 
 /**
  * Normalizes an order object from SatsTerminal by ensuring numeric fields are
@@ -12,14 +13,14 @@ export function patchOrder(order: Order): Order {
   const patchedOrder: Partial<Order> = { ...order };
 
   if (typeof patchedOrder.price === 'string') {
-    const priceAsNumber = Number(patchedOrder.price);
+    const priceAsNumber = parseAmount(patchedOrder.price);
     if (!isNaN(priceAsNumber)) {
       patchedOrder.price = priceAsNumber;
     }
   }
 
   if (typeof patchedOrder.formattedAmount === 'string') {
-    const amountAsNumber = Number(patchedOrder.formattedAmount);
+    const amountAsNumber = parseAmount(patchedOrder.formattedAmount);
     if (!isNaN(amountAsNumber)) {
       patchedOrder.formattedAmount = amountAsNumber;
     }
@@ -29,7 +30,7 @@ export function patchOrder(order: Order): Order {
   if (patchedOrder.slippage !== undefined) {
     const slippageValue =
       typeof patchedOrder.slippage === 'string'
-        ? Number(patchedOrder.slippage)
+        ? parseAmount(patchedOrder.slippage)
         : patchedOrder.slippage;
     if (!isNaN(slippageValue)) {
       patchedOrder.slippage = slippageValue;

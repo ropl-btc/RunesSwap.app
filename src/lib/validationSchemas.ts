@@ -6,6 +6,7 @@
 import { z } from 'zod';
 import { validate as validateBitcoinAddress } from 'bitcoin-address-validation';
 import Big from 'big.js';
+import { sanitizeForBig } from '@/utils/formatters';
 
 // Common field validators
 export const validators = {
@@ -34,9 +35,14 @@ export const validators = {
     ),
 
   // Amount validation (can be string or number, converted to string)
+  // Note: we sanitize localized strings (e.g., "1.234,56") at the API boundary
+  // using sanitizeForBig so server routes accept internationalized input.
+  // Keep all financial math using Big; do not re-parse amounts in callers.
   amount: z
     .union([z.string().min(1), z.number().positive()])
     .transform((val) => String(val).trim())
+    // Sanitize localized strings like "1.234,56" -> "1234.56"
+    .transform((val) => sanitizeForBig(val))
     .refine((val) => {
       try {
         return new Big(val).gt(0);
@@ -46,9 +52,11 @@ export const validators = {
     }, 'Invalid amount (must be a positive number)'),
 
   // BTC amount validation
+  // Note: same sanitization as above to accept localized BTC amounts.
   btcAmount: z
     .union([z.string().min(1), z.number().positive()])
     .transform((val) => String(val).trim())
+    .transform((val) => sanitizeForBig(val))
     .refine((val) => {
       try {
         return new Big(val).gt(0);

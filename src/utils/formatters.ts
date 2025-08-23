@@ -1,4 +1,83 @@
 import Big from 'big.js';
+// Removed dependency on @internationalized/number by normalizing via sanitizeForBig
+
+/**
+ * Sanitizes user input for Big.js constructor while preserving precision.
+ * Pure string normalization: handles grouping, decimal separators, and exponent.
+ */
+export function sanitizeForBig(input: string | null | undefined): string {
+  if (input == null) return '0';
+  let s = String(input).trim();
+  if (s === '') return '0';
+
+  // Preserve a single leading minus; drop '+'
+  let sign = '';
+  if (s.startsWith('-')) {
+    sign = '-';
+    s = s.slice(1);
+  } else if (s.startsWith('+')) {
+    s = s.slice(1);
+  }
+
+  // Remove common group separators: spaces (incl. NBSP, thin), underscores, apostrophes/quotes
+  s = s.replace(/[\s\u00A0\u202F_]/g, '');
+  s = s.replace(/[’'`]/g, '');
+
+  // Normalize decimal separator: if both '.' and ',' occur, treat the last as decimal
+  const hasDot = s.includes('.');
+  const hasComma = s.includes(',');
+  if (hasDot && hasComma) {
+    const lastDot = s.lastIndexOf('.');
+    const lastComma = s.lastIndexOf(',');
+    const decimalSep = lastDot > lastComma ? '.' : ',';
+    const thousandSep = decimalSep === '.' ? ',' : '.';
+    s = s.split(thousandSep).join('');
+    if (decimalSep === ',') s = s.replace(/,/g, '.');
+  } else if (hasComma && !hasDot) {
+    s = s.replace(/,/g, '.');
+  }
+
+  // Allow digits, dot, and exponent markers for now
+  // Strip any remaining invalid characters
+  s = s.replace(/[^0-9.eE+-]/g, '');
+
+  // Collapse multiple dots in mantissa (keep first)
+  // Split around exponent if present
+  let mantissa = s;
+  let exponent = '';
+  const expMatch = s.match(/[eE][+-]?\d+$/);
+  if (expMatch) {
+    exponent = expMatch[0];
+    mantissa = s.slice(0, s.length - exponent.length);
+  }
+  const firstDot = mantissa.indexOf('.');
+  if (firstDot !== -1) {
+    const intPart = mantissa.slice(0, firstDot).replace(/\./g, '');
+    const fracPart = mantissa.slice(firstDot + 1).replace(/\./g, '');
+    mantissa = intPart + (fracPart ? '.' + fracPart : '');
+  }
+  if (mantissa === '' || mantissa === '.') return '0';
+
+  const candidate = sign + mantissa + exponent;
+
+  // Validate with Big and return canonical fixed form to avoid exponential notation
+  try {
+    const b = new Big(candidate);
+    return b.toFixed();
+  } catch {
+    return '0';
+  }
+}
+
+/**
+ * Parses a human-entered numeric string into a number consistently.
+ * Uses sanitizeForBig under the hood to handle localized formats.
+ */
+export function parseAmount(input: string | null | undefined): number {
+  const s = sanitizeForBig(input);
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : 0;
+}
 
 export const truncateTxid = (txid: string, length = 8): string => {
   if (!txid) return '';
@@ -10,17 +89,26 @@ export function formatNumberString(
   numStr?: string | null,
   defaultDisplay = 'N/A',
 ): string {
-  if (!numStr) return defaultDisplay;
-
-  try {
-    const cleaned = numStr.replace(/,/g, '');
-    if (!/^-?\d+(\.\d+)?$/.test(cleaned)) return defaultDisplay;
-    const [intPart, decPart] = cleaned.split('.') as [string, string?];
-    const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    return decPart ? `${withCommas}.${decPart}` : withCommas;
-  } catch {
-    return defaultDisplay;
+  if (numStr == null) return defaultDisplay;
+  const cleaned = sanitizeForBig(numStr);
+  // If sanitize collapses to '0', ensure original looked like zero; else invalid
+  if (cleaned === '0') {
+    const original = String(numStr)
+      .trim()
+      .replace(/[\s\u00A0\u202F_’'`]/g, '')
+      .replace(/,/g, '.');
+    const zeroish = /^[-+]?0*(?:\.?0*)?$/.test(original);
+    if (!zeroish) return defaultDisplay;
   }
+  if (!/^[-+]?\d+(?:\.\d+)?$/.test(cleaned)) return defaultDisplay;
+  const sign = cleaned.startsWith('-') ? '-' : '';
+  const [rawInt, rawDec] = cleaned.replace(/^[-+]/, '').split('.') as [
+    string,
+    string?,
+  ];
+  const intWithCommas = rawInt.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const formatted = rawDec ? `${intWithCommas}.${rawDec}` : intWithCommas;
+  return sign + formatted;
 }
 
 export function formatNumber(value: number): string {
