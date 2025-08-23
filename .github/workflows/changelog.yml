@@ -28,17 +28,18 @@ jobs:
           echo "$CHANGED" | grep -qx 'package.json' && has_package=true || true
           invalid=false
           reasons=""
+          # Always read current package.json version so we can suggest next patch
+          pkg_version=$(node -pe "require('./package.json').version" || true)
           if [ "$has_changelog" != "true" ] || [ "$has_package" != "true" ]; then
             invalid=true
             if [ "$has_changelog" != "true" ]; then
-              reasons+="- CHANGELOG.md is missing from this PR\n"
+              reasons+=$'- CHANGELOG.md is missing from this PR\n'
             fi
             if [ "$has_package" != "true" ]; then
-              reasons+="- package.json is missing from this PR\n"
+              reasons+=$'- package.json is missing from this PR\n'
             fi
           fi
           cl_version=""
-          pkg_version=""
           is_unreleased=false
           mismatch=false
           if [ "$has_changelog" = "true" ] && [ "$has_package" = "true" ]; then
@@ -47,21 +48,20 @@ jobs:
             if echo "$top_line" | grep -qE '^## \[Unreleased\]'; then
               is_unreleased=true
               invalid=true
-              reasons+="- Top section is [Unreleased]; release PRs must use a versioned section\n"
+              reasons+=$'- Top section is [Unreleased]; release PRs must use a versioned section\n'
             fi
             vline=$(grep -m1 -E '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md || true)
             if [ -n "$vline" ]; then
               cl_version=$(echo "$vline" | sed -E 's/^## \[([0-9]+\.[0-9]+\.[0-9]+)\].*/\1/')
             fi
-            pkg_version=$(node -pe "require('./package.json').version" || true)
             if [ -z "$cl_version" ]; then
               invalid=true
-              reasons+="- No versioned section found at the top of CHANGELOG.md\n"
+              reasons+=$'- No versioned section found at the top of CHANGELOG.md\n'
             fi
             if [ -n "$cl_version" ] && [ -n "$pkg_version" ] && [ "$cl_version" != "$pkg_version" ]; then
               mismatch=true
               invalid=true
-              reasons+="- Version mismatch: CHANGELOG (${cl_version:-n/a}) vs package.json (${pkg_version:-n/a})\n"
+              reasons+=$'- Version mismatch: CHANGELOG ('"${cl_version:-n/a}"') vs package.json ('"${pkg_version:-n/a}"')\n'
             fi
           fi
           {
@@ -89,14 +89,18 @@ jobs:
             const pkg = `${{ steps.check.outputs.pkg_version }}`;
             const today = new Date().toISOString().slice(0,10);
             const repo = `${context.repo.owner}/${context.repo.repo}`;
-            const suggested = cl || pkg || '0.0.0';
-            const body = [
-              marker,
-              '❌ Changelog validation failed:',
-              reasons.trim(),
-              '',
-              'Copy-paste prompt for your AI agent:',
-              '',
+            function nextPatch(v){
+              const m = /^([0-9]+)\.([0-9]+)\.([0-9]+)$/.exec(v||'');
+              if(!m) return null;
+              const major=+m[1], minor=+m[2], patch=+m[3]+1;
+              return `${major}.${minor}.${patch}`;
+            }
+            let suggested = cl || pkg;
+            if(!suggested){
+              const bumped = nextPatch(pkg);
+              suggested = bumped || '0.0.1';
+            }
+            const prompt = [
               'You are updating the changelog for this PR to pass CI.',
               '',
               'Do the following in a single commit:',
@@ -110,6 +114,17 @@ jobs:
               '- Keep formatting consistent (headers, list bullets, links).',
               '',
               'Then push the commit to this PR.'
+            ].join('\n');
+            const body = [
+              marker,
+              '❌ Changelog validation failed:',
+              reasons.trim(),
+              '',
+              'Copy-paste prompt for your AI agent:',
+              '',
+              '```text',
+              prompt,
+              '```'
             ].join('\n');
             try {
               const { data: comments } = await github.rest.issues.listComments({
