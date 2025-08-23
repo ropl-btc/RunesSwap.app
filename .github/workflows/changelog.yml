@@ -98,13 +98,17 @@ jobs:
             // Prefer suggesting the next patch of package.json; else next patch of CHANGELOG; else textual hint
             let suggested = nextPatch(pkg) || nextPatch(cl) || 'next patch version';
             const prompt = [
-              'You are updating the changelog for this PR to pass CI.',
+              'Update the changelog for this PR to pass CI.',
               '',
               'Do the following in a single commit:',
               `- Decide the next SemVer (patch/minor) for this PR (suggested: ${suggested}).`,
               `- Update package.json "version" to the chosen version.`,
               '- In CHANGELOG.md:',
               `  - Add a new top section: \`## [<version>] - ${today}\` with changelog categories (Added/Changed/Fixed/Removed/Security) summarizing this PR.`,
+              '    Before writing, quickly review this PR diff and list notable changes:',
+              '      gh pr diff <PR_URL> --color=always | less -R',
+              '      # or',
+              '      git fetch origin && git diff origin/<base>...origin/<head>',
               '  - Ensure footer links include:',
               `    - [<version>]: https://github.com/${repo}/compare/<prev_tag>...v<version>`,
               '    - Optionally update [Unreleased] to compare v<version>...HEAD if you keep it.',
@@ -112,6 +116,11 @@ jobs:
               '',
               'Then push the commit to this PR.'
             ].join('\n');
+            const prUrl = pr.html_url;
+            const baseRef = pr.base && pr.base.ref ? pr.base.ref : '';
+            const headRef = pr.head && pr.head.ref ? pr.head.ref : '';
+            const baseSha = pr.base && pr.base.sha ? pr.base.sha : '';
+            const headSha = pr.head && pr.head.sha ? pr.head.sha : '';
             const body = [
               marker,
               '❌ Changelog validation failed:',
@@ -121,6 +130,20 @@ jobs:
               '',
               '```text',
               prompt,
+              '```',
+              '',
+              'Helpful: view this PR diff locally to summarize accurately:',
+              '',
+              '```bash',
+              '# GitHub CLI (recommended)',
+              `gh pr diff ${prUrl} --color=always | less -R`,
+              '',
+              '# Or using local git branches',
+              'git fetch origin',
+              (baseRef && headRef ? `git diff origin/${baseRef}...origin/${headRef}` : '# (branch names unavailable)'),
+              '',
+              '# Or using SHAs',
+              (baseSha && headSha ? `git diff ${baseSha}...${headSha}` : '# (SHAs unavailable)'),
               '```'
             ].join('\n');
             try {
