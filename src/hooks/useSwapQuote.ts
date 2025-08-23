@@ -45,8 +45,7 @@ export function useSwapQuote({
   setExchangeRate,
   setQuoteTimestamp,
 }: UseSwapQuoteArgs) {
-  const parser = new NumberParser('en-US');
-  const parsedInput = parser.parse(inputAmount) || 0;
+  const parsedInput = new NumberParser('en-US').parse(inputAmount) || 0;
   const [debouncedInputAmount] = useDebounce(
     !isNaN(parsedInput) && parsedInput > 0 ? parsedInput : 0,
     1500,
@@ -59,6 +58,7 @@ export function useSwapQuote({
   const latestQuoteRequestId = useRef(0);
 
   const handleFetchQuote = useCallback(async () => {
+    const parser = new NumberParser('en-US');
     const amount = parser.parse(inputAmount) ?? NaN;
     if (
       !inputAmount ||
@@ -232,7 +232,6 @@ export function useSwapQuote({
     setExchangeRate,
     setOutputAmount,
     setQuoteTimestamp,
-    parser,
   ]);
 
   useEffect(() => {
