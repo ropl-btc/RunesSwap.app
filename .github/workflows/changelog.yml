@@ -1,4 +1,4 @@
-name: Ensure Changelog Updated
+name: Changelog Gate
 
 on:
   pull_request:
@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   changelog:
@@ -14,15 +15,167 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Verify CHANGELOG.md was modified
+      - name: Collect changelog/package status and validations
+        id: check
         run: |
           set -euo pipefail
           BASE_SHA="${{ github.event.pull_request.base.sha }}"
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-          if git diff --name-only "${BASE_SHA}...${HEAD_SHA}" | grep -qx 'CHANGELOG.md'; then
-            echo '✅ CHANGELOG.md updated.'
-          else
-            echo '❌ Please update CHANGELOG.md to describe your changes' >&2
-            echo 'See: https://keepachangelog.com/' >&2
-            exit 1
+          CHANGED=$(git diff --name-only "${BASE_SHA}...${HEAD_SHA}")
+          has_changelog=false
+          has_package=false
+          echo "$CHANGED" | grep -qx 'CHANGELOG.md' && has_changelog=true || true
+          echo "$CHANGED" | grep -qx 'package.json' && has_package=true || true
+          invalid=false
+          reasons=""
+          # Always read current package.json version so we can suggest next patch
+          pkg_version=$(node -pe "require('./package.json').version" || true)
+          if [ "$has_changelog" != "true" ] || [ "$has_package" != "true" ]; then
+            invalid=true
+            if [ "$has_changelog" != "true" ]; then
+              reasons+=$'- CHANGELOG.md is missing from this PR\n'
+            fi
+            if [ "$has_package" != "true" ]; then
+              reasons+=$'- package.json is missing from this PR\n'
+            fi
           fi
+          cl_version=""
+          is_unreleased=false
+          mismatch=false
+          if [ "$has_changelog" = "true" ] && [ "$has_package" = "true" ]; then
+            # Determine top section and version
+            top_line=$(grep -m1 -E '^## \[' CHANGELOG.md || true)
+            if echo "$top_line" | grep -qE '^## \[Unreleased\]'; then
+              is_unreleased=true
+              invalid=true
+              reasons+=$'- Top section is [Unreleased]; release PRs must use a versioned section\n'
+            fi
+            vline=$(grep -m1 -E '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md || true)
+            if [ -n "$vline" ]; then
+              cl_version=$(echo "$vline" | sed -E 's/^## \[([0-9]+\.[0-9]+\.[0-9]+)\].*/\1/')
+            fi
+            if [ -z "$cl_version" ]; then
+              invalid=true
+              reasons+=$'- No versioned section found at the top of CHANGELOG.md\n'
+            fi
+            if [ -n "$cl_version" ] && [ -n "$pkg_version" ] && [ "$cl_version" != "$pkg_version" ]; then
+              mismatch=true
+              invalid=true
+              reasons+=$'- Version mismatch: CHANGELOG ('"${cl_version:-n/a}"') vs package.json ('"${pkg_version:-n/a}"')\n'
+            fi
+          fi
+          {
+            echo "has_changelog=$has_changelog"
+            echo "has_package=$has_package"
+            echo "invalid=$invalid"
+            echo "is_unreleased=$is_unreleased"
+            echo "cl_version=$cl_version"
+            echo "pkg_version=$pkg_version"
+            echo "mismatch=$mismatch"
+          } >> "$GITHUB_OUTPUT"
+          # Emit a multi-line reasons output
+          printf 'reasons<<REASONS\n%s\nREASONS\n' "$reasons" >> "$GITHUB_OUTPUT"
+
+      - name: Comment guidance on PR
+        if: ${{ steps.check.outputs.invalid == 'true' }}
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- changelog-validate -->';
+            const pr = context.payload.pull_request;
+            const reasons = `${{ toJSON(steps.check.outputs.reasons) }}`.replace(/^"|"$/g,'');
+            const cl = `${{ steps.check.outputs.cl_version }}`;
+            const pkg = `${{ steps.check.outputs.pkg_version }}`;
+            const today = new Date().toISOString().slice(0,10);
+            const repo = `${context.repo.owner}/${context.repo.repo}`;
+            function nextPatch(v){
+              const m = /^([0-9]+)\.([0-9]+)\.([0-9]+)$/.exec(v||'');
+              if(!m) return null;
+              const major=+m[1], minor=+m[2], patch=+m[3]+1;
+              return `${major}.${minor}.${patch}`;
+            }
+            // Prefer suggesting the next patch of package.json; else next patch of CHANGELOG; else textual hint
+            let suggested = nextPatch(pkg) || nextPatch(cl) || 'next patch version';
+            const prompt = [
+              'Update the changelog for this PR to pass CI.',
+              '',
+              'Do the following in a single commit:',
+              `- Decide the next SemVer (patch/minor) for this PR (suggested: ${suggested}).`,
+              `- Update package.json "version" to the chosen version.`,
+              '- In CHANGELOG.md:',
+              `  - Add a new top section: \`## [<version>] - ${today}\` with changelog categories (Added/Changed/Fixed/Removed/Security) summarizing this PR.`,
+              '  - Ensure footer links include:',
+              `    - [<version>]: https://github.com/${repo}/compare/<prev_tag>...v<version>`,
+              '    - Optionally update [Unreleased] to compare v<version>...HEAD if you keep it.',
+              '- Keep formatting consistent (headers, list bullets, links).',
+              '',
+              'Then push the commit to this PR.'
+            ].join('\n');
+            const prUrl = pr.html_url;
+            const baseRef = pr.base && pr.base.ref ? pr.base.ref : '';
+            const headRef = pr.head && pr.head.ref ? pr.head.ref : '';
+            const baseSha = pr.base && pr.base.sha ? pr.base.sha : '';
+            const headSha = pr.head && pr.head.sha ? pr.head.sha : '';
+            const body = [
+              marker,
+              '❌ Changelog validation failed:',
+              reasons.trim(),
+              '',
+              'Copy-paste prompt for your AI agent:',
+              '',
+              '```text',
+              prompt,
+              '',
+              'Helpful: Summarize the changelog by viewing this PR diff locally:',
+              '# Local git branches (recommended)',
+              'git fetch origin',
+              (baseRef && headRef ? `git diff origin/${baseRef}...origin/${headRef}` : '# (branch names unavailable)'),
+              '',
+              '# Or using GitHub CLI',
+              `gh pr diff ${prUrl} --color=always | less -R`,
+              '',
+              '# Or using SHAs',
+              (baseSha && headSha ? `git diff ${baseSha}...${headSha}` : '# (SHAs unavailable)'),
+              '```'
+            ].join('\n');
+            try {
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                per_page: 100,
+              });
+              const existing = comments.find(c => c.user && c.user.type === 'Bot' && c.body && c.body.includes(marker));
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existing.id,
+                  body,
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  body,
+                });
+              }
+            } catch (err) {
+              core.warning(`Skipping PR comment: ${err.message || err}`);
+            }
+
+      - name: Write guidance to job summary
+        if: ${{ steps.check.outputs.invalid == 'true' }}
+        run: |
+          echo "### Changelog validation failed" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Reasons:" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ steps.check.outputs.reasons }}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail if invalid
+        if: ${{ steps.check.outputs.invalid == 'true' }}
+        run: |
+          echo "Changelog/package validation failed." >&2
+          exit 1
