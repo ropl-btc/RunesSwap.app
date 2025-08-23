@@ -1,5 +1,5 @@
 import Big from 'big.js';
-import { convertToRawAmount } from '@/utils/amountFormatting';
+import { convertToRawAmount } from '@/utils/runeFormatting';
 import { useEffect, useState } from 'react';
 import {
   LiquidiumBorrowQuoteOffer,
