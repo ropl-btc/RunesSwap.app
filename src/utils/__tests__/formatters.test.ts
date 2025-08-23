@@ -113,4 +113,15 @@ describe('sanitizeNumberString', () => {
   it('returns same string when no commas present', () => {
     expect(sanitizeNumberString('1234567')).toBe('1234567');
   });
+
+  it('handles edge cases', () => {
+    expect(sanitizeNumberString('')).toBe('');
+    expect(sanitizeNumberString('1,234.567')).toBe('1234.567');
+    expect(sanitizeNumberString('1,23,4')).toBe('1234');
+  });
+
+  it('handles null and undefined inputs', () => {
+    expect(sanitizeNumberString(null)).toBe('');
+    expect(sanitizeNumberString(undefined)).toBe('');
+  });
 });

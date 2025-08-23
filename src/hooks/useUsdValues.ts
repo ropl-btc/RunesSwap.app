@@ -41,7 +41,8 @@ export default function useUsdValues({
     }
 
     try {
-      const amountBig = new Big(inputAmount);
+      const sanitizedAmount = sanitizeNumberString(inputAmount);
+      const amountBig = new Big(sanitizedAmount);
       if (amountBig.lte(0)) {
         return { inputUsdValue: null, outputUsdValue: null };
       }

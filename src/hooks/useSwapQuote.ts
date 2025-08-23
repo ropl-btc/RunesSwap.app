@@ -45,8 +45,10 @@ export function useSwapQuote({
   setExchangeRate,
   setQuoteTimestamp,
 }: UseSwapQuoteArgs) {
+  const sanitizedInput = sanitizeNumberString(inputAmount);
+  const parsedInput = sanitizedInput ? parseFloat(sanitizedInput) : 0;
   const [debouncedInputAmount] = useDebounce(
-    inputAmount ? parseFloat(inputAmount) : 0,
+    !isNaN(parsedInput) && parsedInput > 0 ? parsedInput : 0,
     1500,
   );
 
@@ -57,11 +59,17 @@ export function useSwapQuote({
   const latestQuoteRequestId = useRef(0);
 
   const handleFetchQuote = useCallback(async () => {
-    if (!inputAmount || !parseFloat(inputAmount) || !assetIn || !assetOut) {
+    const cleanedInput = sanitizeNumberString(inputAmount);
+    const amount = cleanedInput ? parseFloat(cleanedInput) : NaN;
+    if (
+      !cleanedInput ||
+      Number.isNaN(amount) ||
+      amount <= 0 ||
+      !assetIn ||
+      !assetOut
+    ) {
       return;
     }
-
-    const amount = parseFloat(inputAmount);
 
     if (isThrottledRef.current) {
       return;
@@ -126,22 +134,32 @@ export function useSwapQuote({
         let calculatedOutputAmount = '';
         let calculatedRate: string | null = null;
         if (quoteResponse) {
-          const inputVal = parseFloat(inputAmount);
+          const inputVal = parseFloat(sanitizeNumberString(inputAmount));
           let outputVal = 0;
           let btcValue = 0;
           let runeValue = 0;
           try {
             if (assetIn?.isBTC) {
-              outputVal = parseFloat(
-                sanitizeNumberString(quoteResponse.totalFormattedAmount || '0'),
+              const sanitizedOutput = sanitizeNumberString(
+                quoteResponse.totalFormattedAmount || '0',
               );
+              const parsedOutput = parseFloat(sanitizedOutput);
+              if (!Number.isFinite(parsedOutput)) {
+                throw new Error('Invalid quote output amount');
+              }
+              outputVal = parsedOutput;
               btcValue = inputVal;
               runeValue = outputVal;
               calculatedOutputAmount = outputVal.toLocaleString(undefined, {});
             } else {
-              outputVal = parseFloat(
-                sanitizeNumberString(quoteResponse.totalPrice || '0'),
+              const sanitizedPrice = sanitizeNumberString(
+                quoteResponse.totalPrice || '0',
               );
+              const parsedPrice = parseFloat(sanitizedPrice);
+              if (!Number.isFinite(parsedPrice)) {
+                throw new Error('Invalid quote price');
+              }
+              outputVal = parsedPrice;
               runeValue = inputVal;
               btcValue = outputVal;
               calculatedOutputAmount = outputVal.toLocaleString(undefined, {

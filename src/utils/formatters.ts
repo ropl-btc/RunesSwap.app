@@ -1,7 +1,14 @@
 import { safeArrayAccess, safeArrayFirst } from '@/utils/typeGuards';
 import Big from 'big.js';
 
-export const sanitizeNumberString = (v: string) => v.replace(/,/g, '');
+/**
+ * Removes comma separators from number strings to prevent parsing errors
+ * @param v - The number string to sanitize
+ * @returns String with commas removed, or empty string if input is null/undefined
+ * @example sanitizeNumberString('1,234.56') // '1234.56'
+ */
+export const sanitizeNumberString = (v: string | null | undefined): string =>
+  v?.replace(/,/g, '') ?? '';
 
 // Function to truncate TXIDs for display
 export const truncateTxid = (txid: string, length: number = 8): string => {
