@@ -6,6 +6,7 @@
 import type { RuneMarketInfo } from '@/types/ordiscan';
 import type { RuneData } from '@/lib/runesData';
 import { supabase } from '@/lib/supabase';
+import { logDbError } from '@/lib/logger';
 
 // Types for database tables
 export interface RuneRecord {
@@ -52,7 +53,7 @@ export async function batchFetchRunes(
     .in('name', runeNames);
 
   if (error) {
-    console.warn('Error fetching runes from Supabase:', error);
+    logDbError('batchFetchRunes', error);
     return [];
   }
 
@@ -74,7 +75,7 @@ export async function batchFetchRuneMarketData(
     .gt('last_updated_at', new Date(Date.now() - 3600000).toISOString()); // Last hour
 
   if (error) {
-    console.warn('Error fetching rune market data from Supabase:', error);
+    logDbError('batchFetchRuneMarketData', error);
     return [];
   }
 
@@ -110,7 +111,7 @@ export async function upsertRuneData(runeData: RuneData): Promise<boolean> {
     .select();
 
   if (error) {
-    console.warn('Error upserting rune data:', error);
+    logDbError('upsertRuneData', error);
     return false;
   }
 
@@ -137,7 +138,7 @@ export async function upsertRuneMarketData(
     .upsert(upsertData, { onConflict: 'rune_name' });
 
   if (error) {
-    console.warn('Error upserting market data:', error);
+    logDbError('upsertRuneMarketData', error);
     return false;
   }
 
@@ -159,7 +160,7 @@ export async function fetchRuneByName(
   if (error) {
     if (error.code !== 'PGRST116') {
       // PGRST116 is "not found", which is expected
-      console.warn('Error fetching rune by name:', error);
+      logDbError('fetchRuneByName', error);
     }
     return null;
   }
@@ -185,7 +186,7 @@ export async function fetchRuneMarketDataByName(
 
   if (error) {
     if (error.code !== 'PGRST116') {
-      console.warn('Error fetching market data by name:', error);
+      logDbError('fetchRuneMarketDataByName', error);
     }
     return null;
   }
@@ -223,7 +224,7 @@ export async function batchUpsertRunes(runesData: RuneData[]): Promise<number> {
     .upsert(dataToInsert, { onConflict: 'name' });
 
   if (error) {
-    console.warn('Error batch upserting runes:', error);
+    logDbError('batchUpsertRunes', error);
     return 0;
   }
 
@@ -244,6 +245,6 @@ export async function cleanupOldMarketData(olderThanHours = 24): Promise<void> {
     .lt('last_updated_at', cutoffTime);
 
   if (error) {
-    console.warn('Error cleaning up old market data:', error);
+    logDbError('cleanupOldMarketData', error);
   }
 }

@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Centralized rune route validation with shared helper.
 - Refactored `FormattedRuneName` to use the `useRuneInfo` hook.
+- Replace console statements with logger utilities.
 
 ## [0.2.3] - 2025-08-24
 

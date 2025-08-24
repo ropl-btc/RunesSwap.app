@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createSuccessResponse, validateRequest } from '@/lib/apiUtils';
+import { logger } from '@/lib/logger';
 import { validators } from '@/lib/validationSchemas';
 import { withApiHandler } from '@/lib/withApiHandler';
 import { normalizeRuneName } from '@/utils/runeUtils';
@@ -20,7 +21,7 @@ export function createRuneRoute<T>(
       const data = await fetcher(normalized);
 
       if (!data) {
-        console.warn(`[API Route] ${errorMessage}: ${normalized} not found`);
+        logger.warn(`[API Route] ${errorMessage}: ${normalized} not found`);
         return createSuccessResponse(null, 404);
       }
 
