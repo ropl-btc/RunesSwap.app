@@ -1,12 +1,9 @@
 import { act, renderHook } from '@testing-library/react';
 import useRunesSearch from '@/hooks/useRunesSearch';
-import usePopularRunes from '@/hooks/usePopularRunes';
 
 jest.mock('@/lib/api', () => ({
   fetchRunesFromApi: jest.fn(),
 }));
-
-jest.mock('@/hooks/usePopularRunes', () => jest.fn());
 
 jest.mock('@/store/runesInfoStore', () => ({
   useRunesInfoStore: jest.fn(() => ({
@@ -24,17 +21,7 @@ const createMockRunes = (suffix: string) => [
 ];
 
 describe('useRunesSearch', () => {
-  const mockUsePopularRunes = usePopularRunes as jest.Mock;
-
-  beforeEach(() => {
-    mockUsePopularRunes.mockReturnValue({
-      popularRunes: [],
-      isLoading: false,
-      error: null,
-    });
-  });
-
-  it('updates when hook data changes', async () => {
+  it('updates when cached popular runes change', async () => {
     const runes1 = createMockRunes('1').map((r) => ({
       id: r.token_id,
       name: r.token,
@@ -46,21 +33,14 @@ describe('useRunesSearch', () => {
       imageURI: r.icon,
     }));
 
-    mockUsePopularRunes.mockReturnValueOnce({
-      popularRunes: runes1,
-      isLoading: false,
-      error: null,
-    });
-
-    const { result, rerender } = renderHook(() => useRunesSearch());
+    type Props = { cachedPopularRunes: Record<string, unknown>[] };
+    const { result, rerender } = renderHook(
+      (props: Props) => useRunesSearch(props),
+      { initialProps: { cachedPopularRunes: runes1 } },
+    );
     expect(result.current.availableRunes.map((r) => r.id)).toEqual(['123:1']);
 
-    mockUsePopularRunes.mockReturnValueOnce({
-      popularRunes: runes2,
-      isLoading: false,
-      error: null,
-    });
-    rerender();
+    rerender({ cachedPopularRunes: runes2 });
     await act(async () => Promise.resolve());
     expect(result.current.availableRunes.map((r) => r.id)).toEqual(['123:2']);
   });
