@@ -10,3 +10,10 @@
 export function normalizeRuneName(name: string): string {
   return name.replace(/[•.]/g, '');
 }
+
+/**
+ * Get the icon URL for a rune name.
+ */
+export function getRuneIconUrl(name: string): string {
+  return `https://icon.unisat.io/icon/runes/${encodeURIComponent(name)}`;
+}
