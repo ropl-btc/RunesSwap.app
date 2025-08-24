@@ -7,14 +7,16 @@ import useSwapExecution from '@/hooks/useSwapExecution';
 jest.mock('@/lib/api', () => ({
   getPsbtFromApi: jest.fn(),
   confirmPsbtViaApi: jest.fn(),
-  fetchRecommendedFeeRates: jest.fn(),
-  QUERY_KEYS: { BTC_FEE_RATES: 'btcFeeRates' },
 }));
 
-jest.mock('@tanstack/react-query', () => ({ useQuery: jest.fn() }));
+jest.mock('@/hooks/useFeeRates', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
 const { getPsbtFromApi, confirmPsbtViaApi } = jest.requireMock('@/lib/api');
-const { useQuery } = jest.requireMock('@tanstack/react-query');
+const useFeeRates = jest.requireMock('@/hooks/useFeeRates')
+  .default as jest.Mock;
 
 type HookProps = Parameters<typeof useSwapExecution>[0];
 
@@ -42,7 +44,7 @@ const createBaseProps = (overrides: Partial<HookProps> = {}): HookProps => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
-  (useQuery as jest.Mock).mockReturnValue({
+  useFeeRates.mockReturnValue({
     data: { fastestFee: 5, halfHourFee: 5 },
   });
 });
