@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import { useRef } from 'react';
 import {
   type ConfirmPSBTParams,
@@ -10,12 +9,8 @@ import type {
   SwapProcessAction,
   SwapProcessState,
 } from '@/components/swap/SwapProcessManager';
-import {
-  QUERY_KEYS,
-  confirmPsbtViaApi,
-  fetchRecommendedFeeRates,
-  getPsbtFromApi,
-} from '@/lib/api';
+import { confirmPsbtViaApi, getPsbtFromApi } from '@/lib/api';
+import useFeeRates from '@/hooks/useFeeRates';
 import { logger } from '@/lib/logger';
 import { Asset } from '@/types/common';
 import { patchOrder } from '@/utils/orderUtils';
@@ -67,11 +62,7 @@ export default function useSwapExecution({
 }: UseSwapExecutionArgs) {
   const errorMessageRef = useRef<string | null>(null);
 
-  const { data: recommendedFeeRates } = useQuery({
-    queryKey: [QUERY_KEYS.BTC_FEE_RATES],
-    queryFn: fetchRecommendedFeeRates,
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000,
+  const { data: recommendedFeeRates } = useFeeRates({
     gcTime: 10 * 60 * 1000,
   });
 
