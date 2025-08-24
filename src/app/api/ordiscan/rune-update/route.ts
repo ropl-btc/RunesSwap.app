@@ -9,6 +9,7 @@ import { RuneData } from '@/lib/runesData';
 import { getOrdiscanClient } from '@/lib/serverUtils';
 import { supabase } from '@/lib/supabase';
 import { withApiHandler } from '@/lib/withApiHandler';
+import { logger, logDbError } from '@/lib/logger';
 
 export const POST = withApiHandler(
   async (request: NextRequest) => {
@@ -21,7 +22,7 @@ export const POST = withApiHandler(
     const runeData = await ordiscan.rune.getInfo({ name: runeName });
 
     if (!runeData) {
-      console.warn(`[API Route] Rune info not found for ${runeName}`);
+      logger.warn(`[API Route] Rune info not found for ${runeName}`);
       return createSuccessResponse(null, 404);
     }
 
@@ -37,8 +38,8 @@ export const POST = withApiHandler(
       .select();
 
     if (updateError) {
-      console.error('[API Route] Error updating rune data:', updateError);
-      console.error('[API Route] Update error details:', {
+      logDbError('update rune data', updateError);
+      logger.error('[API Route] Update error details:', {
         code: updateError.code,
         message: updateError.message,
         details: updateError.details,

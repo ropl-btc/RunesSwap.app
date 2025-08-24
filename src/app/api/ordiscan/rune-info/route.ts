@@ -4,6 +4,7 @@ import { createSuccessResponse, validateRequest } from '@/lib/apiUtils';
 import { getRuneData } from '@/lib/runesData';
 import { withApiHandler } from '@/lib/withApiHandler';
 import { normalizeRuneName } from '@/utils/runeUtils';
+import { logger } from '@/lib/logger';
 
 export const GET = withApiHandler(
   async (request: NextRequest) => {
@@ -22,7 +23,7 @@ export const GET = withApiHandler(
     const runeInfo = await getRuneData(formattedName);
 
     if (!runeInfo) {
-      console.warn(`[API Route] Rune info not found for ${formattedName}`);
+      logger.warn(`[API Route] Rune info not found for ${formattedName}`);
       // Return null data with success: true for consistent client-side handling
       return createSuccessResponse(null, 404);
     }

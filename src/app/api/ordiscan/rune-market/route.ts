@@ -4,6 +4,7 @@ import { createSuccessResponse, validateRequest } from '@/lib/apiUtils';
 import { getRuneMarketData } from '@/lib/runeMarketData';
 import { withApiHandler } from '@/lib/withApiHandler';
 import { normalizeRuneName } from '@/utils/runeUtils';
+import { logger } from '@/lib/logger';
 
 export const GET = withApiHandler(
   async (request: NextRequest) => {
@@ -17,7 +18,7 @@ export const GET = withApiHandler(
     const marketInfo = await getRuneMarketData(formattedName);
 
     if (!marketInfo) {
-      console.warn(
+      logger.warn(
         `[API Route] Rune market info not found for ${formattedName}`,
       );
       return createSuccessResponse(null, 404);
