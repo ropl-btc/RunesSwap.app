@@ -1,7 +1,5 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-//
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
@@ -12,9 +10,8 @@ import { useLiquidiumAuth } from '@/hooks/useLiquidiumAuth';
 import { useRuneBalance } from '@/hooks/useRuneBalance';
 import { useRuneInfo } from '@/hooks/useRuneInfo';
 import { useRuneMarketData } from '@/hooks/useRuneMarketData';
-import { QUERY_KEYS, fetchRuneBalancesFromApi } from '@/lib/api';
+import { useRuneBalances } from '@/hooks/useRuneBalances';
 import { Asset } from '@/types/common';
-import { type RuneBalance as OrdiscanRuneBalance } from '@/types/ordiscan';
 import { percentageOfRawAmount } from '@/utils/runeFormatting';
 import { formatUsd, parseAmount, sanitizeForBig } from '@/utils/formatters';
 import Big from 'big.js';
@@ -73,15 +70,11 @@ export function BorrowTab({
   const [collateralAmount, setCollateralAmount] = useState('');
   const [feeRate, setFeeRate] = useState(0);
 
-  const { data: runeBalances, isLoading: isRuneBalancesLoading } = useQuery<
-    OrdiscanRuneBalance[],
-    Error
-  >({
-    queryKey: [QUERY_KEYS.RUNE_BALANCES, address],
-    queryFn: () => fetchRuneBalancesFromApi(address!),
-    enabled: !!connected && !!address,
-    staleTime: 30000,
-  });
+  const { data: runeBalances, isLoading: isRuneBalancesLoading } =
+    useRuneBalances(address, {
+      enabled: !!connected && !!address,
+      staleTime: 30000,
+    });
 
   const { data: collateralRuneInfo, isLoading: isCollateralRuneInfoLoading } =
     useRuneInfo(collateralAsset?.isBTC ? null : collateralAsset?.name, {
