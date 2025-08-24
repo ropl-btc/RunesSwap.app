@@ -31,6 +31,16 @@ export function useSearchWithPopular<T, R>({
     initialQuery,
   );
 
+  // If we have a persisted non-empty query, trigger an initial search on mount
+  useEffect(() => {
+    const trimmed = initialQuery.trim();
+    if (trimmed) {
+      // This will set the query and kick the debounced fetcher
+      search.onQueryChange(trimmed);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [popularItems, setPopularItems] = useState<T[]>(initialItems);
   const [isPopularLoading, setIsPopularLoading] = useState(initialLoading);
   const [popularError, setPopularError] = useState<string | null>(initialError);

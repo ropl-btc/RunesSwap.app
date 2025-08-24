@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import type { ConfirmPSBTParams, Order } from 'satsterminal-sdk';
 import { z } from 'zod';
-import { validateRequest } from '@/lib/apiUtils';
+import { validateRequest, createSuccessResponse } from '@/lib/apiUtils';
 import { handleSatsTerminalError } from '@/lib/satsTerminalError';
 import { getSatsTerminalClient } from '@/lib/serverUtils';
 import { withApiHandler } from '@/lib/withApiHandler';
@@ -44,14 +44,15 @@ const handler = async (request: NextRequest) => {
     runeName: validatedParams.runeName,
     sell: validatedParams.sell ?? false,
     rbfProtection: validatedParams.rbfProtection ?? false,
-    // Only include signedRbfPsbtBase64 if it has a valid value
-    ...(validatedParams.signedRbfPsbtBase64 && {
-      signedRbfPsbtBase64: validatedParams.signedRbfPsbtBase64,
-    }),
+    // Only include signedRbfPsbtBase64 when RBF is enabled and a value is provided
+    ...(validatedParams.rbfProtection &&
+      validatedParams.signedRbfPsbtBase64 && {
+        signedRbfPsbtBase64: validatedParams.signedRbfPsbtBase64,
+      }),
   };
 
   const confirmResponse = await terminal.confirmPSBT(confirmParams);
-  return NextResponse.json(confirmResponse);
+  return createSuccessResponse(confirmResponse);
 };
 
 export const POST = withApiHandler(handler, {

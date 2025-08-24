@@ -9,7 +9,7 @@ interface FormattedRuneNameProps {
 
 export function FormattedRuneName({ runeName }: FormattedRuneNameProps) {
   const { data: runeInfo } = useRuneInfo(runeName, {
-    enabled: runeName !== 'N/A',
+    enabled: !!runeName && runeName !== 'N/A',
   });
 
   // Handle invalid rune names

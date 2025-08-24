@@ -31,7 +31,7 @@ export const POST = withApiHandler(
       last_updated_at: new Date().toISOString(),
     };
 
-    const { error: updateError } = await supabase
+    const { data: updatedRows, error: updateError } = await supabase
       .from('runes')
       .update(dataToUpdate)
       .eq('name', runeName)
@@ -47,9 +47,20 @@ export const POST = withApiHandler(
       });
       return createErrorResponse(
         'Database update failed',
-        JSON.stringify(updateError),
+        process.env.NODE_ENV !== 'production'
+          ? JSON.stringify({
+              code: updateError.code,
+              message: updateError.message,
+            })
+          : undefined,
         500,
       );
+    }
+
+    // No row was updated – treat as not found
+    if (!updatedRows || updatedRows.length === 0) {
+      logger.warn('[API Route] Update affected 0 rows', { runeName });
+      return createErrorResponse('Rune not found', undefined, 404);
     }
 
     return createSuccessResponse(runeData as RuneData);

@@ -3,14 +3,17 @@ import { QUERY_KEYS, fetchRecommendedFeeRates } from '@/lib/api';
 import type { BitcoinFeeRates } from '@/lib/api';
 
 export const useFeeRates = (
-  options?: Partial<UseQueryOptions<BitcoinFeeRates>>,
+  options?: Omit<UseQueryOptions<BitcoinFeeRates>, 'queryKey' | 'queryFn'>,
 ) =>
-  useQuery({
+  useQuery<BitcoinFeeRates>({
     queryKey: [QUERY_KEYS.BTC_FEE_RATES],
     queryFn: fetchRecommendedFeeRates,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
-    ...options,
+    ...(options as Omit<
+      UseQueryOptions<BitcoinFeeRates>,
+      'queryKey' | 'queryFn'
+    >),
   });
 
 export default useFeeRates;
