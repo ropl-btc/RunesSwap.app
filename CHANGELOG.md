@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reusable `useRuneBalances` hook for fetching rune balances and refactored Borrow and Swap tabs to use it.
 - Centralized helper for retrieving and validating Liquidium JWTs used by borrow routes.
+ - Centralized SatsTerminal error handler and wrapped PSBT endpoints with `withApiHandler`.
 
 ### Changed
 
