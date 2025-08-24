@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { fetchPopularFromApi, fetchRunesFromApi } from '@/lib/api';
 import { Asset, BTC_ASSET } from '@/types/common';
 import { mapPopularToAsset } from '@/utils/popularRunes';
-import { normalizeRuneName } from '@/utils/runeUtils';
+import { normalizeRuneName, getRuneIconUrl } from '@/utils/runeUtils';
 import { safeArrayFirst } from '@/utils/typeGuards';
 
 interface UseSwapRunesArgs {
@@ -116,7 +116,7 @@ export function useSwapRunes({
           const provisionalAsset: Asset = {
             id: normalized.toLowerCase(),
             name: preSelectedRune,
-            imageURI: `https://icon.unisat.io/icon/runes/${encodeURIComponent(preSelectedRune)}`,
+            imageURI: getRuneIconUrl(preSelectedRune),
             isBTC: false,
           };
           setAssetIn(BTC_ASSET);
@@ -159,7 +159,7 @@ export function useSwapRunes({
               const fallbackAsset: Asset = {
                 id: normalized.toLowerCase(),
                 name: preSelectedRune,
-                imageURI: `https://icon.unisat.io/icon/runes/${encodeURIComponent(preSelectedRune)}`,
+                imageURI: getRuneIconUrl(preSelectedRune),
                 isBTC: false,
               };
               setAssetIn(BTC_ASSET);
