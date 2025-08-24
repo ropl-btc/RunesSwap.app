@@ -1,23 +1,15 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import React from 'react';
-import { fetchRuneInfoFromApi } from '@/lib/api';
-import type { RuneData } from '@/lib/runesData';
+import { useRuneInfo } from '@/hooks/useRuneInfo';
 
 interface FormattedRuneNameProps {
   runeName: string | null | undefined;
 }
 
 export function FormattedRuneName({ runeName }: FormattedRuneNameProps) {
-  // Use React Query to fetch rune info
-  const { data: runeInfo } = useQuery<RuneData | null, Error>({
-    queryKey: ['runeInfoApi', (runeName || '').toUpperCase()],
-    queryFn: () =>
-      runeName ? fetchRuneInfoFromApi(runeName) : Promise.resolve(null),
-    enabled: !!runeName && runeName !== 'N/A',
-    staleTime: Infinity, // Names rarely change, cache indefinitely
-    retry: 1, // Minimal retry to reduce network load
+  const { data: runeInfo } = useRuneInfo(runeName, {
+    enabled: runeName !== 'N/A',
   });
 
   // Handle invalid rune names
