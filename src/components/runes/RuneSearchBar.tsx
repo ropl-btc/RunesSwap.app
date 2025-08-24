@@ -10,17 +10,11 @@ import styles from '@/components/runes/RunesInfoTab.module.css';
 interface RuneSearchBarProps {
   onRuneSelect: (rune: Rune) => void;
   selectedRuneName?: string | null;
-  cachedPopularRunes?: Record<string, unknown>[];
-  isPopularRunesLoading?: boolean;
-  popularRunesError?: Error | null;
 }
 
 const RuneSearchBar: React.FC<RuneSearchBarProps> = ({
   onRuneSelect,
   selectedRuneName,
-  cachedPopularRunes = [],
-  isPopularRunesLoading = false,
-  popularRunesError = null,
 }) => {
   const {
     searchQuery,
@@ -31,11 +25,7 @@ const RuneSearchBar: React.FC<RuneSearchBarProps> = ({
     availableRunes,
     isLoadingRunes,
     currentRunesError,
-  } = useRunesSearch({
-    cachedPopularRunes,
-    isPopularRunesLoading,
-    popularRunesError,
-  });
+  } = useRunesSearch();
 
   return (
     <div className={styles.searchAndResultsContainer}>

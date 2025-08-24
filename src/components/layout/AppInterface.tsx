@@ -1,12 +1,10 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { useSharedLaserEyes } from '@/context/LaserEyesContext';
 import useBtcPrice from '@/hooks/useBtcPrice';
-import { QUERY_KEYS, fetchPopularFromApi } from '@/lib/api';
 import type { Asset } from '@/types/common';
 import { Loading } from '@/components/loading';
 import styles from '@/components/layout/AppInterface.module.css';
@@ -118,17 +116,6 @@ export function AppInterface({ activeTab }: AppInterfaceProps) {
   const { btcPriceUsd, isBtcPriceLoading, btcPriceError } = useBtcPrice();
 
   // Fetch popular runes once - it's now a simple static list
-  const {
-    data: popularRunes,
-    isLoading: isPopularRunesLoading,
-    error: popularRunesError,
-  } = useQuery<Record<string, unknown>[], Error>({
-    queryKey: [QUERY_KEYS.POPULAR_RUNES],
-    queryFn: () => fetchPopularFromApi(),
-    staleTime: Infinity, // Never refetch - it's a hardcoded list
-    gcTime: Infinity, // Keep forever
-  });
-
   const togglePriceChart = React.useCallback(
     (assetName?: string, shouldToggle: boolean = true) => {
       if (activeTab === 'swap') {
@@ -196,9 +183,6 @@ export function AppInterface({ activeTab }: AppInterfaceProps) {
             btcPriceUsd={btcPriceUsd}
             isBtcPriceLoading={isBtcPriceLoading}
             btcPriceError={btcPriceError}
-            cachedPopularRunes={popularRunes || []}
-            isPopularRunesLoading={isPopularRunesLoading}
-            popularRunesError={popularRunesError}
             onShowPriceChart={togglePriceChart}
             showPriceChart={showSwapTabPriceChart}
             preSelectedRune={preSelectedRune}
@@ -219,18 +203,12 @@ export function AppInterface({ activeTab }: AppInterfaceProps) {
             btcPriceUsd={btcPriceUsd}
             isBtcPriceLoading={isBtcPriceLoading}
             btcPriceError={btcPriceError}
-            cachedPopularRunes={popularRunes || []} // Pass popular runes
-            isPopularRunesLoading={isPopularRunesLoading}
-            popularRunesError={popularRunesError}
           />
         );
       // --- End Borrow Tab Case ---
       case 'runesInfo':
         return (
           <RunesInfoTab
-            cachedPopularRunes={popularRunes || []}
-            isPopularRunesLoading={isPopularRunesLoading}
-            popularRunesError={popularRunesError}
             onShowPriceChart={togglePriceChart}
             showPriceChart={showRunesInfoTabPriceChart}
           />
@@ -252,9 +230,6 @@ export function AppInterface({ activeTab }: AppInterfaceProps) {
             btcPriceUsd={btcPriceUsd}
             isBtcPriceLoading={isBtcPriceLoading}
             btcPriceError={btcPriceError}
-            cachedPopularRunes={popularRunes || []}
-            isPopularRunesLoading={isPopularRunesLoading}
-            popularRunesError={popularRunesError}
             onShowPriceChart={togglePriceChart}
             showPriceChart={showSwapTabPriceChart}
             preSelectedRune={preSelectedRune}

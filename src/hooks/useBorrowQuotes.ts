@@ -7,22 +7,19 @@ import {
   LiquidiumBorrowQuoteResponse,
   fetchBorrowQuotesFromApi,
   fetchBorrowRangesFromApi,
-  fetchPopularFromApi,
 } from '@/lib/api';
 import type { RuneData } from '@/lib/runesData';
 import { Asset } from '@/types/common';
 import { mapPopularToAsset } from '@/utils/popularRunes';
 import { formatRuneAmount } from '@/utils/runeFormatting';
 import { safeArrayAccess, safeArrayFirst } from '@/utils/typeGuards';
+import usePopularRunes from '@/hooks/usePopularRunes';
 
 interface UseBorrowQuotesArgs {
   collateralAsset: Asset | null;
   collateralAmount: string;
   address: string | null;
   collateralRuneInfo: RuneData | null;
-  cachedPopularRunes?: Record<string, unknown>[];
-  isPopularRunesLoading?: boolean;
-  popularRunesError?: Error | null;
 }
 
 export function useBorrowQuotes({
@@ -30,13 +27,12 @@ export function useBorrowQuotes({
   collateralAmount,
   address,
   collateralRuneInfo,
-  cachedPopularRunes,
-  isPopularRunesLoading = false,
-  popularRunesError = null,
 }: UseBorrowQuotesArgs) {
-  const [popularRunes, setPopularRunes] = useState<Asset[]>([]);
-  const [isPopularLoading, setIsPopularLoading] = useState(false);
-  const [popularError, setPopularError] = useState<string | null>(null);
+  const {
+    popularRunes,
+    isLoading: isPopularLoading,
+    error: popularError,
+  } = usePopularRunes<Asset>(mapPopularToAsset);
 
   const [quotes, setQuotes] = useState<LiquidiumBorrowQuoteOffer[]>([]);
   const [isQuotesLoading, setIsQuotesLoading] = useState(false);
@@ -44,52 +40,6 @@ export function useBorrowQuotes({
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
   const [minMaxRange, setMinMaxRange] = useState<string | null>(null);
   const [borrowRangeError, setBorrowRangeError] = useState<string | null>(null);
-
-  // Use cached popular runes directly; effect depends on the array reference
-
-  // Fetch popular runes on mount or when cached data updates
-  useEffect(() => {
-    const fetchPopular = async () => {
-      // Use external loading/error states directly instead of duplicating
-      if (isPopularRunesLoading) {
-        setIsPopularLoading(true);
-        setPopularError(null);
-        return;
-      }
-
-      if (popularRunesError) {
-        setPopularError(popularRunesError.message);
-        setIsPopularLoading(false);
-        return;
-      }
-
-      setIsPopularLoading(true);
-      setPopularError(null);
-
-      try {
-        // Try cached data first, then fetch if needed
-        const runesData =
-          cachedPopularRunes && cachedPopularRunes.length > 0
-            ? cachedPopularRunes
-            : await fetchPopularFromApi();
-
-        // Convert to Asset format - LIQUIDIUM•TOKEN is already first in our list
-        const mappedRunes = mapPopularToAsset(runesData);
-        setPopularRunes(mappedRunes);
-        setPopularError(null);
-      } catch (error) {
-        setPopularError(
-          error instanceof Error
-            ? error.message
-            : 'Failed to fetch popular runes',
-        );
-        setPopularRunes([]);
-      } finally {
-        setIsPopularLoading(false);
-      }
-    };
-    fetchPopular();
-  }, [cachedPopularRunes, isPopularRunesLoading, popularRunesError]);
 
   // Fetch min-max borrow range when collateral asset changes
   useEffect(() => {

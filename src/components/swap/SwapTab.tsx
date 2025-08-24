@@ -47,10 +47,6 @@ interface SwapTabProps {
   btcPriceUsd: number | undefined;
   isBtcPriceLoading: boolean;
   btcPriceError: Error | null;
-  // New props for cached popular runes
-  cachedPopularRunes?: Record<string, unknown>[];
-  isPopularRunesLoading?: boolean;
-  popularRunesError?: Error | null;
   // New props for price chart
   onShowPriceChart?: (assetName?: string, shouldToggle?: boolean) => void;
   showPriceChart?: boolean;
@@ -68,9 +64,6 @@ export function SwapTab({
   btcPriceUsd,
   isBtcPriceLoading,
   btcPriceError,
-  cachedPopularRunes = [],
-  isPopularRunesLoading = false,
-  popularRunesError = null,
   onShowPriceChart,
   showPriceChart = false,
   preSelectedRune = null,
@@ -91,9 +84,6 @@ export function SwapTab({
     popularError,
     isPreselectedRuneLoading,
   } = useSwapRunes({
-    cachedPopularRunes,
-    isPopularRunesLoading,
-    popularRunesError,
     preSelectedRune,
     preSelectedAsset,
     assetOut,
@@ -103,7 +93,7 @@ export function SwapTab({
 
   const availableRunes = popularRunes;
   const isLoadingRunes = isPopularLoading;
-  const currentRunesError = popularError;
+  const currentRunesError = popularError?.message || null;
 
   // Add back loadingDots state for animation
   const [loadingDots, setLoadingDots] = useState('.');

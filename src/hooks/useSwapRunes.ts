@@ -1,14 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
-import { fetchPopularFromApi, fetchRunesFromApi } from '@/lib/api';
+import { useEffect, useState } from 'react';
+import { fetchRunesFromApi } from '@/lib/api';
 import { Asset, BTC_ASSET } from '@/types/common';
 import { mapPopularToAsset } from '@/utils/popularRunes';
 import { normalizeRuneName, getRuneIconUrl } from '@/utils/runeUtils';
 import { safeArrayFirst } from '@/utils/typeGuards';
+import usePopularRunes from '@/hooks/usePopularRunes';
 
 interface UseSwapRunesArgs {
-  cachedPopularRunes?: Record<string, unknown>[];
-  isPopularRunesLoading?: boolean;
-  popularRunesError?: Error | null;
   preSelectedRune?: string | null;
   preSelectedAsset?: Asset | null;
   assetOut: Asset | null;
@@ -17,27 +15,22 @@ interface UseSwapRunesArgs {
 }
 
 export function useSwapRunes({
-  cachedPopularRunes = [],
-  isPopularRunesLoading = false,
-  popularRunesError = null,
   preSelectedRune = null,
   preSelectedAsset = null,
   assetOut,
   setAssetIn,
   setAssetOut,
 }: UseSwapRunesArgs) {
+  const {
+    popularRunes: basePopularRunes,
+    isLoading: isPopularLoading,
+    error: popularError,
+  } = usePopularRunes<Asset>(mapPopularToAsset);
   const [popularRunes, setPopularRunes] = useState<Asset[]>([]);
-  const [isPopularLoading, setIsPopularLoading] = useState(
-    isPopularRunesLoading,
-  );
-  const [popularError, setPopularError] = useState<string | null>(
-    popularRunesError ? popularRunesError.message : null,
-  );
   const [isPreselectedRuneLoading, setIsPreselectedRuneLoading] =
     useState(!!preSelectedRune);
   const [hasLoadedPreselectedRune, setHasLoadedPreselectedRune] =
     useState(false);
-  const hasLoadedPopularRunes = useRef(false);
 
   useEffect(() => {
     if (preSelectedAsset && !hasLoadedPreselectedRune) {
@@ -45,60 +38,26 @@ export function useSwapRunes({
       setAssetOut(preSelectedAsset);
       setIsPreselectedRuneLoading(false);
       setHasLoadedPreselectedRune(true);
-      setPopularRunes((prev) => {
-        const exists = prev.some((r) => r.id === preSelectedAsset.id);
-        return exists ? prev : [preSelectedAsset, ...prev];
-      });
     }
   }, [preSelectedAsset, setAssetIn, setAssetOut, hasLoadedPreselectedRune]);
 
   useEffect(() => {
-    const fetchPopular = async () => {
-      if (hasLoadedPopularRunes.current) return;
-
-      // Try cached data first, then fetch if needed
-      const runesData =
-        cachedPopularRunes && cachedPopularRunes.length > 0
-          ? cachedPopularRunes
-          : await fetchPopularFromApi();
-
-      // Convert to Asset format - LIQUIDIUM•TOKEN is already first in our list
-      let mappedRunes: Asset[] = mapPopularToAsset(runesData);
-
-      // Add preselected asset if it's not in the list
-      if (preSelectedAsset) {
-        const exists = mappedRunes.some((r) => r.id === preSelectedAsset.id);
-        if (!exists) {
-          mappedRunes = [preSelectedAsset, ...mappedRunes];
-        }
-      }
-
-      setPopularRunes(mappedRunes);
-
-      // Set first rune as output if no preselection and no current output
-      if (!preSelectedRune && !assetOut && mappedRunes.length > 0) {
-        const firstRune = safeArrayFirst(mappedRunes);
-        if (firstRune) {
-          setAssetOut(firstRune);
-        }
-      }
-
-      setIsPopularLoading(false);
-      hasLoadedPopularRunes.current = true;
-    };
-
-    fetchPopular().catch((error) => {
-      setPopularError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to fetch popular runes',
-      );
-      setIsPopularLoading(false);
-    });
+    if (isPopularLoading) return;
+    let runes = basePopularRunes;
+    if (preSelectedAsset) {
+      const exists = runes.some((r) => r.id === preSelectedAsset.id);
+      if (!exists) runes = [preSelectedAsset, ...runes];
+    }
+    setPopularRunes(runes);
+    if (!preSelectedRune && !assetOut && runes.length > 0) {
+      const firstRune = safeArrayFirst(runes);
+      if (firstRune) setAssetOut(firstRune);
+    }
   }, [
-    cachedPopularRunes,
-    preSelectedRune,
+    basePopularRunes,
+    isPopularLoading,
     preSelectedAsset,
+    preSelectedRune,
     assetOut,
     setAssetOut,
   ]);

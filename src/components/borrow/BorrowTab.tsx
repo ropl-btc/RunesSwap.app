@@ -48,9 +48,6 @@ interface BorrowTabProps {
   btcPriceUsd: number | undefined;
   isBtcPriceLoading: boolean;
   btcPriceError: Error | null;
-  cachedPopularRunes?: Record<string, unknown>[] | undefined;
-  isPopularRunesLoading?: boolean | undefined;
-  popularRunesError?: Error | null | undefined;
 }
 
 export function BorrowTab({
@@ -61,9 +58,6 @@ export function BorrowTab({
   paymentPublicKey,
   signPsbt,
   signMessage,
-  cachedPopularRunes = [],
-  isPopularRunesLoading = false,
-  popularRunesError = null,
 }: BorrowTabProps) {
   const router = useRouter();
   const [collateralAsset, setCollateralAsset] = useState<Asset | null>(null);
@@ -107,9 +101,6 @@ export function BorrowTab({
     collateralAmount,
     address,
     collateralRuneInfo: collateralRuneInfo ?? null,
-    cachedPopularRunes,
-    isPopularRunesLoading,
-    popularRunesError,
   });
 
   const {
@@ -199,7 +190,7 @@ export function BorrowTab({
         }}
         availableAssets={popularRunes}
         isAssetsLoading={isPopularLoading}
-        assetsError={popularError}
+        assetsError={popularError?.message || null}
         disabled={isLoading}
         availableBalance={availableBalanceDisplay}
         usdValue={usdValue}

@@ -9,11 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+<<<<<<< HEAD
 - Reusable `useRuneBalances` hook for fetching rune balances and refactored Borrow and Swap tabs to use it.
 - Centralized helper for retrieving and validating Liquidium JWTs used by borrow routes.
 - Centralized SatsTerminal error handler and wrapped PSBT endpoints with `withApiHandler`.
 - Helper to generate rune icon URLs and refactor existing hard-coded links.
 - Generic `useSearchWithPopular` hook for debounced search with optional popular-item caching.
+ - Centralized `usePopularRunes` hook and refactored hooks/components to consume it.
 
 ### Changed
 
@@ -23,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replace console statements with logger utilities.
 - Made `useFeeRates` accept optional React Query config and reused it in swap execution.
 - Refactored popular rune mapping into a generic utility.
+=======
+- Centralized `usePopularRunes` hook and refactored hooks/components to consume it.
+>>>>>>> pr-128
 
 ## [0.2.3] - 2025-08-24
 
