@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { fetchRuneInfoFromApi } from '@/lib/api';
+import { useRuneDataQuery } from '@/hooks/useRuneDataQuery';
 
 interface UseRuneInfoOptions {
   enabled?: boolean;
@@ -14,14 +14,9 @@ export function useRuneInfo(
   runeName: string | null | undefined,
   options: UseRuneInfoOptions = {},
 ) {
-  const { enabled = !!runeName, staleTime = Infinity, retry = 2 } = options;
-
-  return useQuery({
-    queryKey: ['runeInfo', runeName?.toUpperCase() || ''],
-    queryFn: () =>
-      runeName ? fetchRuneInfoFromApi(runeName) : Promise.resolve(null),
-    enabled: enabled && !!runeName,
-    staleTime,
-    retry,
+  return useRuneDataQuery('runeInfo', runeName, fetchRuneInfoFromApi, {
+    staleTime: Infinity,
+    retry: 2,
+    ...options,
   });
 }

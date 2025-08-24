@@ -8,11 +8,14 @@ export function useApiQuery<TData>(
   parameter: string | null | undefined,
   queryFn: (param: string) => Promise<TData | null>,
   staleTime = Infinity,
+  options: { enabled?: boolean; retry?: number } = {},
 ) {
+  const { enabled = !!parameter, retry } = options;
   return useQuery({
     queryKey: [queryKey, parameter?.toUpperCase() || ''],
     queryFn: () => (parameter ? queryFn(parameter) : Promise.resolve(null)),
-    enabled: !!parameter,
+    enabled,
     staleTime,
+    ...(retry !== undefined ? { retry } : {}),
   });
 }
