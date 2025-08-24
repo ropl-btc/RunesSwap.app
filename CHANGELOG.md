@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `useAssetSearch` and `useRunesSearch` now leverage `useSearchWithPopular`.
 - Replace console statements with logger utilities.
 - Made `useFeeRates` accept optional React Query config and reused it in swap execution.
+- Refactored popular rune mapping into a generic utility.
 
 ## [0.2.3] - 2025-08-24
 

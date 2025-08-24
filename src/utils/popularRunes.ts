@@ -9,49 +9,42 @@ type PopularRuneItem = {
   is_verified: boolean;
 };
 
-// Convert popular rune items to Asset format (handles both our format and API response)
+type BasePopularItem = {
+  id: string;
+  name: string;
+  imageURI: string;
+};
+
+export const mapPopularItems = <T>(
+  items: PopularRuneItem[] | Record<string, unknown>[],
+  transform: (item: BasePopularItem) => T,
+): T[] =>
+  items.map((item) => {
+    const base: BasePopularItem = {
+      id: String(
+        (item as PopularRuneItem).token_id ||
+          (item as Record<string, unknown>).id ||
+          '',
+      ),
+      name: String(
+        (item as PopularRuneItem).token ||
+          (item as Record<string, unknown>).name ||
+          (item as Record<string, unknown>).rune ||
+          '',
+      ),
+      imageURI: String(
+        (item as PopularRuneItem).icon ||
+          (item as Record<string, unknown>).imageURI ||
+          '',
+      ),
+    };
+    return transform(base);
+  });
+
 export const mapPopularToAsset = (
   items: PopularRuneItem[] | Record<string, unknown>[],
-): Asset[] =>
-  items.map((item) => ({
-    id: String(
-      (item as PopularRuneItem).token_id ||
-        (item as Record<string, unknown>).id ||
-        '',
-    ),
-    name: String(
-      (item as PopularRuneItem).token ||
-        (item as Record<string, unknown>).name ||
-        (item as Record<string, unknown>).rune ||
-        '',
-    ),
-    imageURI: String(
-      (item as PopularRuneItem).icon ||
-        (item as Record<string, unknown>).imageURI ||
-        '',
-    ),
-    isBTC: false,
-  }));
+): Asset[] => mapPopularItems(items, (item) => ({ ...item, isBTC: false }));
 
-// Convert popular rune items to Rune format (handles both our format and API response)
 export const mapPopularToRune = (
   items: PopularRuneItem[] | Record<string, unknown>[],
-): Rune[] =>
-  items.map((item) => ({
-    id: String(
-      (item as PopularRuneItem).token_id ||
-        (item as Record<string, unknown>).id ||
-        '',
-    ),
-    name: String(
-      (item as PopularRuneItem).token ||
-        (item as Record<string, unknown>).name ||
-        (item as Record<string, unknown>).rune ||
-        '',
-    ),
-    imageURI: String(
-      (item as PopularRuneItem).icon ||
-        (item as Record<string, unknown>).imageURI ||
-        '',
-    ),
-  }));
+): Rune[] => mapPopularItems(items, (item) => item);
