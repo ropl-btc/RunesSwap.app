@@ -12,9 +12,9 @@ import useSwapExecution from '@/hooks/useSwapExecution';
 import useSwapQuote from '@/hooks/useSwapQuote';
 import useSwapRunes from '@/hooks/useSwapRunes';
 import useUsdValues from '@/hooks/useUsdValues';
-import { fetchBtcBalanceFromApi, fetchRuneBalancesFromApi } from '@/lib/api';
+import { fetchBtcBalanceFromApi } from '@/lib/api';
+import { useRuneBalances } from '@/hooks/useRuneBalances';
 import { Asset, BTC_ASSET } from '@/types/common';
-import { type RuneBalance as OrdiscanRuneBalance } from '@/types/ordiscan';
 import {
   formatAmountWithPrecision,
   percentageOfRawAmount,
@@ -158,11 +158,9 @@ export function SwapTab({
     data: runeBalances,
     isLoading: isRuneBalancesLoading,
     error: runeBalancesError,
-  } = useQuery<OrdiscanRuneBalance[], Error>({
-    queryKey: ['runeBalancesApi', address],
-    queryFn: () => fetchRuneBalancesFromApi(address!), // Use API function
-    enabled: !!connected && !!address, // Only run query if connected and address exists
-    staleTime: 30000, // Consider balances stale after 30 seconds
+  } = useRuneBalances(address, {
+    enabled: !!connected && !!address,
+    staleTime: 30000,
   });
 
   // Use shared hook for Input Rune Info
