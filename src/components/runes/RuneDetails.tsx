@@ -14,6 +14,7 @@ import {
 import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
 import RuneIcon from '@/components/runes/RuneIcon';
 import styles from '@/components/runes/RunesInfoTab.module.css';
+import { getRuneIconUrl } from '@/utils/runeUtils';
 
 interface RuneDetailsProps {
   selectedRune: OrdiscanRuneInfo | null;
@@ -60,7 +61,7 @@ const RuneDetails: React.FC<RuneDetailsProps> = ({
       <div>
         <h3 style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <RuneIcon
-            src={`https://icon.unisat.io/icon/runes/${encodeURIComponent(detailedRuneInfo.name)}`}
+            src={getRuneIconUrl(detailedRuneInfo.name)}
             alt=""
             className={styles.runeImage}
             width={24}

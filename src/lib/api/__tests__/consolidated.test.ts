@@ -8,6 +8,7 @@ import {
   fetchPortfolioDataFromApi,
   fetchRuneActivityFromApi,
   fetchRuneBalancesFromApi,
+  fetchRuneEndpoint,
   fetchRuneInfoFromApi,
   fetchRuneMarketFromApi,
   fetchRunePriceHistoryFromApi,
@@ -71,6 +72,25 @@ describe('API Client Functions', () => {
     [testData.popularRune()],
     true,
   );
+
+  describe('fetchRuneEndpoint', () => {
+    it('normalizes names and uses apiGet for GET', async () => {
+      (apiGet as jest.Mock).mockResolvedValue(testData.runeData);
+      const result = await fetchRuneEndpoint('/api/test', 'GET', 'RUNE•TEST');
+      expect(apiGet).toHaveBeenCalledWith('/api/test', { name: 'RUNETEST' });
+      expect(result).toEqual(testData.runeData);
+    });
+
+    it('uses apiPost for POST and returns null on errors', async () => {
+      (apiPost as jest.Mock).mockResolvedValue(testData.runeData);
+      const result = await fetchRuneEndpoint('/api/test', 'POST', 'RUNE1');
+      expect(apiPost).toHaveBeenCalledWith('/api/test', { name: 'RUNE1' });
+      expect(result).toEqual(testData.runeData);
+
+      (apiPost as jest.Mock).mockRejectedValue(new Error('fail'));
+      expect(await fetchRuneEndpoint('/api/test', 'POST', 'RUNE1')).toBeNull();
+    });
+  });
 
   describe('fetchRuneInfoFromApi', () => {
     it('normalizes rune names and handles success/error cases', async () => {

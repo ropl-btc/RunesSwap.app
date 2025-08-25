@@ -7,9 +7,8 @@ import {
   validateRequest,
 } from '@/lib/apiUtils';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
-import { supabase } from '@/lib/supabase';
+import { getLiquidiumJwt } from '@/lib/liquidiumAuth';
 import type { StartLoanService } from '@/sdk/liquidium/services/StartLoanService';
-import { safeArrayFirst } from '@/utils/typeGuards';
 
 // Schema for request body
 const submitBodySchema = z.object({
@@ -29,30 +28,11 @@ export async function POST(request: NextRequest) {
 
   try {
     // 1. Get User JWT from Supabase
-    const { data: tokenRows, error: tokenError } = await supabase
-      .from('liquidium_tokens')
-      .select('jwt')
-      .eq('wallet_address', address)
-      .limit(1);
-
-    if (tokenError) {
-      return createErrorResponse(
-        'Database error retrieving authentication',
-        tokenError.message,
-        500,
-      );
+    const jwt = await getLiquidiumJwt(address);
+    if (typeof jwt !== 'string') {
+      return jwt;
     }
-
-    const firstToken = safeArrayFirst(tokenRows);
-    if (!firstToken?.jwt) {
-      return createErrorResponse(
-        'Liquidium authentication required',
-        'No JWT found for this address',
-        401,
-      );
-    }
-
-    const userJwt = firstToken.jwt;
+    const userJwt = jwt;
 
     // 2. Call Liquidium API via SDK
     try {

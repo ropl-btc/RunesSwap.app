@@ -11,17 +11,11 @@ import RuneSearchBar from '@/components/runes/RuneSearchBar';
 import styles from '@/components/runes/RunesInfoTab.module.css';
 
 interface RunesInfoTabProps {
-  cachedPopularRunes?: Record<string, unknown>[];
-  isPopularRunesLoading?: boolean;
-  popularRunesError?: Error | null;
   onShowPriceChart?: (assetName?: string, shouldToggle?: boolean) => void;
   showPriceChart?: boolean;
 }
 
 export function RunesInfoTab({
-  cachedPopularRunes = [],
-  isPopularRunesLoading = false,
-  popularRunesError = null,
   onShowPriceChart,
   showPriceChart = false,
 }: RunesInfoTabProps) {
@@ -101,9 +95,6 @@ export function RunesInfoTab({
       <RuneSearchBar
         onRuneSelect={handleRuneSelect}
         selectedRuneName={selectedRuneForInfo?.name || null}
-        cachedPopularRunes={cachedPopularRunes}
-        isPopularRunesLoading={isPopularRunesLoading}
-        popularRunesError={popularRunesError}
       />
       <RuneDetails
         selectedRune={selectedRuneForInfo}

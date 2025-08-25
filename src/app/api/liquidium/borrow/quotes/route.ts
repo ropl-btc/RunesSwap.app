@@ -8,6 +8,7 @@ import {
 } from '@/lib/apiUtils';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
 import { supabase } from '@/lib/supabase';
+import { getLiquidiumJwt } from '@/lib/liquidiumAuth';
 import { safeArrayFirst } from '@/utils/typeGuards';
 
 // Schema for query parameters
@@ -97,40 +98,11 @@ export async function GET(request: NextRequest) {
     }
 
     // 1. Get User JWT from Supabase
-    const { data: tokenRows, error: tokenError } = await supabase
-      .from('liquidium_tokens')
-      .select('jwt, expires_at')
-      .eq('wallet_address', address)
-      .limit(1);
-
-    if (tokenError) {
-      return createErrorResponse(
-        'Database error retrieving authentication',
-        tokenError.message,
-        500,
-      );
+    const jwt = await getLiquidiumJwt(address);
+    if (typeof jwt !== 'string') {
+      return jwt;
     }
-
-    const firstToken = safeArrayFirst(tokenRows);
-    if (!firstToken?.jwt) {
-      return createErrorResponse(
-        'Liquidium authentication required',
-        'No JWT found for this address. Please authenticate with Liquidium first.',
-        401,
-      );
-    }
-
-    const userJwt = firstToken.jwt;
-    const expiresAt = firstToken.expires_at;
-
-    // Check if JWT is expired
-    if (expiresAt && new Date(expiresAt) < new Date()) {
-      return createErrorResponse(
-        'Authentication expired',
-        'Your authentication has expired. Please re-authenticate with Liquidium.',
-        401,
-      );
-    }
+    const userJwt = jwt;
 
     // 2. Call Liquidium API via generated SDK
     try {

@@ -1,24 +1,20 @@
 import { act, renderHook } from '@testing-library/react';
+import { fetchBorrowQuotesFromApi, fetchBorrowRangesFromApi } from '@/lib/api';
 import {
-  fetchBorrowQuotesFromApi,
-  fetchBorrowRangesFromApi,
-  fetchPopularFromApi,
-} from '@/lib/api';
-import {
-  createAsyncTestScenario,
   createMockAsset,
   createMockBorrowQuote,
   createMockBorrowRange,
-  createMockPopularRunes,
   createMockRuneInfo,
 } from '@/hooks/__test-utils__';
 import useBorrowQuotes from '@/hooks/useBorrowQuotes';
+import usePopularRunes from '@/hooks/usePopularRunes';
 
 jest.mock('@/lib/api', () => ({
   fetchBorrowQuotesFromApi: jest.fn(),
   fetchBorrowRangesFromApi: jest.fn(),
-  fetchPopularFromApi: jest.fn(),
 }));
+
+jest.mock('@/hooks/usePopularRunes', () => jest.fn());
 
 jest.mock('@/utils/typeGuards', () => ({
   safeArrayFirst: jest.fn((array: unknown[]) => array[0]),
@@ -28,7 +24,7 @@ jest.mock('@/utils/typeGuards', () => ({
 const mocks = {
   fetchBorrowQuotes: fetchBorrowQuotesFromApi as jest.Mock,
   fetchBorrowRanges: fetchBorrowRangesFromApi as jest.Mock,
-  fetchPopular: fetchPopularFromApi as jest.Mock,
+  usePopularRunes: usePopularRunes as jest.Mock,
 };
 
 const baseProps = {
@@ -36,7 +32,6 @@ const baseProps = {
   collateralAmount: '',
   address: null,
   collateralRuneInfo: null,
-  cachedPopularRunes: [],
 };
 
 const activeProps = {
@@ -44,24 +39,38 @@ const activeProps = {
   collateralAmount: '100',
   address: 'bc1test',
   collateralRuneInfo: createMockRuneInfo(),
-  cachedPopularRunes: [],
 };
 
 describe('useBorrowQuotes', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mocks.usePopularRunes.mockReturnValue({
+      popularRunes: [],
+      isLoading: false,
+      error: null,
+    });
+  });
 
   describe('Popular Runes', () => {
     const scenarios = [
-      createAsyncTestScenario(
-        'success',
-        mocks.fetchPopular,
-        createMockPopularRunes(),
-      ),
-      createAsyncTestScenario(
-        'error',
-        mocks.fetchPopular,
-        new Error('Network error'),
-      ),
+      {
+        name: 'success',
+        setup: () =>
+          mocks.usePopularRunes.mockReturnValue({
+            popularRunes: [createMockAsset(), createMockAsset({ id: '2' })],
+            isLoading: false,
+            error: null,
+          }),
+      },
+      {
+        name: 'error',
+        setup: () =>
+          mocks.usePopularRunes.mockReturnValue({
+            popularRunes: [],
+            isLoading: false,
+            error: new Error('Network error'),
+          }),
+      },
     ];
 
     test.each(scenarios)('handles $name', async ({ setup }) => {
@@ -114,7 +123,11 @@ describe('useBorrowQuotes', () => {
         } else {
           mocks.fetchBorrowQuotes.mockResolvedValue(mockData);
         }
-        mocks.fetchPopular.mockResolvedValue([]);
+        mocks.usePopularRunes.mockReturnValue({
+          popularRunes: [],
+          isLoading: false,
+          error: null,
+        });
 
         const { result } = renderHook(() => useBorrowQuotes(activeProps));
         await act(async () => result.current.handleGetQuotes());

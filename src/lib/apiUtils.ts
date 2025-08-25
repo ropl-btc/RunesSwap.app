@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 /**
  * Creates a standardized success response object
@@ -34,7 +35,7 @@ export function createErrorResponse(
   if (process.env.NODE_ENV !== 'test') {
     const includeDetails = process.env.NODE_ENV !== 'production';
     const detailsPart = includeDetails && details ? `: ${details}` : '';
-    console.error(`[API Error] ${message}${detailsPart}`);
+    logger.error(`[API Error] ${message}${detailsPart}`);
   }
 
   return NextResponse.json(

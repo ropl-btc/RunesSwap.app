@@ -6,6 +6,7 @@ import {
   handleApiError,
   validateRequest,
 } from '@/lib/apiUtils';
+import { logger } from '@/lib/logger';
 
 // Mock NextResponse.json
 jest.mock('next/server', () => ({
@@ -79,8 +80,8 @@ describe('createSuccessResponse', () => {
 describe('createErrorResponse', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Mock console.error to prevent test output pollution
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    // Mock logger.error to prevent test output pollution
+    jest.spyOn(logger, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -129,7 +130,7 @@ describe('createErrorResponse', () => {
     );
   });
 
-  it('logs error to console in non-test env', () => {
+  it('logs error via logger in non-test env', () => {
     const message = 'Error message';
     const prevEnv = process.env;
     try {
@@ -138,7 +139,19 @@ describe('createErrorResponse', () => {
         NODE_ENV: 'development',
       } as NodeJS.ProcessEnv;
       createErrorResponse(message);
-      expect(console.error).toHaveBeenCalledWith('[API Error] Error message');
+      expect(logger.error).toHaveBeenCalledWith('[API Error] Error message');
+    } finally {
+      process.env = prevEnv;
+    }
+  });
+
+  it('does not log error in test env', () => {
+    const message = 'Silent in test';
+    const prevEnv = process.env;
+    try {
+      process.env = { ...prevEnv, NODE_ENV: 'test' } as NodeJS.ProcessEnv;
+      createErrorResponse(message);
+      expect(logger.error).not.toHaveBeenCalled();
     } finally {
       process.env = prevEnv;
     }

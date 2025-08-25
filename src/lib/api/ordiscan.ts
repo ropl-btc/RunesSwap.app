@@ -8,6 +8,20 @@ import { normalizeRuneName } from '@/utils/runeUtils';
 import { type RuneData } from '@/lib/runesData';
 import { apiGet, apiPost } from '@/lib/api/createApiClient';
 
+export const fetchRuneEndpoint = async <T>(
+  endpoint: string,
+  method: 'GET' | 'POST',
+  name: string,
+): Promise<T | null> => {
+  try {
+    const normalizedName = normalizeRuneName(name);
+    const requester = method === 'POST' ? apiPost : apiGet;
+    return await requester<T>(endpoint, { name: normalizedName });
+  } catch {
+    return null;
+  }
+};
+
 export const fetchBtcBalanceFromApi = async (
   address: string,
 ): Promise<number> => {
@@ -26,43 +40,22 @@ export const fetchRuneBalancesFromApi = async (
 
 export const fetchRuneInfoFromApi = async (
   name: string,
-): Promise<RuneData | null> => {
-  try {
-    const normalizedName = normalizeRuneName(name);
-    return await apiGet<RuneData>('/api/ordiscan/rune-info', {
-      name: normalizedName,
-    });
-  } catch {
-    // Return null for 404s or other failures
-    return null;
-  }
-};
+): Promise<RuneData | null> =>
+  fetchRuneEndpoint<RuneData>('/api/ordiscan/rune-info', 'GET', name);
 
 export const updateRuneDataViaApi = async (
   name: string,
-): Promise<RuneData | null> => {
-  try {
-    const normalizedName = normalizeRuneName(name);
-    return await apiPost<RuneData>('/api/ordiscan/rune-update', {
-      name: normalizedName,
-    });
-  } catch {
-    return null;
-  }
-};
+): Promise<RuneData | null> =>
+  fetchRuneEndpoint<RuneData>('/api/ordiscan/rune-update', 'POST', name);
 
 export const fetchRuneMarketFromApi = async (
   name: string,
-): Promise<OrdiscanRuneMarketInfo | null> => {
-  try {
-    const normalizedName = normalizeRuneName(name);
-    return await apiGet<OrdiscanRuneMarketInfo>('/api/ordiscan/rune-market', {
-      name: normalizedName,
-    });
-  } catch {
-    return null;
-  }
-};
+): Promise<OrdiscanRuneMarketInfo | null> =>
+  fetchRuneEndpoint<OrdiscanRuneMarketInfo>(
+    '/api/ordiscan/rune-market',
+    'GET',
+    name,
+  );
 
 export const fetchListRunesFromApi = async (): Promise<OrdiscanRuneInfo[]> =>
   apiGet<OrdiscanRuneInfo[]>('/api/ordiscan/list-runes');

@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { fetchRuneMarketFromApi } from '@/lib/api';
+import { useRuneDataQuery } from '@/hooks/useRuneDataQuery';
 
 interface UseRuneMarketDataOptions {
   enabled?: boolean;
@@ -14,14 +14,9 @@ export function useRuneMarketData(
   runeName: string | null | undefined,
   options: UseRuneMarketDataOptions = {},
 ) {
-  const { enabled = !!runeName, staleTime = 60000, retry = 2 } = options;
-
-  return useQuery({
-    queryKey: ['runeMarket', runeName?.toUpperCase() || ''],
-    queryFn: () =>
-      runeName ? fetchRuneMarketFromApi(runeName) : Promise.resolve(null),
-    enabled: enabled && !!runeName,
-    staleTime,
-    retry,
+  return useRuneDataQuery('runeMarket', runeName, fetchRuneMarketFromApi, {
+    staleTime: 60000,
+    retry: 2,
+    ...options,
   });
 }

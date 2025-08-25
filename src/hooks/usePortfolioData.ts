@@ -7,6 +7,7 @@ import {
   calculateUsdValue,
 } from '@/utils/runeFormatting';
 import { safeArrayAccess } from '@/utils/typeGuards';
+import { getRuneIconUrl } from '@/utils/runeUtils';
 
 export type SortField = 'name' | 'balance' | 'value';
 export type SortDirection = 'asc' | 'desc';
@@ -100,9 +101,7 @@ export function usePortfolioData(address: string | null) {
         const usdValue = marketInfo?.price_in_usd
           ? calculateUsdValue(rune.balance, decimals, marketInfo.price_in_usd)
           : 0;
-        const imageURI = `https://icon.unisat.io/icon/runes/${encodeURIComponent(
-          rune.name,
-        )}`;
+        const imageURI = getRuneIconUrl(rune.name);
         return {
           ...rune,
           actualBalance,
