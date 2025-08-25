@@ -144,6 +144,18 @@ describe('createErrorResponse', () => {
       process.env = prevEnv;
     }
   });
+
+  it('does not log error in test env', () => {
+    const message = 'Silent in test';
+    const prevEnv = process.env;
+    try {
+      process.env = { ...prevEnv, NODE_ENV: 'test' } as NodeJS.ProcessEnv;
+      createErrorResponse(message);
+      expect(logger.error).not.toHaveBeenCalled();
+    } finally {
+      process.env = prevEnv;
+    }
+  });
 });
 
 describe('validateRequest', () => {

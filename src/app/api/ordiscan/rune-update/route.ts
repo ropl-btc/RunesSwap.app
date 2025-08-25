@@ -22,8 +22,8 @@ export const POST = withApiHandler(
     const runeData = await ordiscan.rune.getInfo({ name: runeName });
 
     if (!runeData) {
-      logger.warn(`[API Route] Rune info not found for ${runeName}`);
-      return createSuccessResponse(null, 404);
+      logger.warn('[API Route] Rune info not found', { runeName });
+      return createErrorResponse('Rune not found', undefined, 404);
     }
 
     const dataToUpdate = {
