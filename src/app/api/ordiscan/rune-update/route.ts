@@ -9,14 +9,23 @@ import { RuneData } from '@/lib/runesData';
 import { getOrdiscanClient } from '@/lib/serverUtils';
 import { supabase } from '@/lib/supabase';
 import { withApiHandler } from '@/lib/withApiHandler';
+import { enforceRateLimit } from '@/lib/rateLimit';
 import { logger, logDbError } from '@/lib/logger';
 
 export const POST = withApiHandler(
   async (request: NextRequest) => {
-    const schema = z.object({ name: z.string().min(1) });
+    const schema = z.object({ name: z.string().trim().min(1) });
     const validation = await validateRequest(request, schema, 'body');
     if (!validation.success) return validation.errorResponse;
     const { name: runeName } = validation.data;
+
+    // Basic per-IP rate limit: 10 req/min for updates
+    const limited = enforceRateLimit(request, {
+      key: 'ordiscan:rune-update',
+      limit: 10,
+      windowMs: 60_000,
+    });
+    if (limited) return limited;
 
     const ordiscan = getOrdiscanClient();
     const runeData = await ordiscan.rune.getInfo({ name: runeName });

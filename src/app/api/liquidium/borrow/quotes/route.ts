@@ -7,18 +7,19 @@ import {
   validateRequest,
 } from '@/lib/apiUtils';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
+import { enforceRateLimit } from '@/lib/rateLimit';
 import { supabase } from '@/lib/supabase';
 import { getLiquidiumJwt } from '@/lib/liquidiumAuth';
 import { safeArrayFirst } from '@/utils/typeGuards';
 
 // Schema for query parameters
 const quoteParamsSchema = z.object({
-  runeId: z.string().min(1),
+  runeId: z.string().trim().min(1),
   runeAmount: z
     .string()
     .min(1)
     .regex(/^\d+$/, 'Amount must be a positive integer string'),
-  address: z.string().min(1), // User's address to find JWT
+  address: z.string().trim().min(1), // User's address to find JWT
 });
 
 export async function GET(request: NextRequest) {
@@ -27,6 +28,13 @@ export async function GET(request: NextRequest) {
   if (!validation.success) {
     return validation.errorResponse;
   }
+  // Rate limit: 30 req/min per IP
+  const limited = enforceRateLimit(request, {
+    key: 'liquidium:borrow:quotes',
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (limited) return limited;
 
   let { runeId } = validation.data;
   const { runeAmount, address } = validation.data;

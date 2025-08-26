@@ -8,14 +8,15 @@ import {
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
 import { supabase } from '@/lib/supabase';
 import { withApiHandler } from '@/lib/withApiHandler';
+import { enforceRateLimit } from '@/lib/rateLimit';
 import { safeParseJWT } from '@/utils/typeGuards';
 
 const AuthSchema = z.object({
-  ordinalsAddress: z.string().min(1),
-  paymentAddress: z.string().min(1),
-  ordinalsSignature: z.string().min(1),
+  ordinalsAddress: z.string().trim().min(1),
+  paymentAddress: z.string().trim().min(1),
+  ordinalsSignature: z.string().trim().min(1),
   paymentSignature: z.string().optional(),
-  ordinalsNonce: z.string().min(1),
+  ordinalsNonce: z.string().trim().min(1),
   paymentNonce: z.string().optional(),
 });
 
@@ -23,6 +24,14 @@ export const POST = withApiHandler(
   async (request: NextRequest) => {
     const validation = await validateRequest(request, AuthSchema, 'body');
     if (!validation.success) return validation.errorResponse;
+    // Rate limit: 30 req/min per IP
+    const limited = enforceRateLimit(request, {
+      key: 'liquidium:auth',
+      limit: 30,
+      windowMs: 60_000,
+    });
+    if (limited) return limited;
+
     const {
       ordinalsAddress,
       paymentAddress,

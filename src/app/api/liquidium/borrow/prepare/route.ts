@@ -6,6 +6,7 @@ import {
   validateRequest,
 } from '@/lib/apiUtils';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
+import { enforceRateLimit } from '@/lib/rateLimit';
 import { getLiquidiumJwt } from '@/lib/liquidiumAuth';
 import type { StartLoanService } from '@/sdk/liquidium/services/StartLoanService';
 
@@ -17,12 +18,12 @@ const prepareBodySchema = z.object({
     .string()
     .min(1)
     .regex(/^\d+$/, 'Token amount must be a positive integer string'),
-  borrower_payment_address: z.string().min(1),
-  borrower_payment_pubkey: z.string().min(1),
-  borrower_ordinal_address: z.string().min(1),
-  borrower_ordinal_pubkey: z.string().min(1),
+  borrower_payment_address: z.string().trim().min(1),
+  borrower_payment_pubkey: z.string().trim().min(1),
+  borrower_ordinal_address: z.string().trim().min(1),
+  borrower_ordinal_pubkey: z.string().trim().min(1),
   collateral_asset_id: z.string().optional(), // Optional field for rune ID
-  address: z.string().min(1), // User's address to find JWT
+  address: z.string().trim().min(1), // User's address to find JWT
 });
 
 type StartLoanPrepareRequest = Parameters<
@@ -35,6 +36,13 @@ export async function POST(request: NextRequest) {
   if (!validation.success) {
     return validation.errorResponse;
   }
+  // Rate limit: 30 req/min per IP
+  const limited = enforceRateLimit(request, {
+    key: 'liquidium:borrow:prepare',
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (limited) return limited;
   // Exclude 'address' from the data sent to Liquidium
   const { address, ...liquidiumPayload } = validation.data;
 

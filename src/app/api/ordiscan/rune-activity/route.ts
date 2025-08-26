@@ -7,7 +7,7 @@ import { RuneActivityEvent } from '@/types/ordiscan';
 
 export const GET = withApiHandler(
   async (request: NextRequest) => {
-    const schema = z.object({ address: z.string().min(1) });
+    const schema = z.object({ address: z.string().trim().min(1) });
     const validation = await validateRequest(request, schema, 'query');
     if (!validation.success) {
       return validation.errorResponse;

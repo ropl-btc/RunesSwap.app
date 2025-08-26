@@ -8,8 +8,9 @@ export function usePopularRunes<T = Record<string, unknown>>(
     {
       queryKey: [QUERY_KEYS.POPULAR_RUNES],
       queryFn: fetchPopularFromApi,
-      staleTime: Infinity,
-      gcTime: Infinity,
+      // Popular list changes infrequently; cache for 24h and GC after 25h
+      staleTime: 24 * 60 * 60 * 1000,
+      gcTime: 25 * 60 * 60 * 1000,
     },
   );
 

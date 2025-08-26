@@ -9,11 +9,11 @@ import { runeOrderSchema } from '@/types/satsTerminal';
 
 const getPsbtParamsSchema = z.object({
   orders: z.array(runeOrderSchema),
-  address: z.string().min(1, 'Bitcoin address is required'),
-  publicKey: z.string().min(1, 'Public key is required'),
-  paymentAddress: z.string().min(1, 'Payment address is required'),
-  paymentPublicKey: z.string().min(1, 'Payment public key is required'),
-  runeName: z.string().min(1, 'Rune name is required'),
+  address: z.string().trim().min(1, 'Bitcoin address is required'),
+  publicKey: z.string().trim().min(1, 'Public key is required'),
+  paymentAddress: z.string().trim().min(1, 'Payment address is required'),
+  paymentPublicKey: z.string().trim().min(1, 'Payment public key is required'),
+  runeName: z.string().trim().min(1, 'Rune name is required'),
   sell: z.boolean().optional(),
   rbfProtection: z.boolean().optional(),
   feeRate: z.number().optional(),

@@ -1,6 +1,10 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { createSuccessResponse, validateRequest } from '@/lib/apiUtils';
+import {
+  createErrorResponse,
+  createSuccessResponse,
+  validateRequest,
+} from '@/lib/apiUtils';
 import { logger } from '@/lib/logger';
 import { validators } from '@/lib/validationSchemas';
 import { withApiHandler } from '@/lib/withApiHandler';
@@ -21,8 +25,11 @@ export function createRuneRoute<T>(
       const data = await fetcher(normalized);
 
       if (!data) {
-        logger.warn(`[API Route] ${errorMessage}: ${normalized} not found`);
-        return createSuccessResponse(null, 404);
+        logger.warn('[API Route] Rune not found', {
+          route: 'ordiscan',
+          normalized,
+        });
+        return createErrorResponse('Rune not found', undefined, 404);
       }
 
       return createSuccessResponse(data);

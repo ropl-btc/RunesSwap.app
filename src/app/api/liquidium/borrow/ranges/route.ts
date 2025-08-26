@@ -13,8 +13,8 @@ import { safeArrayAccess, safeArrayFirst } from '@/utils/typeGuards';
 
 // Schema for query parameters
 const rangeParamsSchema = z.object({
-  runeId: z.string().min(1),
-  address: z.string().min(1), // User's address to find JWT
+  runeId: z.string().trim().min(1),
+  address: z.string().trim().min(1), // User's address to find JWT
 });
 
 export async function GET(request: NextRequest) {

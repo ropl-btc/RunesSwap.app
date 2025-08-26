@@ -13,6 +13,7 @@ export const validators = {
   // Bitcoin address validation with proper format and checksum verification
   btcAddress: z
     .string()
+    .trim()
     .min(1, 'Bitcoin address is required')
     .max(100, 'Bitcoin address too long')
     .refine((address) => {
@@ -27,6 +28,7 @@ export const validators = {
   // Rune name validation (allows bullet characters as they're normalized in API)
   runeName: z
     .string()
+    .trim()
     .min(1, 'Rune name is required')
     .max(32, 'Rune name too long')
     .regex(
@@ -76,10 +78,10 @@ export const validators = {
     z.boolean().default(defaultValue),
 
   // Non-empty string
-  nonEmptyString: z.string().min(1, 'Field cannot be empty'),
+  nonEmptyString: z.string().trim().min(1, 'Field cannot be empty'),
 
   // Optional non-empty string
-  optionalNonEmptyString: z.string().min(1).optional(),
+  optionalNonEmptyString: z.string().trim().min(1).optional(),
 
   // Decimal validation
   decimals: z.number().int().min(0).max(18),

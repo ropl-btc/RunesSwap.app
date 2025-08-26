@@ -42,8 +42,8 @@ describe('rune info route', () => {
       mockData: null,
       url: 'https://example.com/api?name=UNKNOWN',
       expectedStatus: 404,
-      expectedData: null,
-      expectedSuccess: true,
+      expectedData: undefined,
+      expectedSuccess: false,
     },
   ];
 

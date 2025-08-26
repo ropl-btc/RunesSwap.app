@@ -7,14 +7,15 @@ import {
   validateRequest,
 } from '@/lib/apiUtils';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
+import { enforceRateLimit } from '@/lib/rateLimit';
 import { getLiquidiumJwt } from '@/lib/liquidiumAuth';
 import type { StartLoanService } from '@/sdk/liquidium/services/StartLoanService';
 
 // Schema for request body
 const submitBodySchema = z.object({
-  signed_psbt_base_64: z.string().min(1),
+  signed_psbt_base_64: z.string().trim().min(1),
   prepare_offer_id: z.string().uuid(),
-  address: z.string().min(1), // User's address to find JWT
+  address: z.string().trim().min(1), // User's address to find JWT
 });
 
 export async function POST(request: NextRequest) {
@@ -23,6 +24,13 @@ export async function POST(request: NextRequest) {
   if (!validation.success) {
     return validation.errorResponse;
   }
+  // Rate limit: 30 req/min per IP
+  const limited = enforceRateLimit(request, {
+    key: 'liquidium:borrow:submit',
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (limited) return limited;
   // Exclude 'address' from the data sent to Liquidium
   const { address, ...liquidiumPayload } = validation.data;
 
