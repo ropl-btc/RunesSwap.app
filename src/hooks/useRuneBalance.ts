@@ -8,7 +8,7 @@ import { normalizeRuneName } from '@/utils/runeUtils';
  */
 export function useRuneBalance(
   runeName: string | undefined,
-  runeBalances: OrdiscanRuneBalance[] | undefined,
+  runeBalances: OrdiscanRuneBalance[] | null | undefined,
 ): string | null {
   return useMemo(() => {
     if (!runeName || !runeBalances) return null;
