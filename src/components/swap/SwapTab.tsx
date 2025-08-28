@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 import { type QuoteResponse } from 'satsterminal-sdk';
-import Big from 'big.js';
 
 // Import our new components
 import { useRuneBalance } from '@/hooks/useRuneBalance';
@@ -15,11 +14,8 @@ import useUsdValues from '@/hooks/useUsdValues';
 import { fetchBtcBalanceFromApi } from '@/lib/api';
 import { useRuneBalances } from '@/hooks/useRuneBalances';
 import { Asset, BTC_ASSET } from '@/types/common';
-import {
-  formatAmountWithPrecision,
-  percentageOfRawAmount,
-  calculateActualBalance,
-} from '@/utils/runeFormatting';
+import { calculateBalancePortion } from '@/utils/amountFormatting';
+import { calculateActualBalance } from '@/utils/runeFormatting';
 import { formatNumberWithLocale } from '@/utils/formatters';
 import { Loading } from '@/components/loading';
 import FeeSelector from '@/components/ui/FeeSelector';
@@ -271,42 +267,18 @@ export function SwapTab({
   const handlePercentageClick = (percentage: number) => {
     if (!connected || !assetIn) return;
 
-    let decimals = 8; // Default decimals for BTC
-
     if (assetIn.isBTC) {
-      if (btcBalanceSats === undefined) {
-        return; // No balance available
-      }
-    } else {
-      const rawBalance = inputRuneRawBalance;
-      if (rawBalance === null) return;
-      try {
-        decimals = swapRuneInfo?.decimals ?? 0;
-        const formattedAmount = percentageOfRawAmount(
-          rawBalance,
-          decimals,
-          percentage,
-        );
-        setInputAmount(formattedAmount);
-        return;
-      } catch {
-        return;
-      }
+      if (btcBalanceSats === undefined) return;
+      const formatted = calculateBalancePortion(btcBalanceSats, 8, percentage);
+      setInputAmount(formatted);
+      return;
     }
 
-    // BTC path: Calculate percentage of available BTC balance directly from sats using Big.js
-    const availableBalanceBig = new Big(btcBalanceSats!.toString()).div(
-      new Big(10).pow(8),
-    );
-    const newAmountBig =
-      percentage === 1
-        ? availableBalanceBig
-        : availableBalanceBig.times(percentage);
-    const formattedAmount = formatAmountWithPrecision(
-      newAmountBig.toString(),
-      decimals,
-    );
-    setInputAmount(formattedAmount);
+    const rawBalance = inputRuneRawBalance;
+    if (rawBalance === null) return;
+    const decimals = swapRuneInfo?.decimals ?? 0;
+    const formatted = calculateBalancePortion(rawBalance, decimals, percentage);
+    setInputAmount(formatted);
   };
 
   const availableBalanceNode =

@@ -12,7 +12,7 @@ import { useRuneInfo } from '@/hooks/useRuneInfo';
 import { useRuneMarketData } from '@/hooks/useRuneMarketData';
 import { useRuneBalances } from '@/hooks/useRuneBalances';
 import { Asset } from '@/types/common';
-import { percentageOfRawAmount } from '@/utils/runeFormatting';
+import { calculateBalancePortion } from '@/utils/amountFormatting';
 import { formatUsd, parseAmount, sanitizeForBig } from '@/utils/formatters';
 import Big from 'big.js';
 import BorrowQuotesList from '@/components/borrow/BorrowQuotesList';
@@ -200,7 +200,7 @@ export function BorrowTab({
           const rawBalance = collateralRawBalance;
           if (!rawBalance) return;
           const decimals = collateralRuneInfo?.decimals ?? 0;
-          const formattedAmount = percentageOfRawAmount(
+          const formattedAmount = calculateBalancePortion(
             rawBalance,
             decimals,
             percentage,
