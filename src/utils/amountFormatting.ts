@@ -58,21 +58,31 @@ export function convertToRawAmount(
 }
 
 /**
- * Calculates a percentage of a raw balance and returns a display string
- * with correct decimal precision.
+ * Calculates a formatted portion of a balance.
+ * Works for both BTC (satoshis) and rune balances.
  *
- * @param rawAmount - Raw on-chain balance as string or number
- * @param decimals - Token decimals
- * @param percentage - Percentage as decimal (e.g., 0.25 for 25%)
+ * @param rawAmount - Raw on-chain balance in smallest units
+ * @param decimals - Token decimals (8 for BTC)
+ * @param percentage - Portion as decimal (e.g., 0.25 for 25%)
  * @returns Display amount string respecting token decimals
  */
-export function percentageOfRawAmount(
+export function calculateBalancePortion(
   rawAmount: number | string,
   decimals: number,
   percentage: number,
 ): string {
   const available = new Big(rawAmount).div(new Big(10).pow(decimals));
   const desired = percentage === 1 ? available : available.times(percentage);
-  // Ensure we do not exceed decimal precision
   return formatAmountWithPrecision(desired.toString(), decimals);
+}
+
+/**
+ * @deprecated Use {@link calculateBalancePortion} instead.
+ */
+export function percentageOfRawAmount(
+  rawAmount: number | string,
+  decimals: number,
+  percentage: number,
+): string {
+  return calculateBalancePortion(rawAmount, decimals, percentage);
 }
