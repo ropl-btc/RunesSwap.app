@@ -114,3 +114,6 @@ runs linting, tests and a production build. Please ensure:
 ## License
 
 MIT © RunesSwap.app
+
+
+> CI test: verify Claude review is non-blocking and bot-skipped.
