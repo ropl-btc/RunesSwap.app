@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.6] - 2025-08-28
+
+### Changed
+
+- Enhanced Claude workflow security with author association checks and bot comment whitelisting for automated changelog generation.
+- Upgraded Claude Code Action from beta to pinned commit version for improved supply-chain security.
+- Package version bump to trigger and test changelog gate functionality.
+
 ## [0.2.4] - 2025-08-28
 
 ### Changed
@@ -135,6 +143,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Initial release: swap interface, price chart, core API routes and foundational UI.
+[0.2.6]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.4...v0.2.6
 [0.2.4]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.1...v0.2.2
