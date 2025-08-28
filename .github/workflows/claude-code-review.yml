@@ -3,9 +3,6 @@ name: Claude Code Review
 on:
   pull_request:
     types: [opened, synchronize]
-    # Do not run this review when the workflow file itself is being modified
-    paths-ignore:
-      - ".github/workflows/claude-code-review.yml"
     # Optional: Only run on specific file changes
     # paths:
     #   - "src/**/*.ts"
@@ -15,10 +12,6 @@ on:
 
 jobs:
   claude-review:
-    # Skip when Claude bot is the actor/sender to keep CI green on auto-commit PR bumps
-    if: |
-      github.actor != 'claude[bot]' &&
-      (github.event.sender.login != 'claude[bot]')
     # Optional: Filter by PR author
     # if: |
     #   github.event.pull_request.user.login == 'external-contributor' ||
@@ -41,10 +34,6 @@ jobs:
       - name: Run Claude Code Review
         id: claude-review
         uses: anthropics/claude-code-action@beta
-        # Make review non-blocking to keep CI clean even on transient provider/auth quirks
-        continue-on-error: true
-        # Extra safety: never fail the workflow if a bot somehow triggers this step
-        continue-on-error: ${{ github.actor == 'claude[bot]' || github.event.sender.login == 'claude[bot]' }}
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
@@ -86,3 +75,4 @@ jobs:
           # if: |
           #   !contains(github.event.pull_request.title, '[skip-review]') &&
           #   !contains(github.event.pull_request.title, '[WIP]')
+
