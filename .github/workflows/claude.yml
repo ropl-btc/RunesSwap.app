@@ -13,17 +13,42 @@ on:
 jobs:
   claude:
     if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      (
+        github.event_name == 'issue_comment' &&
+        contains(github.event.comment.body, '@claude') &&
+        (
+          contains('OWNER,COLLABORATOR,MEMBER', github.event.comment.author_association) ||
+          (
+            github.event.comment.user.login == 'github-actions[bot]' &&
+            contains(github.event.comment.body, '<!-- changelog-validate -->')
+          )
+        )
+      ) || (
+        github.event_name == 'pull_request_review_comment' &&
+        contains(github.event.comment.body, '@claude') &&
+        (
+          contains('OWNER,COLLABORATOR,MEMBER', github.event.comment.author_association) ||
+          (
+            github.event.comment.user.login == 'github-actions[bot]' &&
+            contains(github.event.comment.body, '<!-- changelog-validate -->')
+          )
+        )
+      ) || (
+        github.event_name == 'pull_request_review' &&
+        contains(github.event.review.body, '@claude') &&
+        contains('OWNER,COLLABORATOR,MEMBER', github.event.review.author_association)
+      ) || (
+        github.event_name == 'issues' &&
+        (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')) &&
+        contains('OWNER,COLLABORATOR,MEMBER', github.event.issue.author_association)
+      )
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      pull-requests: read
+      contents: write
+      pull-requests: write
       issues: read
       id-token: write
-      actions: read # Required for Claude to read CI results on PRs
+      actions: read # Allows Claude to read CI results on PRs
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -61,4 +86,3 @@ jobs:
           # Optional: Custom environment variables for Claude
           # claude_env: |
           #   NODE_ENV: test
-
