@@ -3,10 +3,11 @@ import { z } from 'zod';
 import { createSuccessResponse, validateRequest } from '@/lib/apiUtils';
 import { getOrdiscanClient } from '@/lib/serverUtils';
 import { withApiHandler } from '@/lib/withApiHandler';
+import { logger } from '@/lib/logger';
 
 export const GET = withApiHandler(
   async (request: NextRequest) => {
-    const schema = z.object({ address: z.string().min(1) });
+    const schema = z.object({ address: z.string().trim().min(1) });
     const validation = await validateRequest(request, schema, 'query');
     if (!validation.success) {
       return validation.errorResponse;
@@ -17,9 +18,9 @@ export const GET = withApiHandler(
     const utxos = await ordiscan.address.getUtxos({ address: address });
 
     if (!Array.isArray(utxos)) {
-      console.warn(
+      logger.warn(
         `[API Route] Invalid or empty UTXO data received for address ${address}. Expected array, got:`,
-        utxos,
+        { utxos },
       );
       return createSuccessResponse({ balance: 0 });
     }

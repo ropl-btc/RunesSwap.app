@@ -10,7 +10,7 @@ import { normalizeRuneName } from '@/utils/runeUtils';
 
 // Define the schema for the query parameters
 const QuerySchema = z.object({
-  slug: z.string().min(1).max(100),
+  slug: z.string().trim().min(1).max(100),
 });
 
 // Define the response type for price history

@@ -12,9 +12,9 @@ import useSwapExecution from '@/hooks/useSwapExecution';
 import useSwapQuote from '@/hooks/useSwapQuote';
 import useSwapRunes from '@/hooks/useSwapRunes';
 import useUsdValues from '@/hooks/useUsdValues';
-import { fetchBtcBalanceFromApi, fetchRuneBalancesFromApi } from '@/lib/api';
+import { fetchBtcBalanceFromApi } from '@/lib/api';
+import { useRuneBalances } from '@/hooks/useRuneBalances';
 import { Asset, BTC_ASSET } from '@/types/common';
-import { type RuneBalance as OrdiscanRuneBalance } from '@/types/ordiscan';
 import {
   formatAmountWithPrecision,
   percentageOfRawAmount,
@@ -47,10 +47,6 @@ interface SwapTabProps {
   btcPriceUsd: number | undefined;
   isBtcPriceLoading: boolean;
   btcPriceError: Error | null;
-  // New props for cached popular runes
-  cachedPopularRunes?: Record<string, unknown>[];
-  isPopularRunesLoading?: boolean;
-  popularRunesError?: Error | null;
   // New props for price chart
   onShowPriceChart?: (assetName?: string, shouldToggle?: boolean) => void;
   showPriceChart?: boolean;
@@ -68,9 +64,6 @@ export function SwapTab({
   btcPriceUsd,
   isBtcPriceLoading,
   btcPriceError,
-  cachedPopularRunes = [],
-  isPopularRunesLoading = false,
-  popularRunesError = null,
   onShowPriceChart,
   showPriceChart = false,
   preSelectedRune = null,
@@ -91,9 +84,6 @@ export function SwapTab({
     popularError,
     isPreselectedRuneLoading,
   } = useSwapRunes({
-    cachedPopularRunes,
-    isPopularRunesLoading,
-    popularRunesError,
     preSelectedRune,
     preSelectedAsset,
     assetOut,
@@ -103,7 +93,7 @@ export function SwapTab({
 
   const availableRunes = popularRunes;
   const isLoadingRunes = isPopularLoading;
-  const currentRunesError = popularError;
+  const currentRunesError = popularError?.message || null;
 
   // Add back loadingDots state for animation
   const [loadingDots, setLoadingDots] = useState('.');
@@ -158,11 +148,9 @@ export function SwapTab({
     data: runeBalances,
     isLoading: isRuneBalancesLoading,
     error: runeBalancesError,
-  } = useQuery<OrdiscanRuneBalance[], Error>({
-    queryKey: ['runeBalancesApi', address],
-    queryFn: () => fetchRuneBalancesFromApi(address!), // Use API function
-    enabled: !!connected && !!address, // Only run query if connected and address exists
-    staleTime: 30000, // Consider balances stale after 30 seconds
+  } = useRuneBalances(address, {
+    enabled: !!connected && !!address,
+    staleTime: 30000,
   });
 
   // Use shared hook for Input Rune Info

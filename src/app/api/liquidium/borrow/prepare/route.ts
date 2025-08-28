@@ -6,9 +6,9 @@ import {
   validateRequest,
 } from '@/lib/apiUtils';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
-import { supabase } from '@/lib/supabase';
+import { enforceRateLimit } from '@/lib/rateLimit';
+import { getLiquidiumJwt } from '@/lib/liquidiumAuth';
 import type { StartLoanService } from '@/sdk/liquidium/services/StartLoanService';
-import { safeArrayFirst } from '@/utils/typeGuards';
 
 // Schema for request body
 const prepareBodySchema = z.object({
@@ -18,12 +18,12 @@ const prepareBodySchema = z.object({
     .string()
     .min(1)
     .regex(/^\d+$/, 'Token amount must be a positive integer string'),
-  borrower_payment_address: z.string().min(1),
-  borrower_payment_pubkey: z.string().min(1),
-  borrower_ordinal_address: z.string().min(1),
-  borrower_ordinal_pubkey: z.string().min(1),
+  borrower_payment_address: z.string().trim().min(1),
+  borrower_payment_pubkey: z.string().trim().min(1),
+  borrower_ordinal_address: z.string().trim().min(1),
+  borrower_ordinal_pubkey: z.string().trim().min(1),
   collateral_asset_id: z.string().optional(), // Optional field for rune ID
-  address: z.string().min(1), // User's address to find JWT
+  address: z.string().trim().min(1), // User's address to find JWT
 });
 
 type StartLoanPrepareRequest = Parameters<
@@ -36,35 +36,23 @@ export async function POST(request: NextRequest) {
   if (!validation.success) {
     return validation.errorResponse;
   }
+  // Rate limit: 30 req/min per IP
+  const limited = enforceRateLimit(request, {
+    key: 'liquidium:borrow:prepare',
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (limited) return limited;
   // Exclude 'address' from the data sent to Liquidium
   const { address, ...liquidiumPayload } = validation.data;
 
   try {
     // 1. Get User JWT from Supabase
-    const { data: tokenRows, error: tokenError } = await supabase
-      .from('liquidium_tokens')
-      .select('jwt')
-      .eq('wallet_address', address)
-      .limit(1);
-
-    if (tokenError) {
-      return createErrorResponse(
-        'Database error retrieving authentication',
-        tokenError.message,
-        500,
-      );
+    const jwt = await getLiquidiumJwt(address);
+    if (typeof jwt !== 'string') {
+      return jwt;
     }
-
-    const firstToken = safeArrayFirst(tokenRows);
-    if (!firstToken?.jwt) {
-      return createErrorResponse(
-        'Liquidium authentication required',
-        'No JWT found for this address',
-        401,
-      );
-    }
-
-    const userJwt = firstToken.jwt;
+    const userJwt = jwt;
 
     // Include required wallet field
     const sdkPayload: StartLoanPrepareRequest = {

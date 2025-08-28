@@ -11,6 +11,7 @@ import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount
 import { FormattedRuneName } from '@/components/formatters/FormattedRuneName';
 import styles from '@/components/layout/AppInterface.module.css';
 import RuneIcon from '@/components/runes/RuneIcon';
+import { getRuneIconUrl } from '@/utils/runeUtils';
 
 interface YourTxsTabProps {
   connected: boolean;
@@ -104,7 +105,7 @@ export function YourTxsTab({ connected, address }: YourTxsTabProps) {
                       }}
                     >
                       <RuneIcon
-                        src={`https://icon.unisat.io/icon/runes/${encodeURIComponent(runeName)}`}
+                        src={getRuneIconUrl(runeName)}
                         alt=""
                         className={styles.runeImage}
                         width={20}

@@ -5,10 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.4] - 2025-08-28
+## [0.2.5] - 2025-08-28
+
+### Added
+
+- Reusable `useRuneBalances` hook for fetching rune balances and refactored Borrow and Swap tabs to use it.
+- Centralized helper for retrieving and validating Liquidium JWTs used by borrow routes.
+- Centralized SatsTerminal error handler and wrapped PSBT endpoints with `withApiHandler`.
+- Helper to generate rune icon URLs and refactor existing hard-coded links.
+- Generic `useSearchWithPopular` hook for debounced search with optional popular-item caching.
+ - Centralized `usePopularRunes` hook and refactored hooks/components to consume it.
+ - Helper `fetchRuneEndpoint` for Ordiscan rune endpoints with accompanying tests.
 
 ### Changed
 
+- Centralized rune route validation with shared helper.
+- Refactored `FormattedRuneName` to use the `useRuneInfo` hook.
+- `useAssetSearch` and `useRunesSearch` now leverage `useSearchWithPopular`.
+- Replace console statements with logger utilities.
+- Made `useFeeRates` accept optional React Query config and reused it in swap execution.
+- Refactored popular rune mapping into a generic utility.
+- Consolidated rune data fetching hooks with new `useRuneDataQuery` wrapper.
 - Updated changelog workflow to automatically trigger @claude when changelog validation fails, enabling automated changelog generation.
 - Enhanced Claude workflow permissions to allow contents and pull-requests write access for committing changelog updates.
 
@@ -146,3 +163,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.1.2]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/ropl-btc/RunesSwap.app/releases/tag/v0.1.0
+[0.2.5]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.4...v0.2.5

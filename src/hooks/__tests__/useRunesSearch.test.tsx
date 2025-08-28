@@ -3,7 +3,6 @@ import useRunesSearch from '@/hooks/useRunesSearch';
 
 jest.mock('@/lib/api', () => ({
   fetchRunesFromApi: jest.fn(),
-  fetchPopularFromApi: jest.fn(),
 }));
 
 jest.mock('@/store/runesInfoStore', () => ({
@@ -12,8 +11,6 @@ jest.mock('@/store/runesInfoStore', () => ({
     setRuneSearchQuery: jest.fn(),
   })),
 }));
-
-type HookProps = Parameters<typeof useRunesSearch>[0];
 
 const createMockRunes = (suffix: string) => [
   {
@@ -24,29 +21,27 @@ const createMockRunes = (suffix: string) => [
 ];
 
 describe('useRunesSearch', () => {
-  it('updates when props change', async () => {
-    const scenarios = [
-      {
-        props: { cachedPopularRunes: createMockRunes('1') },
-        expectedId: '123:1',
-      },
-      {
-        props: { cachedPopularRunes: createMockRunes('2') },
-        expectedId: '123:2',
-      },
-    ];
+  it('updates when cached popular runes change', async () => {
+    const runes1 = createMockRunes('1').map((r) => ({
+      id: r.token_id,
+      name: r.token,
+      imageURI: r.icon,
+    }));
+    const runes2 = createMockRunes('2').map((r) => ({
+      id: r.token_id,
+      name: r.token,
+      imageURI: r.icon,
+    }));
 
+    type Props = { cachedPopularRunes: Record<string, unknown>[] };
     const { result, rerender } = renderHook(
-      (props: HookProps = {}) => useRunesSearch(props),
-      { initialProps: scenarios[0]?.props },
+      (props: Props) => useRunesSearch(props),
+      { initialProps: { cachedPopularRunes: runes1 } },
     );
+    expect(result.current.availableRunes.map((r) => r.id)).toEqual(['123:1']);
 
-    for (const { props, expectedId } of scenarios) {
-      rerender(props);
-      await act(async () => Promise.resolve());
-      expect(result.current.availableRunes.map((r) => r.id)).toEqual([
-        expectedId,
-      ]);
-    }
+    rerender({ cachedPopularRunes: runes2 });
+    await act(async () => Promise.resolve());
+    expect(result.current.availableRunes.map((r) => r.id)).toEqual(['123:2']);
   });
 });

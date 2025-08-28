@@ -1,7 +1,7 @@
 import { fetchRunesFromApi } from '@/lib/api';
+import useSearchWithPopular from '@/hooks/useSearchWithPopular';
 import { Asset } from '@/types/common';
 import type { Rune } from '@/types/satsTerminal';
-import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
 
 interface UseAssetSearchArgs {
   availableAssets: Asset[];
@@ -14,27 +14,28 @@ export function useAssetSearch({
   isAssetsLoading = false,
   assetsError = null,
 }: UseAssetSearchArgs) {
-  const search = useDebouncedSearch<Asset>(async (q) => {
-    const results: Rune[] = await fetchRunesFromApi(q);
-    return results.map((r) => ({
+  const {
+    query: searchQuery,
+    onQueryChange: handleSearchChange,
+    results: displayedAssets,
+    isLoading: isLoadingAssets,
+    error: currentError,
+  } = useSearchWithPopular<Asset, Rune>({
+    searchFn: fetchRunesFromApi,
+    mapper: (r) => ({
       id: r.id,
       name: r.name,
       imageURI: r.imageURI,
       isBTC: false,
-    }));
+    }),
+    initialItems: availableAssets,
+    initialLoading: isAssetsLoading,
+    initialError: assetsError,
   });
 
-  const displayedAssets = search.query.trim()
-    ? search.results
-    : availableAssets;
-  const isLoadingAssets = search.query.trim()
-    ? search.isSearching
-    : isAssetsLoading;
-  const currentError = search.query.trim() ? search.error : assetsError;
-
   return {
-    searchQuery: search.query,
-    handleSearchChange: (value: string) => search.onQueryChange(value),
+    searchQuery,
+    handleSearchChange,
     displayedAssets,
     isLoadingAssets,
     currentError,

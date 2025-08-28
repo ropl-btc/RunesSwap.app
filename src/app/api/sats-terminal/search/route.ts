@@ -12,7 +12,7 @@ import { withApiHandler } from '@/lib/withApiHandler';
 import type { Rune } from '@/types/satsTerminal';
 
 const searchParamsSchema = z.object({
-  query: z.string().min(1, 'Query parameter is required'),
+  query: z.string().trim().min(1, 'Query parameter is required'),
   sell: z.string().optional(),
 });
 
