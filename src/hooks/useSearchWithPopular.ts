@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -70,30 +70,40 @@ export function useSearchWithPopular<T, R>({
       : {}),
   });
 
-  // Keep popular-items cache in sync with provided initialItems when idle
+  // Keep cache loosely in sync when initialItems change (non-search state)
+  const initialItemsRef = useRef(initialItems);
   useEffect(() => {
-    if (!trimmed && initialItems && initialItems.length > 0) {
+    if (
+      !trimmed &&
+      initialItems !== initialItemsRef.current &&
+      initialItems.length > 0
+    ) {
       queryClient.setQueryData<T[]>(['popular-items'], initialItems);
+      initialItemsRef.current = initialItems;
     }
   }, [initialItems, trimmed, queryClient]);
 
+  // Prefer freshly-changed initialItems immediately; otherwise prefer fetched popular data
   const popularSource =
-    initialItems.length > 0 ? initialItems : (popularData ?? []);
+    !trimmed && initialItems !== initialItemsRef.current
+      ? initialItems
+      : popularData && popularData.length > 0
+        ? popularData
+        : initialItems;
+
   const results = trimmed ? (searchData ?? []) : popularSource;
+
   const isLoading = trimmed
     ? isSearchLoading || isSearchFetching
-    : initialItems.length > 0
-      ? !!initialLoading
-      : isPopularLoading || isPopularFetching || initialLoading;
+    : popularData && popularData.length > 0
+      ? isPopularLoading || isPopularFetching
+      : !!initialLoading;
+
   const error = trimmed
-    ? searchError
-      ? searchError.message
-      : null
-    : initialItems.length > 0
-      ? initialError
-      : popularError
-        ? popularError.message
-        : null;
+    ? (searchError?.message ?? null)
+    : popularData && popularData.length > 0
+      ? (popularError?.message ?? null)
+      : (initialError ?? null);
 
   const onQueryChange = (value: string) => setQuery(value);
   const reset = () => setQuery('');

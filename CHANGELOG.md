@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored `useSearchWithPopular` hook to use React Query for search and popular rune flows with debounced input.
 - Updated tests to wrap hook consumers with `QueryClientProvider`.
 
+### Fixed
+
+- useSearchWithPopular: prefer fetched popular results over `initialItems` when available; correct `isLoading`/`error` derivation; sync cache only when `initialItems` change.
+
 ## [0.2.5] - 2025-08-28
 
 ### Added
