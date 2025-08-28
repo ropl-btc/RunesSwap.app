@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import { useDebouncedSearch } from '@/hooks/useDebouncedSearch';
+import { useEffect, useMemo, useState } from 'react';
+import { useDebounce } from 'use-debounce';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface UseSearchWithPopularOptions<T, R> {
   searchFn: (query: string) => Promise<R[]>;
@@ -22,88 +23,88 @@ export function useSearchWithPopular<T, R>({
   debounceMs = 300,
   initialQuery = '',
 }: UseSearchWithPopularOptions<T, R>) {
-  const search = useDebouncedSearch<T>(
-    async (q) => {
-      const res = await searchFn(q);
-      return res.map(mapper);
+  // Local input state with debounced value
+  const [query, setQuery] = useState(initialQuery);
+  const [debouncedQuery] = useDebounce(query, debounceMs);
+  const queryClient = useQueryClient();
+
+  // Stable mapper to avoid re-renders inside select
+  const mapItem = useMemo(() => mapper, [mapper]);
+
+  const trimmed = debouncedQuery.trim();
+
+  // Search query: runs only when we have a non-empty trimmed query
+  const {
+    data: searchData,
+    isLoading: isSearchLoading,
+    isFetching: isSearchFetching,
+    error: searchError,
+  } = useQuery<T[], Error>({
+    queryKey: ['search', trimmed],
+    // Per TanStack docs, queryFn must return a value, not void
+    queryFn: async () => {
+      const res = await searchFn(trimmed);
+      return res.map(mapItem);
     },
-    debounceMs,
-    initialQuery,
-  );
+    enabled: !!trimmed, // disable until user types something
+  });
 
-  // If we have a persisted non-empty query, trigger an initial search on mount
+  // Popular query: used when there is no query; respects provided initialItems
+  const {
+    data: popularData,
+    isLoading: isPopularLoading,
+    isFetching: isPopularFetching,
+    error: popularError,
+  } = useQuery<T[], Error>({
+    queryKey: ['popular-items'],
+    queryFn: async () => {
+      if (!popularFn) return initialItems;
+      const res = await popularFn();
+      return res.map(mapItem);
+    },
+    // only relevant when not searching
+    enabled: !trimmed,
+    // Seed from initialItems if present
+    ...(initialItems.length > 0
+      ? ({ initialData: initialItems as T[] } as const)
+      : {}),
+  });
+
+  // Keep popular-items cache in sync with provided initialItems when idle
   useEffect(() => {
-    const trimmed = initialQuery.trim();
-    if (trimmed) {
-      // This will set the query and kick the debounced fetcher
-      search.onQueryChange(trimmed);
+    if (!trimmed && initialItems && initialItems.length > 0) {
+      queryClient.setQueryData<T[]>(['popular-items'], initialItems);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initialItems, trimmed, queryClient]);
 
-  const [popularItems, setPopularItems] = useState<T[]>(initialItems);
-  const [isPopularLoading, setIsPopularLoading] = useState(initialLoading);
-  const [popularError, setPopularError] = useState<string | null>(initialError);
+  const popularSource =
+    initialItems.length > 0 ? initialItems : (popularData ?? []);
+  const results = trimmed ? (searchData ?? []) : popularSource;
+  const isLoading = trimmed
+    ? isSearchLoading || isSearchFetching
+    : initialItems.length > 0
+      ? !!initialLoading
+      : isPopularLoading || isPopularFetching || initialLoading;
+  const error = trimmed
+    ? searchError
+      ? searchError.message
+      : null
+    : initialItems.length > 0
+      ? initialError
+      : popularError
+        ? popularError.message
+        : null;
 
-  // Stabilize function references to avoid effect re-runs causing render loops
-  const popularFnRef = useRef(popularFn);
-  const mapperRef = useRef(mapper);
-  useEffect(() => {
-    popularFnRef.current = popularFn;
-  }, [popularFn]);
-  useEffect(() => {
-    mapperRef.current = mapper;
-  }, [mapper]);
+  const onQueryChange = (value: string) => setQuery(value);
+  const reset = () => setQuery('');
 
-  useEffect(() => {
-    setPopularItems(initialItems);
-  }, [initialItems]);
-
-  useEffect(() => {
-    setIsPopularLoading(initialLoading);
-  }, [initialLoading]);
-
-  useEffect(() => {
-    setPopularError(initialError);
-  }, [initialError]);
-
-  useEffect(() => {
-    if (!popularFnRef.current) return;
-    if (initialItems.length > 0) return;
-
-    let cancelled = false;
-    const fetchPopular = async () => {
-      setIsPopularLoading(true);
-      setPopularError(null);
-      try {
-        const data = await popularFnRef.current!();
-        if (!cancelled) setPopularItems(data.map(mapperRef.current));
-      } catch (e: unknown) {
-        if (!cancelled)
-          setPopularError(e instanceof Error ? e.message : String(e));
-      } finally {
-        if (!cancelled) setIsPopularLoading(false);
-      }
-    };
-    fetchPopular();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [initialItems.length]);
-
-  const trimmed = search.query.trim();
-  const results = trimmed ? search.results : popularItems;
-  const isLoading = trimmed ? search.isSearching : isPopularLoading;
-  const error = trimmed ? search.error : popularError;
-
-  return {
-    query: search.query,
-    onQueryChange: search.onQueryChange,
-    results,
-    isLoading,
-    error,
-    reset: search.reset,
+  return { query, onQueryChange, results, isLoading, error, reset } as {
+    query: string;
+    onQueryChange: (value: string) => void;
+    results: T[];
+    isLoading: boolean;
+    error: string | null;
+    reset: () => void;
   };
 }
 

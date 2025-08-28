@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import useRunesSearch from '@/hooks/useRunesSearch';
 
 jest.mock('@/lib/api', () => ({
@@ -34,9 +35,15 @@ describe('useRunesSearch', () => {
     }));
 
     type Props = { cachedPopularRunes: Record<string, unknown>[] };
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
     const { result, rerender } = renderHook(
       (props: Props) => useRunesSearch(props),
-      { initialProps: { cachedPopularRunes: runes1 } },
+      { initialProps: { cachedPopularRunes: runes1 }, wrapper },
     );
     expect(result.current.availableRunes.map((r) => r.id)).toEqual(['123:1']);
 
