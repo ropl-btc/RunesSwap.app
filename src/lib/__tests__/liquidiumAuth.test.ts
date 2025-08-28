@@ -11,10 +11,15 @@ jest.mock('@/lib/supabase', () => ({
 }));
 
 describe('getLiquidiumJwt', () => {
-  const from = supabase.from as jest.Mock;
-  const select = supabase.select as jest.Mock;
-  const eq = supabase.eq as jest.Mock;
-  const limit = supabase.limit as jest.Mock;
+  // Cast the imported supabase client to the mocked shape for tests
+  type SupabaseMock = {
+    from: jest.Mock;
+    select: jest.Mock;
+    eq: jest.Mock;
+    limit: jest.Mock;
+  };
+  const mocked = supabase as unknown as SupabaseMock;
+  const { from, select, eq, limit } = mocked;
 
   beforeEach(() => {
     jest.resetAllMocks();

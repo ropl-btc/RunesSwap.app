@@ -9,9 +9,12 @@ const store = new Map<string, Entry>();
 
 function getClientIp(req: NextRequest): string {
   const xf = req.headers.get('x-forwarded-for');
-  if (xf) return xf.split(',')[0].trim();
+  if (typeof xf === 'string' && xf.length > 0) {
+    const first = xf.split(',')[0] ?? '';
+    return first.trim();
+  }
   const xr = req.headers.get('x-real-ip');
-  if (xr) return xr.trim();
+  if (typeof xr === 'string' && xr.length > 0) return xr.trim();
   // Fallback: not ideal, but avoids undefined keys
   return 'unknown';
 }
