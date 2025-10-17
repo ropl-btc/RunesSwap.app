@@ -72,15 +72,17 @@ export const POST = withApiHandler(
         details: updateError.details,
         hint: updateError.hint,
       });
+      const maybeDetails =
+        process.env.NODE_ENV !== 'production'
+          ? JSON.stringify({
+              code: updateError.code,
+              message: updateError.message,
+            })
+          : undefined;
+
       return fail('Database update failed', {
         status: 500,
-        details:
-          process.env.NODE_ENV !== 'production'
-            ? JSON.stringify({
-                code: updateError.code,
-                message: updateError.message,
-              })
-            : undefined,
+        ...(maybeDetails ? { details: maybeDetails } : {}),
       });
     }
 
