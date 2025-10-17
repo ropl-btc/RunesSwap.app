@@ -6,7 +6,7 @@ const withBundleAnalyzer = bundleAnalyzer({
 });
 
 const nextConfig: NextConfig = {
-  reactStrictMode: false, // Temporarily disable Strict Mode for testing
+  reactStrictMode: true,
   eslint: {
     dirs: ['src'],
   },
@@ -22,24 +22,6 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'icon.unisat.io',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'sats-terminal-node.azurewebsites.net',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'ordinals.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'ordiscan.com',
         port: '',
         pathname: '/**',
       },
