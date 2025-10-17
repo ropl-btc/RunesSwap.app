@@ -1,5 +1,6 @@
-import { NextRequest } from 'next/server';
-import { createErrorResponse, createSuccessResponse } from '@/lib/apiUtils';
+import type { NextRequest } from 'next/server';
+
+import { fail,ok } from '@/lib/apiResponse';
 import { supabase } from '@/lib/supabase';
 import { withApiHandler } from '@/lib/withApiHandler';
 
@@ -8,13 +9,8 @@ export const GET = withApiHandler(
     const searchParams = request.nextUrl.searchParams;
     const prefix = searchParams.get('prefix');
 
-    if (!prefix) {
-      return createErrorResponse(
-        'Missing required parameter: prefix',
-        undefined,
-        400,
-      );
-    }
+    if (!prefix)
+      return fail('Missing required parameter: prefix', { status: 400 });
 
     const { data: existingRune } = await supabase
       .from('runes')
@@ -29,20 +25,12 @@ export const GET = withApiHandler(
         .ilike('id', `${prefix}:%`)
         .limit(1);
 
-      if (prefixRune && prefixRune.length > 0) {
-        return createSuccessResponse(prefixRune[0]);
-      }
+      if (prefixRune && prefixRune.length > 0) return ok(prefixRune[0]);
     }
 
-    if (existingRune && existingRune.length > 0) {
-      return createSuccessResponse(existingRune[0]);
-    }
+    if (existingRune && existingRune.length > 0) return ok(existingRune[0]);
 
-    return createErrorResponse(
-      'Rune not found with the given prefix',
-      undefined,
-      404,
-    );
+    return fail('Rune not found with the given prefix', { status: 404 });
   },
   { defaultErrorMessage: 'Failed to fetch rune info by ID' },
 );

@@ -1,9 +1,11 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { createSuccessResponse, validateRequest } from '@/lib/apiUtils';
+
+import { ok } from '@/lib/apiResponse';
+import { validateRequest } from '@/lib/apiUtils';
+import { logger } from '@/lib/logger';
 import { getOrdiscanClient } from '@/lib/serverUtils';
 import { withApiHandler } from '@/lib/withApiHandler';
-import { logger } from '@/lib/logger';
 
 export const GET = withApiHandler(
   async (request: NextRequest) => {
@@ -22,14 +24,14 @@ export const GET = withApiHandler(
         `[API Route] Invalid or empty UTXO data received for address ${address}. Expected array, got:`,
         { utxos },
       );
-      return createSuccessResponse({ balance: 0 });
+      return ok({ balance: 0 });
     }
 
     const totalBalance = utxos.reduce(
       (sum, utxo) => sum + (utxo.value || 0),
       0,
     );
-    return createSuccessResponse({ balance: totalBalance });
+    return ok({ balance: totalBalance });
   },
   { defaultErrorMessage: 'Failed to fetch BTC balance' },
 );

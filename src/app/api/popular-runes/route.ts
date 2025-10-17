@@ -1,4 +1,4 @@
-import { createSuccessResponse } from '@/lib/apiUtils';
+import { ok } from '@/lib/apiResponse';
 import { getPopularRunes } from '@/lib/popularRunes';
 import { withApiHandler } from '@/lib/withApiHandler';
 
@@ -9,7 +9,7 @@ import { withApiHandler } from '@/lib/withApiHandler';
 export const GET = withApiHandler(
   async () => {
     const popularRunes = getPopularRunes();
-    return createSuccessResponse(popularRunes);
+    return ok(popularRunes);
   },
   { defaultErrorMessage: 'Failed to fetch popular runes' },
 );
