@@ -52,3 +52,4 @@ next-env.d.ts
 
 # Other
 /todo.md
+.cursor/mcp.json
