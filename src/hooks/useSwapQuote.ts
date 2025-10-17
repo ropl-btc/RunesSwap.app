@@ -202,12 +202,12 @@ export function useSwapQuote({
       !runeAsset.isBTC;
 
     // Allow pre-connection quotes when a mock address is configured
-    const hasAddress = Boolean(
-      address || process.env.NEXT_PUBLIC_QUOTE_MOCK_ADDRESS,
-    );
+    const mockAddress = process.env.NEXT_PUBLIC_QUOTE_MOCK_ADDRESS;
+    const hasAddress = Boolean(address || mockAddress);
+    const addressKey = address || (mockAddress ? 'mock' : '');
     const currentKey =
       hasValidInputAmount && hasValidAssets && hasAddress
-        ? `${debouncedInputAmount}-${assetIn.id}-${assetOut.id}-${hasAddress}`
+        ? `${debouncedInputAmount}-${assetIn.id}-${assetOut.id}-${addressKey}`
         : '';
 
     if (
