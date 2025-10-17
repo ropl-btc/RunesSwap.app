@@ -1,1 +1,1 @@
-Read: ./CLAUDE.md — contains codebase guidelines & instructions!
+/Users/robin/code/hobby/swapping/AGENTS.md
