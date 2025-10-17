@@ -16,6 +16,49 @@ import { logger } from '@/lib/logger';
 import type { Asset } from '@/types/common';
 import { patchOrder } from '@/utils/orderUtils';
 
+// Response shape from PSBT creation API
+interface PsbtApiResponse {
+  psbtBase64?: string;
+  psbt?: string;
+  swapId?: string;
+  rbfProtected?: { base64?: string };
+}
+
+// Response shape from PSBT confirmation API
+interface SwapConfirmationResult {
+  txid?: string;
+  rbfProtection?: {
+    fundsPreparationTxId?: string;
+  };
+}
+
+function isPsbtApiResponse(value: unknown): value is PsbtApiResponse {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  const hasPsbt =
+    typeof v.psbtBase64 === 'string' || typeof v.psbt === 'string';
+  const swapIdOk = v.swapId === undefined || typeof v.swapId === 'string';
+  const rbfOk =
+    v.rbfProtected === undefined ||
+    (typeof v.rbfProtected === 'object' &&
+      (v.rbfProtected as { base64?: unknown }).base64 === undefined) ||
+    typeof (v.rbfProtected as { base64?: unknown }).base64 === 'string';
+  return hasPsbt && swapIdOk && rbfOk;
+}
+
+function parsePsbtResult(result: unknown): {
+  mainPsbtBase64?: string;
+  swapId?: string;
+  rbfPsbtBase64?: string;
+} {
+  if (!isPsbtApiResponse(result)) return {};
+  return {
+    mainPsbtBase64: result.psbtBase64 || result.psbt,
+    swapId: result.swapId,
+    rbfPsbtBase64: result.rbfProtected?.base64,
+  };
+}
+
 interface UseSwapExecutionArgs {
   connected: boolean;
   address: string | null;
@@ -111,6 +154,7 @@ export default function useSwapExecution({
     // This prevents duplicate loading states that can cause button to remain disabled on cancellation
     dispatchSwap({ type: 'SWAP_START' });
 
+    let successDispatched = false;
     try {
       // 1. Get PSBT via API
       dispatchSwap({ type: 'SWAP_STEP', step: 'getting_psbt' });
@@ -140,16 +184,9 @@ export default function useSwapExecution({
       };
 
       // *** Use API client function ***
-      const psbtResult = await getPsbtFromApi(psbtParams);
-
-      const mainPsbtBase64 =
-        (psbtResult as unknown as { psbtBase64?: string; psbt?: string })
-          ?.psbtBase64 ||
-        (psbtResult as unknown as { psbtBase64?: string; psbt?: string })?.psbt;
-      const swapId = (psbtResult as unknown as { swapId?: string })?.swapId;
-      const rbfPsbtBase64 = (
-        psbtResult as unknown as { rbfProtected?: { base64?: string } }
-      )?.rbfProtected?.base64;
+      const rawPsbtResult = await getPsbtFromApi(psbtParams);
+      const { mainPsbtBase64, swapId, rbfPsbtBase64 } =
+        parsePsbtResult(rawPsbtResult);
 
       if (!mainPsbtBase64 || !swapId) {
         // Log rich context for diagnostics
@@ -200,14 +237,6 @@ export default function useSwapExecution({
       // *** Use API client function ***
       const confirmResult = await confirmPsbtViaApi(confirmParams);
 
-      // Define a basic interface for expected response structure
-      interface SwapConfirmationResult {
-        txid?: string;
-        rbfProtection?: {
-          fundsPreparationTxId?: string;
-        };
-      }
-
       // Use proper typing instead of 'any'
       const finalTxId =
         (confirmResult as SwapConfirmationResult)?.txid ||
@@ -231,6 +260,7 @@ export default function useSwapExecution({
         throw new Error('Confirmation failed or transaction ID missing.');
       }
       dispatchSwap({ type: 'SWAP_SUCCESS', txId: finalTxId });
+      successDispatched = true;
 
       // Prevent further operations
       isThrottledRef.current = true;
@@ -283,17 +313,9 @@ export default function useSwapExecution({
           };
 
           // Removed redundant log as we already logged the fee rate
-          const psbtResult = await getPsbtFromApi(retryParams);
-
-          const mainPsbtBase64 =
-            (psbtResult as unknown as { psbtBase64?: string; psbt?: string })
-              ?.psbtBase64 ||
-            (psbtResult as unknown as { psbtBase64?: string; psbt?: string })
-              ?.psbt;
-          const swapId = (psbtResult as unknown as { swapId?: string })?.swapId;
-          const rbfPsbtBase64 = (
-            psbtResult as unknown as { rbfProtected?: { base64?: string } }
-          )?.rbfProtected?.base64;
+          const rawPsbtResult = await getPsbtFromApi(retryParams);
+          const { mainPsbtBase64, swapId, rbfPsbtBase64 } =
+            parsePsbtResult(rawPsbtResult);
 
           if (!mainPsbtBase64 || !swapId) {
             // Log rich context for diagnostics
@@ -381,6 +403,7 @@ export default function useSwapExecution({
           }
 
           dispatchSwap({ type: 'SWAP_SUCCESS', txId: finalTxId });
+          successDispatched = true;
 
           // Prevent further operations
           isThrottledRef.current = true;
@@ -478,15 +501,10 @@ Possible solutions:
         dispatchSwap({ type: 'SWAP_ERROR', error: errorMessage });
       }
     } finally {
-      // Avoid unsafe returns in finally; gate actions by state only
-      if (swapState.txId && swapState.swapStep !== 'success') {
-        dispatchSwap({ type: 'SWAP_SUCCESS', txId: swapState.txId });
-      } else if (errorMessageRef.current) {
-        if (errorMessageRef.current.includes('User canceled')) {
+      if (!successDispatched) {
+        if (!errorMessageRef.current?.includes('User canceled')) {
           dispatchSwap({ type: 'SWAP_STEP', step: 'idle' });
         }
-      } else if (swapState.swapStep !== 'success') {
-        dispatchSwap({ type: 'SWAP_STEP', step: 'idle' });
       }
     }
   };
