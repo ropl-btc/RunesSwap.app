@@ -1,32 +1,25 @@
+# Changelog
 ## [Unreleased]
+
 ### Added
 - Centralized QueryClient defaults and query key factories.
 - CI workflows: PR (type-check, lint, test) and main build.
+- Optional `NEXT_PUBLIC_QUOTE_MOCK_ADDRESS` to enable pre-connection quotes.
 
 ### Changed
 - Enforced Zod validation and standardized `ok`/`fail` across APIs; set `dynamic = 'force-static'` on static GETs.
 - Strict Mode effect cleanups (timers/listeners) for predictable behavior.
 - Re-enabled build-time linting.
-
-### Fixed
-- Logging consistency: replaced stray `console.*` with `logger` in APIs; reduced noisy logs.
-# Changelog
-## [Unreleased]
-
-### Added
-- Optional `NEXT_PUBLIC_QUOTE_MOCK_ADDRESS` to enable pre-connection quotes.
-
-### Changed
 - Simplified Husky hooks to use lint-staged in pre-commit and checks in pre-push.
 - Migrated to ESLint 9 flat config and Prettier 3 config.
 - Scoped Next.js ESLint dirs and minor next.config.ts tidy.
 - Reduced unnecessary quote requests and improved swap percentage helpers.
 
 ### Fixed
+- Logging consistency: replaced stray `console.*` with `logger` in APIs; reduced noisy logs.
 - Enforced Zod response validation in `src/app/api/ordiscan/btc-balance/route.ts`.
 - Replaced ad-hoc query checks with Zod-based validation in `src/app/api/ordiscan/rune-info-by-id/route.ts`.
 - Removed unsafe assertions in `src/hooks/useSwapExecution.ts` by introducing `PsbtApiResponse` and a type guard; deduplicated `SwapConfirmationResult`; fixed finally-block to avoid stale state success re-dispatch.
-
 
 All notable changes to this project will be documented in this file.
 

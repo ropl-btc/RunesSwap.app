@@ -80,9 +80,9 @@ export default defineConfig([
     languageOptions: {
       sourceType: 'commonjs',
       globals: {
-        module: 'readonly',
         require: 'readonly',
         global: 'readonly',
+        globalThis: 'readonly',
         jest: 'readonly',
         beforeEach: 'readonly',
         afterEach: 'readonly',
@@ -91,7 +91,6 @@ export default defineConfig([
     },
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
-      'no-undef': 'off',
     },
   },
   {
@@ -99,12 +98,11 @@ export default defineConfig([
     languageOptions: {
       sourceType: 'module',
       globals: {
-        module: 'readonly',
         global: 'readonly',
+        globalThis: 'readonly',
       },
     },
     rules: {
-      'no-undef': 'off',
     },
   },
   // Test utilities: allow any types
