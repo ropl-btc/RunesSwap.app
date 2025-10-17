@@ -1,10 +1,8 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import type { QuoteParams } from 'satsterminal-sdk';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  validateRequest,
-} from '@/lib/apiUtils';
+
+import { fail,ok } from '@/lib/apiResponse';
+import { validateRequest } from '@/lib/apiUtils';
 import { getSatsTerminalClient } from '@/lib/serverUtils';
 import { requestSchemas } from '@/lib/validationSchemas';
 import { withApiHandler } from '@/lib/withApiHandler';
@@ -35,8 +33,7 @@ export const POST = withApiHandler(
     };
 
     const quoteResponse = await terminal.fetchQuote(quoteParams);
-
-    return createSuccessResponse(quoteResponse);
+    return ok(quoteResponse);
   },
   {
     defaultErrorMessage: 'Failed to fetch quote',
@@ -45,25 +42,27 @@ export const POST = withApiHandler(
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       if (errorMessage.toLowerCase().includes('liquidity')) {
-        return createErrorResponse('No liquidity available', errorMessage, 404);
+        return fail('No liquidity available', {
+          status: 404,
+          details: errorMessage,
+        });
       }
 
       // Special handling for rate limiting
       if (errorMessage.includes('Rate limit')) {
-        return createErrorResponse(
-          'Rate limit exceeded',
-          'Please try again later',
-          429,
-        );
+        return fail('Rate limit exceeded', {
+          status: 429,
+          details: 'Please try again later',
+        });
       }
 
       // Handle unexpected token errors (HTML responses instead of JSON)
       if (errorMessage.includes('Unexpected token')) {
-        return createErrorResponse(
-          'API service unavailable',
-          'The SatsTerminal API is currently unavailable. Please try again later.',
-          503,
-        );
+        return fail('API service unavailable', {
+          status: 503,
+          details:
+            'The SatsTerminal API is currently unavailable. Please try again later.',
+        });
       }
 
       // Return null to fall back to default error handling
