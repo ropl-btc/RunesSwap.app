@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import type { QuoteParams } from 'satsterminal-sdk';
 
-import { fail,ok } from '@/lib/apiResponse';
+import { fail, ok } from '@/lib/apiResponse';
 import { validateRequest } from '@/lib/apiUtils';
 import { getSatsTerminalClient } from '@/lib/serverUtils';
 import { requestSchemas } from '@/lib/validationSchemas';
