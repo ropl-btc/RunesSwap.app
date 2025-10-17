@@ -1,3 +1,7 @@
+## [Unreleased]
+### Fixed
+- Enforced Zod response validation in `src/app/api/ordiscan/btc-balance/route.ts`.
+- Replaced ad-hoc query checks with Zod-based validation in `src/app/api/ordiscan/rune-info-by-id/route.ts`.
 # Changelog
 ## [Unreleased]
 

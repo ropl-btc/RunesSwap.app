@@ -9,6 +9,9 @@ import { withApiHandler } from '@/lib/withApiHandler';
 
 export const GET = withApiHandler(
   async (request: NextRequest) => {
+    const balanceResponseSchema = z.object({
+      balance: z.number().nonnegative(),
+    });
     const schema = z.object({ address: z.string().trim().min(1) });
     const validation = await validateRequest(request, schema, 'query');
     if (!validation.success) {
@@ -24,14 +27,14 @@ export const GET = withApiHandler(
         `[API Route] Invalid or empty UTXO data received for address ${address}. Expected array, got:`,
         { utxos },
       );
-      return ok({ balance: 0 });
+      return ok(balanceResponseSchema.parse({ balance: 0 }));
     }
 
     const totalBalance = utxos.reduce(
       (sum, utxo) => sum + (utxo.value || 0),
       0,
     );
-    return ok({ balance: totalBalance });
+    return ok(balanceResponseSchema.parse({ balance: totalBalance }));
   },
   { defaultErrorMessage: 'Failed to fetch BTC balance' },
 );

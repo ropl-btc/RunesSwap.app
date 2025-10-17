@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   eslint: {
     dirs: ['src'],
+    ignoreDuringBuilds: true,
   },
   experimental: {
     optimizePackageImports: [

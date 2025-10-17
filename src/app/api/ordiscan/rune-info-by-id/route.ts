@@ -1,16 +1,19 @@
 import type { NextRequest } from 'next/server';
+import { z } from 'zod';
 
-import { fail,ok } from '@/lib/apiResponse';
+import { fail, ok } from '@/lib/apiResponse';
+import { validateRequest } from '@/lib/apiUtils';
 import { supabase } from '@/lib/supabase';
 import { withApiHandler } from '@/lib/withApiHandler';
 
 export const GET = withApiHandler(
   async (request: NextRequest) => {
-    const searchParams = request.nextUrl.searchParams;
-    const prefix = searchParams.get('prefix');
-
-    if (!prefix)
-      return fail('Missing required parameter: prefix', { status: 400 });
+    const schema = z.object({ prefix: z.string().trim().min(1) });
+    const validation = await validateRequest(request, schema, 'query');
+    if (!validation.success) {
+      return validation.errorResponse;
+    }
+    const { prefix } = validation.data;
 
     const { data: existingRune } = await supabase
       .from('runes')
