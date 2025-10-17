@@ -2,6 +2,8 @@ import { ok } from '@/lib/apiResponse';
 import { getPopularRunes } from '@/lib/popularRunes';
 import { withApiHandler } from '@/lib/withApiHandler';
 
+export const dynamic = 'force-static';
+
 /**
  * Returns the popular runes list
  * This is now a simple hardcoded list that you can easily maintain

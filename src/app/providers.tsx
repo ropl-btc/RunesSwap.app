@@ -2,11 +2,12 @@
 
 import type { ProviderType } from '@omnisat/lasereyes';
 import { LaserEyesProvider, MAINNET, useLaserEyes } from '@omnisat/lasereyes';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 
 import { BackgroundProvider } from '@/context/BackgroundContext';
 import { LaserEyesContext } from '@/context/LaserEyesContext';
+import { queryClient } from '@/lib/queryClient';
 
 interface LaserEyesStubContext {
   connected: boolean;
@@ -71,21 +72,8 @@ function SharedLaserEyesProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  // This ensures we create only a single instance of the QueryClient
-  const [queryClient] = React.useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 5 * 60 * 1000, // 5 minutes
-            gcTime: 60 * 60 * 1000, // 1 hour
-            refetchOnMount: false,
-            refetchOnWindowFocus: false,
-            refetchOnReconnect: false,
-          },
-        },
-      }),
-  );
+  // Reuse a centralized QueryClient with shared defaults
+  const [client] = React.useState(() => queryClient);
 
   const [isClient, setIsClient] = useState(false);
 
@@ -98,7 +86,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   if (!isClient) {
     return (
       <LaserEyesContext.Provider value={laserEyesStub}>
-        <QueryClientProvider client={queryClient}>
+        <QueryClientProvider client={client}>
           <BackgroundProvider>
             {/* children are rendered but **without** wallet functionality */}
             {children}
@@ -111,7 +99,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <LaserEyesProvider config={{ network: MAINNET }}>
       <SharedLaserEyesProvider>
-        <QueryClientProvider client={queryClient}>
+        <QueryClientProvider client={client}>
           <BackgroundProvider>{children}</BackgroundProvider>
         </QueryClientProvider>
       </SharedLaserEyesProvider>

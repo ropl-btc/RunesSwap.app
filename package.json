@@ -79,8 +79,11 @@
     "*.{ts,tsx,js,jsx}": [
       "pnpm exec eslint --fix"
     ],
-    "*.{md,css,scss,json,yml,yaml,ts,tsx,js,jsx}": [
+    "*.{md,json,yml,yaml,ts,tsx,js,jsx}": [
       "pnpm exec prettier --write"
+    ],
+    "src/**/*.css": [
+      "pnpm exec stylelint --fix"
     ]
   },
   "packageManager": "pnpm@10.8.0"

@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server';
 
 import { fail, ok } from '@/lib/apiResponse';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
+import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
 import { withApiHandler } from '@/lib/withApiHandler';
 import { safeArrayFirst } from '@/utils/typeGuards';
@@ -24,7 +25,7 @@ export const GET = withApiHandler(
       .eq('wallet_address', address)
       .limit(1);
     if (tokenError) {
-      console.error('[Liquidium] Supabase error:', tokenError);
+      logger.error('[Liquidium] Supabase error', { error: tokenError }, 'API');
       return fail('Database error retrieving authentication', {
         status: 500,
         details: tokenError.message,
@@ -32,7 +33,7 @@ export const GET = withApiHandler(
     }
     const firstToken = safeArrayFirst(tokenRows);
     if (!firstToken?.jwt) {
-      console.warn('[Liquidium] No JWT found for address:', address);
+      logger.warn('[Liquidium] No JWT found for address', { address }, 'API');
       return fail('Liquidium authentication required', {
         status: 401,
         details: 'No JWT found for this address',

@@ -100,9 +100,10 @@ export const POST = withApiHandler(
 
     if (error) {
       logger.error('Failed to store Liquidium JWT', { error }, 'API');
+      // Do not expose internal error details to clients
       return createErrorResponse(
         'Failed to store Liquidium JWT',
-        JSON.stringify(error),
+        undefined,
         500,
       );
     }

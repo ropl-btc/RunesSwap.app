@@ -201,15 +201,19 @@ export function useSwapQuote({
       typeof assetOut.id === 'string' &&
       !runeAsset.isBTC;
 
+    // Allow pre-connection quotes when a mock address is configured
+    const hasAddress = Boolean(
+      address || process.env.NEXT_PUBLIC_QUOTE_MOCK_ADDRESS,
+    );
     const currentKey =
-      hasValidInputAmount && hasValidAssets
-        ? `${debouncedInputAmount}-${assetIn.id}-${assetOut.id}-${Boolean(address)}`
+      hasValidInputAmount && hasValidAssets && hasAddress
+        ? `${debouncedInputAmount}-${assetIn.id}-${assetOut.id}-${hasAddress}`
         : '';
 
     if (
       hasValidInputAmount &&
       hasValidAssets &&
-      Boolean(address) &&
+      hasAddress &&
       currentKey !== quoteKeyRef.current
     ) {
       // If the parameters changed, clear throttle to allow immediate fetching

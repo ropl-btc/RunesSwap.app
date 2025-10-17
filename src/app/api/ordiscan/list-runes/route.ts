@@ -3,6 +3,8 @@ import { getOrdiscanClient } from '@/lib/serverUtils';
 import { withApiHandler } from '@/lib/withApiHandler';
 import type { RuneInfo } from '@/types/ordiscan';
 
+export const dynamic = 'force-static';
+
 export const GET = withApiHandler(
   async () => {
     const ordiscan = getOrdiscanClient();

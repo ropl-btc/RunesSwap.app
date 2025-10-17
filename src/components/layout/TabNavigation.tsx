@@ -54,11 +54,12 @@ export default function TabNavigation({ onTabChange }: TabNavigationProps) {
       }
     };
     window.addEventListener('tabChange', handleTabChangeEvent as EventListener);
-    return () =>
+    return () => {
       window.removeEventListener(
         'tabChange',
         handleTabChangeEvent as EventListener,
       );
+    };
   }, []);
 
   useEffect(() => {

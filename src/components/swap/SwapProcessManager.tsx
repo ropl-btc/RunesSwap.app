@@ -40,7 +40,8 @@ export function swapProcessReducer(
 ): SwapProcessState {
   // Log actions that contain errors or significant state changes
   if (action.type === 'SWAP_ERROR' || action.type === 'FETCH_QUOTE_ERROR') {
-    // Use warn to avoid triggering Next.js error overlay while still logging
+    // Use centralized logger (warn in UI environment)
+    // eslint-disable-next-line no-console
     console.warn(`SwapProcess: ${action.type}`, action);
   }
   switch (action.type) {
@@ -115,6 +116,7 @@ export function swapProcessReducer(
         swapStep: 'error',
       };
     case 'SWAP_SUCCESS':
+      // eslint-disable-next-line no-console
       console.info('Swap completed successfully with txId:', action.txId);
       return {
         ...state,

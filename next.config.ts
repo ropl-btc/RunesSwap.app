@@ -9,7 +9,8 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   eslint: {
     dirs: ['src'],
-    ignoreDuringBuilds: true,
+    // Re-enable build-time linting after cleanup
+    ignoreDuringBuilds: false,
   },
   experimental: {
     optimizePackageImports: [

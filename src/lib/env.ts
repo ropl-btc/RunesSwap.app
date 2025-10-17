@@ -15,7 +15,7 @@ const clientEnvSchema = z.object({
 
 const serverEnvSchema = z.object({
   SATS_TERMINAL_API_KEY: z.string().min(1),
-  ORDISCANN_API_KEY: z.string().min(1),
+  ORDISCAN_API_KEY: z.string().min(1),
   RUNES_FLOOR_API_KEY: z.string().min(1),
   LIQUIDIUM_API_KEY: z.string().min(1),
 });
@@ -38,7 +38,7 @@ export function getClientEnv(): ClientEnv {
 export function getServerEnv(): ServerEnv {
   const parsed = serverEnvSchema.safeParse({
     SATS_TERMINAL_API_KEY: process.env.SATS_TERMINAL_API_KEY,
-    ORDISCANN_API_KEY: process.env.ORDISCANN_API_KEY,
+    ORDISCAN_API_KEY: process.env.ORDISCAN_API_KEY,
     RUNES_FLOOR_API_KEY: process.env.RUNES_FLOOR_API_KEY,
     LIQUIDIUM_API_KEY: process.env.LIQUIDIUM_API_KEY,
   });

@@ -8,7 +8,7 @@ export default defineConfig([
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ['.next/**', 'coverage/**', 'node_modules/**', 'dist/**', 'src/sdk/**'],
+    ignores: ['.next/**', 'coverage/**', 'node_modules/**', 'dist/**'],
   },
   {
     linterOptions: {
@@ -73,7 +73,6 @@ export default defineConfig([
     files: [
       '**/*.js',
       '**/*.cjs',
-      '**/*.mjs',
       '__mocks__/**',
       'commitlint.config.js',
       'jest.setup.js',
@@ -92,6 +91,19 @@ export default defineConfig([
     },
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
+      'no-undef': 'off',
+    },
+  },
+  {
+    files: ['**/*.mjs'],
+    languageOptions: {
+      sourceType: 'module',
+      globals: {
+        module: 'readonly',
+        global: 'readonly',
+      },
+    },
+    rules: {
       'no-undef': 'off',
     },
   },

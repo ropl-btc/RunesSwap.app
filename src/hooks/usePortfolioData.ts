@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { fetchPortfolioDataFromApi, QUERY_KEYS } from '@/lib/api';
 import {
@@ -28,6 +28,7 @@ export function usePortfolioData(address: string | null) {
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [progress, setProgress] = useState(0); // 0 to 1
   const [stepText, setStepText] = useState('');
+  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
     data: portfolioData,
@@ -41,7 +42,15 @@ export function usePortfolioData(address: string | null) {
   });
 
   useEffect(() => {
-    if (!isLoading) return;
+    if (!isLoading) {
+      // Clear any pending timer when loading completes
+      if (progressTimerRef.current) {
+        clearTimeout(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
+      return;
+    }
+
     let isMounted = true;
     let step = 0;
     const totalSteps = 4;
@@ -56,24 +65,33 @@ export function usePortfolioData(address: string | null) {
     if (firstLabel) {
       setStepText(firstLabel);
     }
-    function nextStep() {
-      if (!isMounted) return;
-      step++;
-      if (step < totalSteps) {
-        setProgress(step / totalSteps);
-        const nextLabel = safeArrayAccess(stepLabels, step);
-        if (nextLabel) {
-          setStepText(nextLabel);
-        }
-        setTimeout(nextStep, 400 + Math.random() * 400);
-      } else {
-        setProgress(1);
-        setStepText('Finalizing...');
-      }
-    }
-    setTimeout(nextStep, 400 + Math.random() * 400);
+    const scheduleNext = () => {
+      progressTimerRef.current = setTimeout(
+        () => {
+          if (!isMounted) return;
+          step++;
+          if (step < totalSteps) {
+            setProgress(step / totalSteps);
+            const nextLabel = safeArrayAccess(stepLabels, step);
+            if (nextLabel) {
+              setStepText(nextLabel);
+            }
+            scheduleNext();
+          } else {
+            setProgress(1);
+            setStepText('Finalizing...');
+          }
+        },
+        400 + Math.random() * 400,
+      );
+    };
+    scheduleNext();
     return () => {
       isMounted = false;
+      if (progressTimerRef.current) {
+        clearTimeout(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
     };
   }, [isLoading]);
 

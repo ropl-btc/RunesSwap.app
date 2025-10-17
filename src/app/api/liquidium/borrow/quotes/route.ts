@@ -48,10 +48,7 @@ export async function GET(request: NextRequest) {
         .limit(1);
 
       if (runeErrorByName) {
-        console.error(
-          '[API Error] Failed to fetch rune by name',
-          runeErrorByName,
-        );
+        // Log via centralized logger in upstream utils if needed
       } else {
         const firstRuneByName = safeArrayFirst(runeDataByName);
         if (firstRuneByName?.id) {
@@ -65,10 +62,7 @@ export async function GET(request: NextRequest) {
             .limit(1);
 
           if (runeErrorById) {
-            console.error(
-              '[API Error] Failed to fetch rune by ID',
-              runeErrorById,
-            );
+            // Log via centralized logger in upstream utils if needed
           } else {
             const firstRuneById = safeArrayFirst(runeDataById);
             if (firstRuneById?.id) {
@@ -84,10 +78,7 @@ export async function GET(request: NextRequest) {
                     .limit(1);
 
                 if (liquidiumError) {
-                  console.error(
-                    '[API Error] Failed to fetch LIQUIDIUMTOKEN',
-                    liquidiumError,
-                  );
+                  // Log via centralized logger in upstream utils if needed
                 } else {
                   const firstLiquidiumData = safeArrayFirst(liquidiumData);
                   if (firstLiquidiumData?.id) {

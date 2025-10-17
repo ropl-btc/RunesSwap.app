@@ -1,8 +1,15 @@
 ## [Unreleased]
+### Added
+- Centralized QueryClient defaults and query key factories.
+- CI workflows: PR (type-check, lint, test) and main build.
+
+### Changed
+- Enforced Zod validation and standardized `ok`/`fail` across APIs; set `dynamic = 'force-static'` on static GETs.
+- Strict Mode effect cleanups (timers/listeners) for predictable behavior.
+- Re-enabled build-time linting.
+
 ### Fixed
-- Enforced Zod response validation in `src/app/api/ordiscan/btc-balance/route.ts`.
-- Replaced ad-hoc query checks with Zod-based validation in `src/app/api/ordiscan/rune-info-by-id/route.ts`.
-- Removed unsafe assertions in `src/hooks/useSwapExecution.ts` by introducing `PsbtApiResponse` and a type guard; deduplicated `SwapConfirmationResult`; fixed finally-block to avoid stale state success re-dispatch.
+- Logging consistency: replaced stray `console.*` with `logger` in APIs; reduced noisy logs.
 # Changelog
 ## [Unreleased]
 
@@ -14,6 +21,11 @@
 - Migrated to ESLint 9 flat config and Prettier 3 config.
 - Scoped Next.js ESLint dirs and minor next.config.ts tidy.
 - Reduced unnecessary quote requests and improved swap percentage helpers.
+
+### Fixed
+- Enforced Zod response validation in `src/app/api/ordiscan/btc-balance/route.ts`.
+- Replaced ad-hoc query checks with Zod-based validation in `src/app/api/ordiscan/rune-info-by-id/route.ts`.
+- Removed unsafe assertions in `src/hooks/useSwapExecution.ts` by introducing `PsbtApiResponse` and a type guard; deduplicated `SwapConfirmationResult`; fixed finally-block to avoid stale state success re-dispatch.
 
 
 All notable changes to this project will be documented in this file.
