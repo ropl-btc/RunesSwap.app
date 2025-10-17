@@ -12,6 +12,26 @@ import { withApiHandler } from '@/lib/withApiHandler';
 
 export const POST = withApiHandler(
   async (request: NextRequest) => {
+    // Runtime validation schema for the rune data we return
+    const responseSchema = z.object({
+      id: z.string().optional(),
+      name: z.string(),
+      formatted_name: z.string().nullable().optional(),
+      spacers: z.number().nullable().optional(),
+      number: z.number().nullable().optional(),
+      inscription_id: z.string().nullable().optional(),
+      decimals: z.number().nullable(),
+      mint_count_cap: z.string().nullable().optional(),
+      symbol: z.string().nullable().optional(),
+      etching_txid: z.string().nullable().optional(),
+      amount_per_mint: z.string().nullable().optional(),
+      timestamp_unix: z.string().nullable().optional(),
+      premined_supply: z.string(),
+      mint_start_block: z.number().nullable().optional(),
+      mint_end_block: z.number().nullable().optional(),
+      current_supply: z.string().nullable().optional(),
+      current_mint_count: z.number().nullable().optional(),
+    });
     const schema = z.object({ name: z.string().trim().min(1) });
     const validation = await validateRequest(request, schema, 'body');
     if (!validation.success) return validation.errorResponse;
@@ -70,7 +90,19 @@ export const POST = withApiHandler(
       return fail('Rune not found', { status: 404 });
     }
 
-    return ok(runeData as RuneData);
+    try {
+      // Prefer returning the DB-updated row to reflect canonical state
+      const parsed = responseSchema.parse(updatedRows[0]);
+      return ok(parsed);
+    } catch (e) {
+      logger.error('[API Route] Invalid rune data after update', {
+        error:
+          e && typeof e === 'object' && 'message' in e
+            ? (e as Error).message
+            : String(e),
+      });
+      return fail('Invalid rune data received', { status: 500 });
+    }
   },
   { defaultErrorMessage: 'Failed to update rune info' },
 );

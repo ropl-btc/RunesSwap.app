@@ -86,7 +86,16 @@ export const POST = withApiHandler(
       expires_at: expiresAt,
       last_used_at: new Date().toISOString(),
     };
-    logger.info('Upserting Liquidium JWT with data', { upsertData }, 'API');
+    // Avoid logging sensitive JWT token
+    const sanitizedUpsertData = {
+      ...upsertData,
+      jwt: '[REDACTED]',
+    };
+    logger.info(
+      'Upserting Liquidium JWT with data',
+      { upsertData: sanitizedUpsertData },
+      'API',
+    );
 
     const { error, data: upsertResult } = await supabase
       .from('liquidium_tokens')
