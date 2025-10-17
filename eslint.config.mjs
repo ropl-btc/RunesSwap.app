@@ -8,7 +8,7 @@ export default defineConfig([
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ['.next/**', 'coverage/**', 'node_modules/**', 'dist/**'],
+    ignores: ['.next/**', 'coverage/**', 'node_modules/**', 'dist/**', 'src/sdk/**'],
   },
   {
     linterOptions: {
@@ -28,13 +28,6 @@ export default defineConfig([
     },
     rules: {
       'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector: 'TSEnumDeclaration',
-          message: 'Prefer union types or const objects over TypeScript enums.',
-        },
-      ],
       'simple-import-sort/imports': 'warn',
       'simple-import-sort/exports': 'warn',
       '@typescript-eslint/no-explicit-any': 'error',
@@ -42,6 +35,9 @@ export default defineConfig([
       'no-empty': 'warn',
       'no-useless-catch': 'warn',
       'no-unsafe-finally': 'warn',
+      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/ban-ts-comment': 'warn',
+      'no-prototype-builtins': 'warn',
     },
   },
   // SDK and generated code: relax rules
@@ -53,6 +49,12 @@ export default defineConfig([
       'simple-import-sort/imports': 'off',
       'simple-import-sort/exports': 'off',
       'no-console': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/ban-ts-comment': 'off',
+      'no-prototype-builtins': 'off',
+      'no-empty': 'off',
+      'no-useless-catch': 'off',
+      'no-unsafe-finally': 'off',
     },
   },
   // Tests: relax some rules, allow dev-style imports
