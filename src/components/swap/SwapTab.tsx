@@ -1,10 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { type QuoteResponse } from 'satsterminal-sdk';
-import Big from 'big.js';
 
+import { Loading } from '@/components/loading';
+import { SwapTabForm, useSwapProcessManager } from '@/components/swap';
+import styles from '@/components/swap/SwapTab.module.css';
+import FeeSelector from '@/components/ui/FeeSelector';
 // Import our new components
 import { useRuneBalance } from '@/hooks/useRuneBalance';
+import { useRuneBalances } from '@/hooks/useRuneBalances';
 import { useRuneInfo } from '@/hooks/useRuneInfo';
 import { useRuneMarketData } from '@/hooks/useRuneMarketData';
 import useSwapAssets from '@/hooks/useSwapAssets';
@@ -13,18 +17,14 @@ import useSwapQuote from '@/hooks/useSwapQuote';
 import useSwapRunes from '@/hooks/useSwapRunes';
 import useUsdValues from '@/hooks/useUsdValues';
 import { fetchBtcBalanceFromApi } from '@/lib/api';
-import { useRuneBalances } from '@/hooks/useRuneBalances';
-import { Asset, BTC_ASSET } from '@/types/common';
-import {
-  formatAmountWithPrecision,
-  percentageOfRawAmount,
-  calculateActualBalance,
-} from '@/utils/runeFormatting';
+import type { Asset } from '@/types/common';
+import { BTC_ASSET } from '@/types/common';
 import { formatNumberWithLocale } from '@/utils/formatters';
-import { Loading } from '@/components/loading';
-import FeeSelector from '@/components/ui/FeeSelector';
-import styles from '@/components/swap/SwapTab.module.css';
-import { SwapTabForm, useSwapProcessManager } from '@/components/swap';
+import {
+  calculateActualBalance,
+  percentageOfRawAmount,
+  percentageOfSatsToBtcString,
+} from '@/utils/formatting';
 
 interface SwapTabProps {
   connected: boolean;
@@ -294,53 +294,55 @@ export function SwapTab({
       }
     }
 
-    // BTC path: Calculate percentage of available BTC balance directly from sats using Big.js
-    const availableBalanceBig = new Big(btcBalanceSats!.toString()).div(
-      new Big(10).pow(8),
+    // BTC path: use shared helper for clarity and precision
+    const formattedBtc = percentageOfSatsToBtcString(
+      btcBalanceSats!,
+      percentage,
     );
-    const newAmountBig =
-      percentage === 1
-        ? availableBalanceBig
-        : availableBalanceBig.times(percentage);
-    const formattedAmount = formatAmountWithPrecision(
-      newAmountBig.toString(),
-      decimals,
-    );
-    setInputAmount(formattedAmount);
+    setInputAmount(formattedBtc);
   };
 
-  const availableBalanceNode =
-    connected && assetIn ? (
-      assetIn.isBTC ? (
-        isBtcBalanceLoading ? (
-          <Loading variant="balance" className={styles.loadingText} />
-        ) : btcBalanceError ? (
-          <span className={styles.errorText}>Error loading balance</span>
-        ) : btcBalanceSats !== undefined ? (
-          `${formatNumberWithLocale(btcBalanceSats / 100_000_000, { maximumFractionDigits: 8 })}`
-        ) : (
-          'N/A'
-        )
-      ) : isRuneBalancesLoading || isSwapRuneInfoLoading ? (
-        <Loading variant="balance" className={styles.loadingText} />
-      ) : runeBalancesError || swapRuneInfoError ? (
-        <span className={styles.errorText}>Error loading balance</span>
-      ) : (
-        (() => {
-          const rawBalance = inputRuneRawBalance;
-          if (rawBalance === null) return 'N/A';
-          try {
-            const balanceNum = parseFloat(rawBalance);
-            if (isNaN(balanceNum)) return 'Invalid Balance';
-            const decimals = swapRuneInfo?.decimals ?? 0;
-            const displayValue = calculateActualBalance(rawBalance, decimals);
-            return `${formatNumberWithLocale(displayValue, { maximumFractionDigits: decimals })}`;
-          } catch {
-            return 'Formatting Error';
-          }
-        })()
-      )
-    ) : null;
+  const availableBalanceNode = useMemo(() => {
+    if (!connected || !assetIn) return null;
+    if (assetIn.isBTC) {
+      if (isBtcBalanceLoading)
+        return <Loading variant="balance" className={styles.loadingText} />;
+      if (btcBalanceError)
+        return <span className={styles.errorText}>Error loading balance</span>;
+      if (btcBalanceSats !== undefined)
+        return `${formatNumberWithLocale(btcBalanceSats / 100_000_000, { maximumFractionDigits: 8 })}`;
+      return 'N/A';
+    }
+
+    if (isRuneBalancesLoading || isSwapRuneInfoLoading)
+      return <Loading variant="balance" className={styles.loadingText} />;
+    if (runeBalancesError || swapRuneInfoError)
+      return <span className={styles.errorText}>Error loading balance</span>;
+
+    const rawBalance = inputRuneRawBalance;
+    if (rawBalance === null) return 'N/A';
+    try {
+      const balanceNum = parseFloat(rawBalance);
+      if (isNaN(balanceNum)) return 'Invalid Balance';
+      const decimals = swapRuneInfo?.decimals ?? 0;
+      const displayValue = calculateActualBalance(rawBalance, decimals);
+      return `${formatNumberWithLocale(displayValue, { maximumFractionDigits: decimals })}`;
+    } catch {
+      return 'Formatting Error';
+    }
+  }, [
+    connected,
+    assetIn,
+    isBtcBalanceLoading,
+    btcBalanceError,
+    btcBalanceSats,
+    isRuneBalancesLoading,
+    isSwapRuneInfoLoading,
+    runeBalancesError,
+    swapRuneInfoError,
+    inputRuneRawBalance,
+    swapRuneInfo?.decimals,
+  ]);
 
   return (
     <SwapTabForm

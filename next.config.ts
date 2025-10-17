@@ -1,11 +1,15 @@
+import bundleAnalyzer from '@next/bundle-analyzer';
 import type { NextConfig } from "next";
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
+
+const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
 const nextConfig: NextConfig = {
   reactStrictMode: false, // Temporarily disable Strict Mode for testing
+  eslint: {
+    dirs: ['src'],
+  },
   experimental: {
     optimizePackageImports: [
       '@heroicons/react',

@@ -37,6 +37,7 @@ ORDISCAN_API_KEY=<your-ordiscan-api-key>
 SATS_TERMINAL_API_KEY=<your-satsterminal-api-key>
 LIQUIDIUM_API_URL=<liquidium-server-url>
 LIQUIDIUM_API_KEY=<your-liquidium-api-key>
+NEXT_PUBLIC_QUOTE_MOCK_ADDRESS=34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo # optional: enables pre-connection quotes
 ```
 
 `LIQUIDIUM_API_URL` and `LIQUIDIUM_API_KEY` are used on the server to

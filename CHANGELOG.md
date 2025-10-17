@@ -1,4 +1,15 @@
 # Changelog
+## [Unreleased]
+
+### Added
+- Optional `NEXT_PUBLIC_QUOTE_MOCK_ADDRESS` to enable pre-connection quotes.
+
+### Changed
+- Simplified Husky hooks to use lint-staged in pre-commit and checks in pre-push.
+- Migrated to ESLint 9 flat config and Prettier 3 config.
+- Scoped Next.js ESLint dirs and minor next.config.ts tidy.
+- Reduced unnecessary quote requests and improved swap percentage helpers.
+
 
 All notable changes to this project will be documented in this file.
 
