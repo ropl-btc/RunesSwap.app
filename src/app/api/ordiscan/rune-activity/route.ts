@@ -1,9 +1,11 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { createSuccessResponse, validateRequest } from '@/lib/apiUtils';
+
+import { ok } from '@/lib/apiResponse';
+import { validateRequest } from '@/lib/apiUtils';
 import { getOrdiscanClient } from '@/lib/serverUtils';
 import { withApiHandler } from '@/lib/withApiHandler';
-import { RuneActivityEvent } from '@/types/ordiscan';
+import type { RuneActivityEvent } from '@/types/ordiscan';
 
 export const GET = withApiHandler(
   async (request: NextRequest) => {
@@ -20,7 +22,7 @@ export const GET = withApiHandler(
 
     const validActivity = Array.isArray(activity) ? activity : [];
 
-    return createSuccessResponse(validActivity);
+    return ok(validActivity);
   },
   { defaultErrorMessage: 'Failed to fetch rune activity' },
 );

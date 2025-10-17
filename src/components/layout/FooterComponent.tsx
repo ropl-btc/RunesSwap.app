@@ -3,9 +3,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
-import { formatUsd } from '@/utils/formatters';
-import buttonStyles from '@/components/ui/Button.module.css';
+
 import styles from '@/components/layout/AppInterface.module.css';
+import buttonStyles from '@/components/ui/Button.module.css';
+import { formatUsd } from '@/utils/formatters';
 
 interface FooterComponentProps {
   btcPriceUsd: number | undefined;

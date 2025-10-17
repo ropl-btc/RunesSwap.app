@@ -1,16 +1,14 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  validateRequest,
-} from '@/lib/apiUtils';
-import { RuneData } from '@/lib/runesData';
+
+import { fail, ok } from '@/lib/apiResponse';
+import { validateRequest } from '@/lib/apiUtils';
+import { logDbError, logger } from '@/lib/logger';
+import { enforceRateLimit } from '@/lib/rateLimit';
+import type { RuneData } from '@/lib/runesData';
 import { getOrdiscanClient } from '@/lib/serverUtils';
 import { supabase } from '@/lib/supabase';
 import { withApiHandler } from '@/lib/withApiHandler';
-import { enforceRateLimit } from '@/lib/rateLimit';
-import { logger, logDbError } from '@/lib/logger';
 
 export const POST = withApiHandler(
   async (request: NextRequest) => {
@@ -32,7 +30,7 @@ export const POST = withApiHandler(
 
     if (!runeData) {
       logger.warn('[API Route] Rune info not found', { runeName });
-      return createErrorResponse('Rune not found', undefined, 404);
+      return fail('Rune not found', { status: 404 });
     }
 
     const dataToUpdate = {
@@ -54,25 +52,25 @@ export const POST = withApiHandler(
         details: updateError.details,
         hint: updateError.hint,
       });
-      return createErrorResponse(
-        'Database update failed',
-        process.env.NODE_ENV !== 'production'
-          ? JSON.stringify({
-              code: updateError.code,
-              message: updateError.message,
-            })
-          : undefined,
-        500,
-      );
+      return fail('Database update failed', {
+        status: 500,
+        details:
+          process.env.NODE_ENV !== 'production'
+            ? JSON.stringify({
+                code: updateError.code,
+                message: updateError.message,
+              })
+            : undefined,
+      });
     }
 
     // No row was updated – treat as not found
     if (!updatedRows || updatedRows.length === 0) {
       logger.warn('[API Route] Update affected 0 rows', { runeName });
-      return createErrorResponse('Rune not found', undefined, 404);
+      return fail('Rune not found', { status: 404 });
     }
 
-    return createSuccessResponse(runeData as RuneData);
+    return ok(runeData as RuneData);
   },
   { defaultErrorMessage: 'Failed to update rune info' },
 );

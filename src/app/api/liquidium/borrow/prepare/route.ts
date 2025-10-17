@@ -1,13 +1,14 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { z } from 'zod';
+
 import {
   createErrorResponse,
   createSuccessResponse,
   validateRequest,
 } from '@/lib/apiUtils';
+import { getLiquidiumJwt } from '@/lib/liquidiumAuth';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
 import { enforceRateLimit } from '@/lib/rateLimit';
-import { getLiquidiumJwt } from '@/lib/liquidiumAuth';
 import type { StartLoanService } from '@/sdk/liquidium/services/StartLoanService';
 
 // Schema for request body

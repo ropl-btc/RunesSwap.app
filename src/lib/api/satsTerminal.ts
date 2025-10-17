@@ -3,8 +3,9 @@ import {
   type GetPSBTParams,
   type QuoteResponse,
 } from 'satsterminal-sdk';
-import type { Rune } from '@/types/satsTerminal';
+
 import { apiGet, apiPost } from '@/lib/api/createApiClient';
+import type { Rune } from '@/types/satsTerminal';
 
 export const fetchRunesFromApi = async (query: string): Promise<Rune[]> => {
   const trimmed = query.trim();

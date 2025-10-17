@@ -1,12 +1,12 @@
+import { apiGet, apiPost } from '@/lib/api/createApiClient';
+import { type RuneData } from '@/lib/runesData';
 import {
+  type RuneActivityEvent,
   type RuneBalance as OrdiscanRuneBalance,
   type RuneInfo as OrdiscanRuneInfo,
   type RuneMarketInfo as OrdiscanRuneMarketInfo,
-  type RuneActivityEvent,
 } from '@/types/ordiscan';
 import { normalizeRuneName } from '@/utils/runeUtils';
-import { type RuneData } from '@/lib/runesData';
-import { apiGet, apiPost } from '@/lib/api/createApiClient';
 
 export const fetchRuneEndpoint = async <T>(
   endpoint: string,

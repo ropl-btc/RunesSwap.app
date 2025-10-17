@@ -3,15 +3,16 @@
 import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import React from 'react';
-import { fetchRuneActivityFromApi } from '@/lib/api'; // Import API functions
-import { RuneActivityEvent } from '@/types/ordiscan'; // Import types
-import { formatDateTime, truncateTxid } from '@/utils/formatters';
-import { interpretRuneTransaction } from '@/utils/transactionHelpers';
+
 import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
 import { FormattedRuneName } from '@/components/formatters/FormattedRuneName';
 import styles from '@/components/layout/AppInterface.module.css';
 import RuneIcon from '@/components/runes/RuneIcon';
+import { fetchRuneActivityFromApi } from '@/lib/api'; // Import API functions
+import type { RuneActivityEvent } from '@/types/ordiscan'; // Import types
+import { formatDateTime, truncateTxid } from '@/utils/formatters';
 import { getRuneIconUrl } from '@/utils/runeUtils';
+import { interpretRuneTransaction } from '@/utils/transactionHelpers';
 
 interface YourTxsTabProps {
   connected: boolean;

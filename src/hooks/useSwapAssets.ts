@@ -1,8 +1,10 @@
 import { type QuoteResponse } from 'satsterminal-sdk';
+
 import type { SwapProcessAction } from '@/components/swap/SwapProcessManager';
-import { Asset, BTC_ASSET } from '@/types/common';
-import { safeArrayFirst } from '@/utils/typeGuards';
+import type { Asset } from '@/types/common';
+import { BTC_ASSET } from '@/types/common';
 import { sanitizeForBig } from '@/utils/formatters';
+import { safeArrayFirst } from '@/utils/typeGuards';
 
 interface UseSwapAssetsArgs {
   popularRunes: Asset[];

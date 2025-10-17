@@ -1,8 +1,9 @@
 import Big from 'big.js';
 import { useMemo } from 'react';
-import { QuoteResponse } from 'satsterminal-sdk';
-import { Asset } from '@/types/common';
-import { RuneMarketInfo as OrdiscanRuneMarketInfo } from '@/types/ordiscan';
+import type { QuoteResponse } from 'satsterminal-sdk';
+
+import type { Asset } from '@/types/common';
+import type { RuneMarketInfo as OrdiscanRuneMarketInfo } from '@/types/ordiscan';
 import { sanitizeForBig } from '@/utils/formatters';
 
 export interface UseUsdValuesArgs {

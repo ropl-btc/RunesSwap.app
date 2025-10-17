@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+
 import { getBtcPrice } from '@/lib/api/coingecko';
 
 export function useBtcPrice() {

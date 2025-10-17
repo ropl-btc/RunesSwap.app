@@ -1,10 +1,11 @@
 import React from 'react';
-import type { Asset } from '@/types/common';
-import { formatNumberWithLocale } from '@/utils/formatters';
+
 import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
+import styles from '@/components/portfolio/PortfolioTab.module.css';
 import RuneIcon from '@/components/runes/RuneIcon';
 import Button from '@/components/ui/Button';
-import styles from '@/components/portfolio/PortfolioTab.module.css';
+import type { Asset } from '@/types/common';
+import { formatNumberWithLocale } from '@/utils/formatters';
 
 interface RuneBalanceItem {
   name: string;

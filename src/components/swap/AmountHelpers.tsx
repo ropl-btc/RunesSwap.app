@@ -1,4 +1,5 @@
 import React from 'react';
+
 import styles from '@/components/swap/InputArea.module.css';
 
 interface AmountHelpersProps {

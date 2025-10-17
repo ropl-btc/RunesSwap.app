@@ -1,9 +1,11 @@
+import '@/app/globals.css';
+
 import { Analytics } from '@vercel/analytics/react';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
-import '@/app/globals.css';
-import Layout from '@/components/layout/Layout';
+
 import { Providers } from '@/app/providers';
+import Layout from '@/components/layout/Layout';
 
 export const metadata: Metadata = {
   title: {

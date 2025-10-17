@@ -1,6 +1,7 @@
 import React from 'react';
-import { Asset } from '@/types/common';
+
 import InputArea from '@/components/swap/InputArea';
+import type { Asset } from '@/types/common';
 
 interface CollateralInputProps {
   connected: boolean;

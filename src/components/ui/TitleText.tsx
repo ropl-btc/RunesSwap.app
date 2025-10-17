@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { safeArrayAccess } from '@/utils/typeGuards';
+
 import styles from '@/components/layout/Layout.module.css';
+import { safeArrayAccess } from '@/utils/typeGuards';
 
 // Constants
 const DEFAULT_TITLE = 'RunesSwap.app';

@@ -1,19 +1,19 @@
 import Big from 'big.js';
-import { sanitizeForBig } from '@/utils/formatters';
-import { convertToRawAmount } from '@/utils/runeFormatting';
 import { useEffect, useState } from 'react';
-import {
+
+import usePopularRunes from '@/hooks/usePopularRunes';
+import type {
   LiquidiumBorrowQuoteOffer,
   LiquidiumBorrowQuoteResponse,
-  fetchBorrowQuotesFromApi,
-  fetchBorrowRangesFromApi,
 } from '@/lib/api';
+import { fetchBorrowQuotesFromApi, fetchBorrowRangesFromApi } from '@/lib/api';
 import type { RuneData } from '@/lib/runesData';
-import { Asset } from '@/types/common';
+import type { Asset } from '@/types/common';
+import { sanitizeForBig } from '@/utils/formatters';
 import { mapPopularToAsset } from '@/utils/popularRunes';
+import { convertToRawAmount } from '@/utils/runeFormatting';
 import { formatRuneAmount } from '@/utils/runeFormatting';
 import { safeArrayAccess, safeArrayFirst } from '@/utils/typeGuards';
-import usePopularRunes from '@/hooks/usePopularRunes';
 
 interface UseBorrowQuotesArgs {
   collateralAsset: Asset | null;

@@ -1,7 +1,7 @@
-import { createSuccessResponse } from '@/lib/apiUtils';
+import { ok } from '@/lib/apiResponse';
 import { getOrdiscanClient } from '@/lib/serverUtils';
 import { withApiHandler } from '@/lib/withApiHandler';
-import { RuneInfo } from '@/types/ordiscan';
+import type { RuneInfo } from '@/types/ordiscan';
 
 export const GET = withApiHandler(
   async () => {
@@ -11,7 +11,7 @@ export const GET = withApiHandler(
     // Ensure we always return a valid array
     const validRunes = Array.isArray(runes) ? runes : [];
 
-    return createSuccessResponse(validRunes);
+    return ok(validRunes);
   },
   { defaultErrorMessage: 'Failed to fetch runes list' },
 );

@@ -1,6 +1,7 @@
 import React from 'react';
-import type { Timeframe } from '@/hooks/usePriceChart';
+
 import styles from '@/components/layout/AppInterface.module.css';
+import type { Timeframe } from '@/hooks/usePriceChart';
 
 interface TimeframeSelectorProps {
   timeframe: Timeframe;

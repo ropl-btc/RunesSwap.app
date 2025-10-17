@@ -1,6 +1,5 @@
-import Image from 'next/image';
-import { formatSatsToBtc } from '@/utils/formatters';
 import Big from 'big.js';
+import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import {
   CartesianGrid,
@@ -11,16 +10,18 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+
+import PriceTooltip from '@/components/charts/PriceTooltip';
+import TimeframeSelector from '@/components/charts/TimeframeSelector';
+import styles from '@/components/layout/AppInterface.module.css';
+import { Loading } from '@/components/loading';
 import usePriceChart from '@/hooks/usePriceChart';
+import { formatSatsToBtc } from '@/utils/formatters';
 import {
   formatDate,
   formatNumberWithLocale,
   formatTime,
 } from '@/utils/formatters';
-import styles from '@/components/layout/AppInterface.module.css';
-import { Loading } from '@/components/loading';
-import PriceTooltip from '@/components/charts/PriceTooltip';
-import TimeframeSelector from '@/components/charts/TimeframeSelector';
 // Path to hourglass icon used while BTC price is loading
 const HOURGLASS_SRC = '/icons/windows_hourglass.png';
 

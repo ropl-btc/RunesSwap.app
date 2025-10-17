@@ -1,6 +1,7 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
+
 import { createSuccessResponse, validateRequest } from '@/lib/apiUtils';
-import { RuneData } from '@/lib/runesData';
+import type { RuneData } from '@/lib/runesData';
 import { getOrdiscanClient } from '@/lib/serverUtils';
 import {
   batchFetchRuneMarketData,
@@ -8,7 +9,7 @@ import {
 } from '@/lib/supabaseQueries';
 import { requestSchemas } from '@/lib/validationSchemas';
 import { withApiHandler } from '@/lib/withApiHandler';
-import { RuneBalance, RuneMarketInfo } from '@/types/ordiscan';
+import type { RuneBalance, RuneMarketInfo } from '@/types/ordiscan';
 
 export const GET = withApiHandler(
   async (request: NextRequest) => {

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
+
 import { get, post } from '@/lib/fetchWrapper';
 import { logFetchError } from '@/lib/logger';
-import { LiquidiumLoanOffer } from '@/types/liquidium';
+import type { LiquidiumLoanOffer } from '@/types/liquidium';
 
 interface Args {
   address: string | null;

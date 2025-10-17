@@ -1,9 +1,10 @@
 'use client';
 
-import { LaserEyesProvider, MAINNET, useLaserEyes } from '@omnisat/lasereyes';
 import type { ProviderType } from '@omnisat/lasereyes';
+import { LaserEyesProvider, MAINNET, useLaserEyes } from '@omnisat/lasereyes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
+
 import { BackgroundProvider } from '@/context/BackgroundContext';
 import { LaserEyesContext } from '@/context/LaserEyesContext';
 

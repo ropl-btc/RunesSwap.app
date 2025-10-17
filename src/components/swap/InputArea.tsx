@@ -1,9 +1,11 @@
 import Image from 'next/image';
-import React, { ReactNode } from 'react';
-import { Asset } from '@/types/common';
+import type { ReactNode } from 'react';
+import React from 'react';
+
 import AmountHelpers from '@/components/swap/AmountHelpers';
 import AssetSelector from '@/components/swap/AssetSelector';
 import styles from '@/components/swap/InputArea.module.css';
+import type { Asset } from '@/types/common';
 
 interface InputAreaProps {
   label: string;

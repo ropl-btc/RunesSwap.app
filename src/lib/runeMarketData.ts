@@ -1,10 +1,10 @@
-import { normalizeRuneName } from '@/utils/runeUtils';
 import { logApiError, logDbError } from '@/lib/logger';
 import { getOrdiscanClient } from '@/lib/serverUtils';
 import {
   fetchRuneMarketDataByName,
   upsertRuneMarketData,
 } from '@/lib/supabaseQueries';
+import { normalizeRuneName } from '@/utils/runeUtils';
 
 export interface RuneMarketData {
   price_in_sats: number;

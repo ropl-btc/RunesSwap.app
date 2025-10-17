@@ -1,8 +1,8 @@
-import { defineConfig } from 'eslint/config';
 import js from '@eslint/js';
-import tseslint from 'typescript-eslint';
-import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import nextPlugin from '@next/eslint-plugin-next';
+import { defineConfig } from 'eslint/config';
+import simpleImportSort from 'eslint-plugin-simple-import-sort';
+import tseslint from 'typescript-eslint';
 
 export default defineConfig([
   js.configs.recommended,
@@ -66,6 +66,47 @@ export default defineConfig([
       'simple-import-sort/exports': 'off',
       'no-console': 'off',
       '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  // JS setup/config and mocks
+  {
+    files: [
+      '**/*.js',
+      '**/*.cjs',
+      '**/*.mjs',
+      '__mocks__/**',
+      'commitlint.config.js',
+      'jest.setup.js',
+    ],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        module: 'readonly',
+        require: 'readonly',
+        global: 'readonly',
+        jest: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        window: 'readonly',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      'no-undef': 'off',
+    },
+  },
+  // Test utilities: allow any types
+  {
+    files: ['src/test-utils.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+  // Logger file: allow console methods inside centralized logger only
+  {
+    files: ['src/lib/logger.ts'],
+    rules: {
+      'no-console': 'off',
     },
   },
 ]);

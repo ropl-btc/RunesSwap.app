@@ -3,11 +3,12 @@
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+
+import styles from '@/components/layout/AppInterface.module.css';
+import { Loading } from '@/components/loading';
 import { useSharedLaserEyes } from '@/context/LaserEyesContext';
 import useBtcPrice from '@/hooks/useBtcPrice';
 import type { Asset } from '@/types/common';
-import { Loading } from '@/components/loading';
-import styles from '@/components/layout/AppInterface.module.css';
 
 // Dynamic imports for tab components (performance optimization)
 

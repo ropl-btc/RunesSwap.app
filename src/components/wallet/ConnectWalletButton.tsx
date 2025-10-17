@@ -1,13 +1,14 @@
 'use client';
 
 import React from 'react';
+
+import styles from '@/components/wallet/ConnectWalletButton.module.css';
+import WalletOptionsList from '@/components/wallet/WalletOptionsList';
 import {
   AVAILABLE_WALLETS,
   useWalletConnection,
 } from '@/hooks/useWalletConnection';
 import { truncateAddress } from '@/utils/formatters';
-import styles from '@/components/wallet/ConnectWalletButton.module.css';
-import WalletOptionsList from '@/components/wallet/WalletOptionsList';
 
 export function ConnectWalletButton() {
   const {

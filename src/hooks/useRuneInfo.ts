@@ -1,5 +1,5 @@
-import { fetchRuneInfoFromApi } from '@/lib/api';
 import { useRuneDataQuery } from '@/hooks/useRuneDataQuery';
+import { fetchRuneInfoFromApi } from '@/lib/api';
 
 interface UseRuneInfoOptions {
   enabled?: boolean;

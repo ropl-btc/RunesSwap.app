@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
-import { QUERY_KEYS, fetchPortfolioDataFromApi } from '@/lib/api';
+
+import { fetchPortfolioDataFromApi, QUERY_KEYS } from '@/lib/api';
 import {
   calculateActualBalance,
   calculateBtcValue,
   calculateUsdValue,
 } from '@/utils/runeFormatting';
-import { safeArrayAccess } from '@/utils/typeGuards';
 import { getRuneIconUrl } from '@/utils/runeUtils';
+import { safeArrayAccess } from '@/utils/typeGuards';
 
 export type SortField = 'name' | 'balance' | 'value';
 export type SortDirection = 'asc' | 'desc';

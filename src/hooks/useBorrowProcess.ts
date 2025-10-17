@@ -1,14 +1,14 @@
 //
-import { convertToRawAmount } from '@/utils/runeFormatting';
-import { parseAmount } from '@/utils/formatters';
 import { useState } from 'react';
-import {
+
+import type {
   LiquidiumPrepareBorrowResponse,
   LiquidiumSubmitBorrowResponse,
-  prepareLiquidiumBorrow,
-  submitLiquidiumBorrow,
 } from '@/lib/api';
+import { prepareLiquidiumBorrow, submitLiquidiumBorrow } from '@/lib/api';
 import type { RuneData } from '@/lib/runesData';
+import { parseAmount } from '@/utils/formatters';
+import { convertToRawAmount } from '@/utils/runeFormatting';
 
 interface UseBorrowProcessParams {
   signPsbt: (

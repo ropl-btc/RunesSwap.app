@@ -1,6 +1,10 @@
 'use client';
 
 import React from 'react';
+
+import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
+import RuneIcon from '@/components/runes/RuneIcon';
+import styles from '@/components/runes/RunesInfoTab.module.css';
 import type { RuneData } from '@/lib/runesData';
 import type {
   RuneInfo as OrdiscanRuneInfo,
@@ -11,9 +15,6 @@ import {
   formatNumberWithLocale,
   truncateTxid,
 } from '@/utils/formatters';
-import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
-import RuneIcon from '@/components/runes/RuneIcon';
-import styles from '@/components/runes/RunesInfoTab.module.css';
 import { getRuneIconUrl } from '@/utils/runeUtils';
 
 interface RuneDetailsProps {

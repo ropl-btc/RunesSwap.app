@@ -1,4 +1,5 @@
 import type { Order } from 'satsterminal-sdk';
+
 import { parseAmount } from '@/utils/formatters';
 
 /**

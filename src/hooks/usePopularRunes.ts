@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { QUERY_KEYS, fetchPopularFromApi } from '@/lib/api';
+
+import { fetchPopularFromApi, QUERY_KEYS } from '@/lib/api';
 
 export function usePopularRunes<T = Record<string, unknown>>(
   mapper?: (data: Record<string, unknown>[]) => T[],

@@ -1,6 +1,6 @@
-import { fetchRunesFromApi } from '@/lib/api';
 import useSearchWithPopular from '@/hooks/useSearchWithPopular';
-import { Asset } from '@/types/common';
+import { fetchRunesFromApi } from '@/lib/api';
+import type { Asset } from '@/types/common';
 import type { Rune } from '@/types/satsTerminal';
 
 interface UseAssetSearchArgs {

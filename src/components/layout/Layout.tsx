@@ -3,11 +3,12 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useRef, useState } from 'react';
-import { useBackground } from '@/context/BackgroundContext';
-import useBtcPrice from '@/hooks/useBtcPrice';
-import TitleText from '@/components/ui/TitleText';
+
 import FooterComponent from '@/components/layout/FooterComponent';
 import styles from '@/components/layout/Layout.module.css';
+import TitleText from '@/components/ui/TitleText';
+import { useBackground } from '@/context/BackgroundContext';
+import useBtcPrice from '@/hooks/useBtcPrice';
 
 interface LayoutProps {
   children: React.ReactNode;

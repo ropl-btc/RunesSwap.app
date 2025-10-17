@@ -1,4 +1,5 @@
 import React from 'react';
+
 import styles from '@/components/layout/AppInterface.module.css';
 
 interface PriceTooltipProps {

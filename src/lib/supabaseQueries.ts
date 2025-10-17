@@ -3,10 +3,10 @@
  * Reduces duplicate query patterns throughout the codebase
  */
 
-import type { RuneMarketInfo } from '@/types/ordiscan';
+import { logDbError } from '@/lib/logger';
 import type { RuneData } from '@/lib/runesData';
 import { supabase } from '@/lib/supabase';
-import { logDbError } from '@/lib/logger';
+import type { RuneMarketInfo } from '@/types/ordiscan';
 
 // Types for database tables
 export interface RuneRecord {

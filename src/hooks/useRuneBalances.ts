@@ -3,7 +3,8 @@ import {
   type UseQueryOptions,
   type UseQueryResult,
 } from '@tanstack/react-query';
-import { QUERY_KEYS, fetchRuneBalancesFromApi } from '@/lib/api';
+
+import { fetchRuneBalancesFromApi, QUERY_KEYS } from '@/lib/api';
 import { type RuneBalance as OrdiscanRuneBalance } from '@/types/ordiscan';
 
 export function useRuneBalances(

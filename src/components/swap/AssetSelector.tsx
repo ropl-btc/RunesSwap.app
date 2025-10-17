@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import useAssetSearch from '@/hooks/useAssetSearch';
-import { Asset } from '@/types/common';
+
 import AssetSelectorDropdown from '@/components/swap/AssetSelectorDropdown';
+import useAssetSearch from '@/hooks/useAssetSearch';
+import type { Asset } from '@/types/common';
 
 interface AssetSelectorProps {
   selectedAsset: Asset | null;

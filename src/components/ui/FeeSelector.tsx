@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import useFeeRates from '@/hooks/useFeeRates';
+
 import styles from '@/components/ui/FeeSelector.module.css';
+import useFeeRates from '@/hooks/useFeeRates';
 import { parseAmount } from '@/utils/formatters';
 
 export type FeeOption = 'slow' | 'medium' | 'fast' | 'custom';

@@ -5,14 +5,15 @@ import {
   type Order,
   type QuoteResponse,
 } from 'satsterminal-sdk';
+
 import type {
   SwapProcessAction,
   SwapProcessState,
 } from '@/components/swap/SwapProcessManager';
-import { confirmPsbtViaApi, getPsbtFromApi } from '@/lib/api';
 import useFeeRates from '@/hooks/useFeeRates';
+import { confirmPsbtViaApi, getPsbtFromApi } from '@/lib/api';
 import { logger } from '@/lib/logger';
-import { Asset } from '@/types/common';
+import type { Asset } from '@/types/common';
 import { patchOrder } from '@/utils/orderUtils';
 
 interface UseSwapExecutionArgs {

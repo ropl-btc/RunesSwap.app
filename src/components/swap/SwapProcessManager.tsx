@@ -1,5 +1,6 @@
 import { useEffect, useReducer } from 'react';
-import { SwapStep } from '@/components/swap/SwapButton';
+
+import type { SwapStep } from '@/components/swap/SwapButton';
 
 export type SwapProcessState = {
   isSwapping: boolean;

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { fetchPopularFromApi, fetchRunesFromApi } from '@/lib/api';
+
 import useSearchWithPopular from '@/hooks/useSearchWithPopular';
+import { fetchPopularFromApi, fetchRunesFromApi } from '@/lib/api';
 import { useRunesInfoStore } from '@/store/runesInfoStore';
 import type { Rune } from '@/types/satsTerminal';
 import { mapPopularToRune } from '@/utils/popularRunes';

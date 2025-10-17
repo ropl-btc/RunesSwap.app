@@ -1,7 +1,9 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import type { GetPSBTParams, Order } from 'satsterminal-sdk';
 import { z } from 'zod';
-import { validateRequest, createSuccessResponse } from '@/lib/apiUtils';
+
+import { ok } from '@/lib/apiResponse';
+import { validateRequest } from '@/lib/apiUtils';
 import { handleSatsTerminalError } from '@/lib/satsTerminalError';
 import { getSatsTerminalClient } from '@/lib/serverUtils';
 import { withApiHandler } from '@/lib/withApiHandler';
@@ -46,7 +48,7 @@ const handler = async (request: NextRequest) => {
   };
 
   const psbtResponse = await terminal.getPSBT(psbtParams);
-  return createSuccessResponse(psbtResponse);
+  return ok(psbtResponse);
 };
 
 export const POST = withApiHandler(handler, {

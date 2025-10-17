@@ -1,7 +1,8 @@
+import type { NextResponse } from 'next/server';
+
 import { createErrorResponse } from '@/lib/apiUtils';
 import { supabase } from '@/lib/supabase';
 import { safeArrayFirst } from '@/utils/typeGuards';
-import type { NextResponse } from 'next/server';
 
 export async function getLiquidiumJwt(
   address: string,

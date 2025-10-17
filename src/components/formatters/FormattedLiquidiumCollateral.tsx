@@ -2,11 +2,12 @@
 
 import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
-import { formatNumberWithLocale } from '@/utils/formatters';
-import { calculateActualBalance } from '@/utils/runeFormatting';
+
+import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
 import styles from '@/components/portfolio/PortfolioTab.module.css';
 import RuneIcon from '@/components/runes/RuneIcon';
-import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
+import { formatNumberWithLocale } from '@/utils/formatters';
+import { calculateActualBalance } from '@/utils/runeFormatting';
 
 interface FormattedLiquidiumCollateralProps {
   runeId: string;

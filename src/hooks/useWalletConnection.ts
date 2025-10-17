@@ -11,6 +11,7 @@ import {
   XVERSE,
 } from '@omnisat/lasereyes';
 import { useEffect, useRef, useState } from 'react';
+
 import { useSharedLaserEyes } from '@/context/LaserEyesContext';
 import { logger } from '@/lib/logger';
 

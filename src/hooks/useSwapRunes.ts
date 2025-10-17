@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { fetchRunesFromApi } from '@/lib/api';
-import { Asset, BTC_ASSET } from '@/types/common';
-import { mapPopularToAsset } from '@/utils/popularRunes';
-import { normalizeRuneName, getRuneIconUrl } from '@/utils/runeUtils';
-import { safeArrayFirst } from '@/utils/typeGuards';
+
 import usePopularRunes from '@/hooks/usePopularRunes';
+import { fetchRunesFromApi } from '@/lib/api';
+import type { Asset } from '@/types/common';
+import { BTC_ASSET } from '@/types/common';
+import { mapPopularToAsset } from '@/utils/popularRunes';
+import { getRuneIconUrl, normalizeRuneName } from '@/utils/runeUtils';
+import { safeArrayFirst } from '@/utils/typeGuards';
 
 interface UseSwapRunesArgs {
   preSelectedRune?: string | null;

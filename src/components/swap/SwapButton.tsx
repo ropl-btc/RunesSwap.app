@@ -1,7 +1,8 @@
 import React from 'react';
 import { type QuoteResponse } from 'satsterminal-sdk';
-import { Asset } from '@/types/common';
+
 import styles from '@/components/swap/SwapButton.module.css';
+import type { Asset } from '@/types/common';
 import { parseAmount } from '@/utils/formatters';
 
 export type SwapStep =

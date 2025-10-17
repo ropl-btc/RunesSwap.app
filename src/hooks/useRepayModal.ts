@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import {
-  RepayLiquidiumLoanResponse,
-  repayLiquidiumLoan,
-  submitRepayPsbt,
-} from '@/lib/api';
-import { LiquidiumLoanOffer } from '@/types/liquidium';
+
+import type { RepayLiquidiumLoanResponse } from '@/lib/api';
+import { repayLiquidiumLoan, submitRepayPsbt } from '@/lib/api';
+import type { LiquidiumLoanOffer } from '@/types/liquidium';
 
 interface Args {
   address: string | null;

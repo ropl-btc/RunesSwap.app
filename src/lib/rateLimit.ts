@@ -1,4 +1,5 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
+
 import { createErrorResponse } from '@/lib/apiUtils';
 
 // Simple in-memory sliding-window rate limiter (best-effort in serverless)

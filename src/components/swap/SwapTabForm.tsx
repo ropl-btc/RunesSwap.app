@@ -1,15 +1,16 @@
 import React from 'react';
-import { QuoteResponse } from 'satsterminal-sdk';
-import { Asset } from '@/types/common';
-import { InputArea } from '@/components/swap/InputArea';
-import styles from '@/components/swap/SwapTab.module.css';
+import type { QuoteResponse } from 'satsterminal-sdk';
+
+import type { SwapStep } from '@/components/swap';
 import {
   PriceInfoPanel,
   SwapButton,
   SwapDirectionButton,
   SwapStatusMessages,
-  SwapStep,
 } from '@/components/swap';
+import { InputArea } from '@/components/swap/InputArea';
+import styles from '@/components/swap/SwapTab.module.css';
+import type { Asset } from '@/types/common';
 
 interface SwapTabFormProps {
   connected: boolean;

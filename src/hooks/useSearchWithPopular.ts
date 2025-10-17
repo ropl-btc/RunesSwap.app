@@ -1,6 +1,6 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDebounce } from 'use-debounce';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface UseSearchWithPopularOptions<T, R> {
   searchFn: (query: string) => Promise<R[]>;

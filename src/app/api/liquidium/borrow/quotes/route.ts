@@ -1,15 +1,16 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { z } from 'zod';
+
 import {
   createErrorResponse,
   createSuccessResponse,
   handleApiError,
   validateRequest,
 } from '@/lib/apiUtils';
+import { getLiquidiumJwt } from '@/lib/liquidiumAuth';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
 import { enforceRateLimit } from '@/lib/rateLimit';
 import { supabase } from '@/lib/supabase';
-import { getLiquidiumJwt } from '@/lib/liquidiumAuth';
 import { safeArrayFirst } from '@/utils/typeGuards';
 
 // Schema for query parameters
@@ -40,10 +41,9 @@ export async function GET(request: NextRequest) {
   const { runeAmount, address } = validation.data;
 
   try {
-    // 0. Look up the actual rune ID from our database
-    // First check if the runeId is already in the correct format (e.g., "810010:907")
-    if (runeId.includes(':')) {
-    } else {
+    // 0. Look up the actual rune ID from our database only if not already in prefix:id format
+    // Example of correct format: "810010:907"
+    if (!runeId.includes(':')) {
       // Try to find by name first
       const { data: runeDataByName, error: runeErrorByName } = await supabase
         .from('runes')

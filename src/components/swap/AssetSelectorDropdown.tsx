@@ -2,9 +2,11 @@ import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/solid';
 import Image from 'next/image';
 import React, { Fragment } from 'react';
-import { Asset, BTC_ASSET } from '@/types/common';
+
 import RuneIcon from '@/components/runes/RuneIcon';
 import styles from '@/components/swap/InputArea.module.css';
+import type { Asset } from '@/types/common';
+import { BTC_ASSET } from '@/types/common';
 
 interface AssetSelectorDropdownProps {
   selectedAsset: Asset | null;

@@ -1,9 +1,11 @@
-import { NextRequest } from 'next/server';
-import { createSuccessResponse, validateRequest } from '@/lib/apiUtils';
+import type { NextRequest } from 'next/server';
+
+import { ok } from '@/lib/apiResponse';
+import { validateRequest } from '@/lib/apiUtils';
 import { getOrdiscanClient } from '@/lib/serverUtils';
 import { requestSchemas } from '@/lib/validationSchemas';
 import { withApiHandler } from '@/lib/withApiHandler';
-import { RuneBalance } from '@/types/ordiscan';
+import type { RuneBalance } from '@/types/ordiscan';
 
 export const GET = withApiHandler(
   async (request: NextRequest) => {
@@ -26,7 +28,7 @@ export const GET = withApiHandler(
       ? balances
       : [];
 
-    return createSuccessResponse(validBalances);
+    return ok(validBalances);
   },
   { defaultErrorMessage: 'Failed to fetch Rune balances' },
 );
