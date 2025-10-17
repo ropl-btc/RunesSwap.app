@@ -41,8 +41,8 @@ function isPsbtApiResponse(value: unknown): value is PsbtApiResponse {
   const rbfOk =
     v.rbfProtected === undefined ||
     (typeof v.rbfProtected === 'object' &&
-      (v.rbfProtected as { base64?: unknown }).base64 === undefined) ||
-    typeof (v.rbfProtected as { base64?: unknown }).base64 === 'string';
+      (typeof (v.rbfProtected as { base64?: unknown }).base64 === 'string' ||
+        (v.rbfProtected as { base64?: unknown }).base64 === undefined));
   return hasPsbt && swapIdOk && rbfOk;
 }
 
@@ -52,11 +52,17 @@ function parsePsbtResult(result: unknown): {
   rbfPsbtBase64?: string;
 } {
   if (!isPsbtApiResponse(result)) return {};
-  return {
-    mainPsbtBase64: result.psbtBase64 || result.psbt,
-    swapId: result.swapId,
-    rbfPsbtBase64: result.rbfProtected?.base64,
-  };
+  const out: {
+    mainPsbtBase64?: string;
+    swapId?: string;
+    rbfPsbtBase64?: string;
+  } = {};
+  const main = result.psbtBase64 || result.psbt;
+  if (typeof main === 'string') out.mainPsbtBase64 = main;
+  if (typeof result.swapId === 'string') out.swapId = result.swapId;
+  const rbf = result.rbfProtected?.base64;
+  if (typeof rbf === 'string') out.rbfPsbtBase64 = rbf;
+  return out;
 }
 
 interface UseSwapExecutionArgs {
@@ -369,14 +375,6 @@ export default function useSwapExecution({
 
           // Confirm with the new PSBT
           const confirmResult = await confirmPsbtViaApi(confirmParams);
-
-          // Define a basic interface for expected response structure
-          interface SwapConfirmationResult {
-            txid?: string;
-            rbfProtection?: {
-              fundsPreparationTxId?: string;
-            };
-          }
 
           // Use proper typing instead of 'any'
           const finalTxId =

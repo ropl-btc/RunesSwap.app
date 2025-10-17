@@ -2,6 +2,7 @@
 ### Fixed
 - Enforced Zod response validation in `src/app/api/ordiscan/btc-balance/route.ts`.
 - Replaced ad-hoc query checks with Zod-based validation in `src/app/api/ordiscan/rune-info-by-id/route.ts`.
+- Removed unsafe assertions in `src/hooks/useSwapExecution.ts` by introducing `PsbtApiResponse` and a type guard; deduplicated `SwapConfirmationResult`; fixed finally-block to avoid stale state success re-dispatch.
 # Changelog
 ## [Unreleased]
 
