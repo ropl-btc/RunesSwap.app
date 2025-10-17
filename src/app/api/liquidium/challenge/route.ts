@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
 
-import { createErrorResponse, createSuccessResponse } from '@/lib/apiUtils';
+import { fail, ok } from '@/lib/apiResponse';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
 import { withApiHandler } from '@/lib/withApiHandler';
 
@@ -11,11 +11,10 @@ export const GET = withApiHandler(
     const ordinalsAddress = searchParams.get('ordinalsAddress');
     const paymentAddress = searchParams.get('paymentAddress');
     if (!ordinalsAddress || !paymentAddress) {
-      return createErrorResponse(
-        'Missing addresses',
-        'Both ordinalsAddress and paymentAddress are required',
-        400,
-      );
+      return fail('Missing addresses', {
+        status: 400,
+        details: 'Both ordinalsAddress and paymentAddress are required',
+      });
     }
     const walletParam = searchParams.get('wallet') || 'xverse';
 
@@ -27,7 +26,7 @@ export const GET = withApiHandler(
         wallet: walletParam,
       },
     });
-    return createSuccessResponse(challenge);
+    return ok(challenge);
   },
   { defaultErrorMessage: 'Failed to get Liquidium challenge' },
 );

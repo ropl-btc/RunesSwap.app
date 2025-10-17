@@ -1,11 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  validateRequest,
-} from '@/lib/apiUtils';
+import { fail, ok } from '@/lib/apiResponse';
+import { validateRequest } from '@/lib/apiUtils';
 import { logger } from '@/lib/logger';
 import { validators } from '@/lib/validationSchemas';
 import { withApiHandler } from '@/lib/withApiHandler';
@@ -30,10 +27,10 @@ export function createRuneRoute<T>(
           route: 'ordiscan',
           normalized,
         });
-        return createErrorResponse('Rune not found', undefined, 404);
+        return fail('Rune not found', { status: 404 });
       }
 
-      return createSuccessResponse(data);
+      return ok(data);
     },
     { defaultErrorMessage: errorMessage },
   );

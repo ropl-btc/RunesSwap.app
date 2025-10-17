@@ -1,13 +1,10 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  handleApiError,
-  validateRequest,
-} from '@/lib/apiUtils';
+import { fail, ok } from '@/lib/apiResponse';
+import { handleApiError, validateRequest } from '@/lib/apiUtils';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
+import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
 import type { BorrowerService } from '@/sdk/liquidium/services/BorrowerService';
 import { safeArrayAccess, safeArrayFirst } from '@/utils/typeGuards';
@@ -41,9 +38,10 @@ export async function GET(request: NextRequest) {
         .limit(1);
 
       if (runeErrorByName) {
-        console.error(
-          '[API Error] Failed to fetch rune by name',
-          runeErrorByName,
+        logger.error(
+          'Failed to fetch rune by name',
+          { error: runeErrorByName },
+          'API',
         );
       } else {
         const firstRuneByName = safeArrayFirst(runeDataByName);
@@ -58,9 +56,10 @@ export async function GET(request: NextRequest) {
             .limit(1);
 
           if (runeErrorById) {
-            console.error(
-              '[API Error] Failed to fetch rune by ID',
-              runeErrorById,
+            logger.error(
+              'Failed to fetch rune by ID',
+              { error: runeErrorById },
+              'API',
             );
           } else {
             const firstRuneById = safeArrayFirst(runeDataById);
@@ -77,9 +76,10 @@ export async function GET(request: NextRequest) {
                     .limit(1);
 
                 if (liquidiumError) {
-                  console.error(
-                    '[API Error] Failed to fetch LIQUIDIUMTOKEN',
-                    liquidiumError,
+                  logger.error(
+                    'Failed to fetch LIQUIDIUMTOKEN',
+                    { error: liquidiumError },
+                    'API',
                   );
                 } else {
                   const firstLiquidiumData = safeArrayFirst(liquidiumData);
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
       .limit(1);
 
     if (!cachedRangesError && cachedRanges && cachedRanges.length > 0) {
-      return createSuccessResponse({
+      return ok({
         runeId,
         minAmount: cachedRanges[0].min_amount,
         maxAmount: cachedRanges[0].max_amount,
@@ -121,20 +121,19 @@ export async function GET(request: NextRequest) {
       .limit(1);
 
     if (tokenError) {
-      return createErrorResponse(
-        'Database error retrieving authentication',
-        tokenError.message,
-        500,
-      );
+      return fail('Database error retrieving authentication', {
+        status: 500,
+        details: tokenError.message,
+      });
     }
 
     const firstToken = safeArrayFirst(tokenRows);
     if (!firstToken?.jwt) {
-      return createErrorResponse(
-        'Liquidium authentication required',
-        'No JWT found for this address. Please authenticate with Liquidium first.',
-        401,
-      );
+      return fail('Liquidium authentication required', {
+        status: 401,
+        details:
+          'No JWT found for this address. Please authenticate with Liquidium first.',
+      });
     }
 
     const userJwt = firstToken.jwt;
@@ -142,11 +141,11 @@ export async function GET(request: NextRequest) {
 
     // Check if JWT is expired
     if (expiresAt && new Date(expiresAt) < new Date()) {
-      return createErrorResponse(
-        'Authentication expired',
-        'Your authentication has expired. Please re-authenticate with Liquidium.',
-        401,
-      );
+      return fail('Authentication expired', {
+        status: 401,
+        details:
+          'Your authentication has expired. Please re-authenticate with Liquidium.',
+      });
     }
 
     // We'll use a dummy amount of 1 to get the valid ranges
@@ -184,7 +183,7 @@ export async function GET(request: NextRequest) {
 
       // Handle 404 gracefully - this means no offers are available for this rune
       if (message.includes('Not Found') || message.includes('404')) {
-        return createSuccessResponse({
+        return ok({
           runeId,
           minAmount: '0',
           maxAmount: '0',
@@ -195,7 +194,7 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      return createErrorResponse('Liquidium API error', message, 500);
+      return fail('Liquidium API error', { status: 500, details: message });
     }
 
     // We now have a typed Liquidium response, extract the valid ranges
@@ -232,7 +231,7 @@ export async function GET(request: NextRequest) {
       for (let i = 1; i < ranges.length; i++) {
         const currentRange = safeArrayAccess(ranges, i);
         if (!currentRange?.min || !currentRange?.max) {
-          console.warn(`[API Warning] Skipping invalid range at index ${i}`);
+          logger.warn(`Skipping invalid range at index ${i}`, undefined, 'API');
           continue;
         }
 
@@ -267,7 +266,7 @@ export async function GET(request: NextRequest) {
         error instanceof Error
           ? error.message
           : 'Unknown error processing ranges';
-      return createErrorResponse('Invalid range data', errorMessage, 500);
+      return fail('Invalid range data', { status: 500, details: errorMessage });
     }
 
     // Store the range in the database
@@ -284,7 +283,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Return successful response
-    return createSuccessResponse({
+    return ok({
       runeId,
       minAmount,
       maxAmount,
@@ -294,10 +293,9 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     const errorInfo = handleApiError(error, 'Failed to fetch borrow ranges');
-    return createErrorResponse(
-      errorInfo.message,
-      errorInfo.details,
-      errorInfo.status,
-    );
+    return fail(errorInfo.message, {
+      status: errorInfo.status,
+      ...(errorInfo.details ? { details: errorInfo.details } : {}),
+    });
   }
 }

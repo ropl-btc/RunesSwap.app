@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 
-import { createSuccessResponse, validateRequest } from '@/lib/apiUtils';
+import { ok } from '@/lib/apiResponse';
+import { validateRequest } from '@/lib/apiUtils';
 import type { RuneData } from '@/lib/runesData';
 import { getOrdiscanClient } from '@/lib/serverUtils';
 import {
@@ -35,7 +36,7 @@ export const GET = withApiHandler(
       : [];
 
     if (validBalances.length === 0) {
-      return createSuccessResponse({
+      return ok({
         balances: [],
         runeInfos: {},
         marketData: {},
@@ -109,7 +110,7 @@ export const GET = withApiHandler(
       return { name: balance.name, balance: amt };
     });
 
-    return createSuccessResponse({
+    return ok({
       balances: formattedBalances,
       runeInfos: runeInfoMap,
       marketData: marketDataMap,

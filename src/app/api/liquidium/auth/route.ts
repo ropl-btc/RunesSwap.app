@@ -1,11 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  validateRequest,
-} from '@/lib/apiUtils';
+import { ok } from '@/lib/apiResponse';
+import { createErrorResponse, validateRequest } from '@/lib/apiUtils';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
 import { logger } from '@/lib/logger';
 import { enforceRateLimit } from '@/lib/rateLimit';
@@ -110,7 +107,7 @@ export const POST = withApiHandler(
       );
     }
     logger.info('Upsert result', { upsertResult }, 'API');
-    return createSuccessResponse({ jwt: authSubmitResponse.user_jwt });
+    return ok({ jwt: authSubmitResponse.user_jwt });
   },
   { defaultErrorMessage: 'Liquidium authentication failed' },
 );

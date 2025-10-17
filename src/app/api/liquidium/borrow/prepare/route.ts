@@ -1,11 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  validateRequest,
-} from '@/lib/apiUtils';
+import { fail, ok } from '@/lib/apiResponse';
+import { validateRequest } from '@/lib/apiUtils';
 import { getLiquidiumJwt } from '@/lib/liquidiumAuth';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
 import { enforceRateLimit } from '@/lib/rateLimit';
@@ -73,10 +70,13 @@ export async function POST(request: NextRequest) {
       requestBody: sdkPayload,
     });
 
-    return createSuccessResponse(response);
+    return ok(response);
   } catch (sdkError) {
     const message =
       sdkError instanceof Error ? sdkError.message : 'Unknown error';
-    return createErrorResponse('Liquidium prepare borrow error', message, 500);
+    return fail('Liquidium prepare borrow error', {
+      status: 500,
+      details: message,
+    });
   }
 }

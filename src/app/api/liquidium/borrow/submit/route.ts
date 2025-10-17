@@ -1,12 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  handleApiError,
-  validateRequest,
-} from '@/lib/apiUtils';
+import { fail, ok } from '@/lib/apiResponse';
+import { handleApiError, validateRequest } from '@/lib/apiUtils';
 import { getLiquidiumJwt } from '@/lib/liquidiumAuth';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
 import { enforceRateLimit } from '@/lib/rateLimit';
@@ -62,27 +58,25 @@ export async function POST(request: NextRequest) {
         },
       );
 
-      return createSuccessResponse(response);
+      return ok(response);
     } catch (error) {
       const errorInfo = handleApiError(
         error,
         'Failed to submit borrow transaction',
       );
-      return createErrorResponse(
-        errorInfo.message,
-        errorInfo.details,
-        errorInfo.status,
-      );
+      return fail(errorInfo.message, {
+        status: errorInfo.status,
+        ...(errorInfo.details ? { details: errorInfo.details } : {}),
+      });
     }
   } catch (error) {
     const errorInfo = handleApiError(
       error,
       'Failed to submit borrow transaction',
     );
-    return createErrorResponse(
-      errorInfo.message,
-      errorInfo.details,
-      errorInfo.status,
-    );
+    return fail(errorInfo.message, {
+      status: errorInfo.status,
+      ...(errorInfo.details ? { details: errorInfo.details } : {}),
+    });
   }
 }

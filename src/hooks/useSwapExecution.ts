@@ -140,114 +140,106 @@ export default function useSwapExecution({
       };
 
       // *** Use API client function ***
-      try {
-        const psbtResult = await getPsbtFromApi(psbtParams);
+      const psbtResult = await getPsbtFromApi(psbtParams);
 
-        const mainPsbtBase64 =
-          (psbtResult as unknown as { psbtBase64?: string; psbt?: string })
-            ?.psbtBase64 ||
-          (psbtResult as unknown as { psbtBase64?: string; psbt?: string })
-            ?.psbt;
-        const swapId = (psbtResult as unknown as { swapId?: string })?.swapId;
-        const rbfPsbtBase64 = (
-          psbtResult as unknown as { rbfProtected?: { base64?: string } }
-        )?.rbfProtected?.base64;
+      const mainPsbtBase64 =
+        (psbtResult as unknown as { psbtBase64?: string; psbt?: string })
+          ?.psbtBase64 ||
+        (psbtResult as unknown as { psbtBase64?: string; psbt?: string })?.psbt;
+      const swapId = (psbtResult as unknown as { swapId?: string })?.swapId;
+      const rbfPsbtBase64 = (
+        psbtResult as unknown as { rbfProtected?: { base64?: string } }
+      )?.rbfProtected?.base64;
 
-        if (!mainPsbtBase64 || !swapId) {
-          // Log rich context for diagnostics
-          logger.error(
-            'Invalid PSBT data received from API',
-            {
-              hasPsbtBase64: !!mainPsbtBase64,
-              hasSwapId: !!swapId,
-              runeName: runeAsset.name,
-              sell: !isBtcToRune,
-            },
-            'API',
-          );
+      if (!mainPsbtBase64 || !swapId) {
+        // Log rich context for diagnostics
+        logger.error(
+          'Invalid PSBT data received from API',
+          {
+            hasPsbtBase64: !!mainPsbtBase64,
+            hasSwapId: !!swapId,
+            runeName: runeAsset.name,
+            sell: !isBtcToRune,
+          },
+          'API',
+        );
 
-          // Throw a sanitized message for UI
-          throw new Error('Invalid PSBT data received from API.');
-        }
-
-        // 2. Sign PSBT(s) - Remains client-side via LaserEyes
-        dispatchSwap({ type: 'SWAP_STEP', step: 'signing' });
-        const mainSigningResult = await signPsbt(mainPsbtBase64);
-        const signedMainPsbt = mainSigningResult?.signedPsbtBase64;
-        if (!signedMainPsbt) {
-          throw new Error('Main PSBT signing cancelled or failed.');
-        }
-
-        let signedRbfPsbt: string | null = null;
-        if (rbfPsbtBase64) {
-          const rbfSigningResult = await signPsbt(rbfPsbtBase64);
-          signedRbfPsbt = rbfSigningResult?.signedPsbtBase64 ?? null;
-          if (!signedRbfPsbt) {
-          }
-        }
-
-        // 3. Confirm PSBT via API
-        dispatchSwap({ type: 'SWAP_STEP', step: 'confirming' });
-        const confirmParams: ConfirmPSBTParams = {
-          orders: orders,
-          address: address,
-          publicKey: publicKey,
-          paymentAddress: paymentAddress,
-          paymentPublicKey: paymentPublicKey,
-          signedPsbtBase64: signedMainPsbt,
-          swapId: swapId,
-          runeName: runeAsset.name,
-          sell: !isBtcToRune,
-          rbfProtection: !!signedRbfPsbt,
-          ...(signedRbfPsbt && { signedRbfPsbtBase64: signedRbfPsbt }),
-        };
-        // *** Use API client function ***
-        const confirmResult = await confirmPsbtViaApi(confirmParams);
-
-        // Define a basic interface for expected response structure
-        interface SwapConfirmationResult {
-          txid?: string;
-          rbfProtection?: {
-            fundsPreparationTxId?: string;
-          };
-        }
-
-        // Use proper typing instead of 'any'
-        const finalTxId =
-          (confirmResult as SwapConfirmationResult)?.txid ||
-          (confirmResult as SwapConfirmationResult)?.rbfProtection
-            ?.fundsPreparationTxId;
-        if (!finalTxId) {
-          // Log rich context for diagnostics
-          logger.error(
-            'Confirmation failed or transaction ID missing',
-            {
-              hasTxid: !!(confirmResult as SwapConfirmationResult)?.txid,
-              hasRbfTxId: !!(confirmResult as SwapConfirmationResult)
-                ?.rbfProtection?.fundsPreparationTxId,
-              runeName: runeAsset.name,
-              sell: !isBtcToRune,
-            },
-            'API',
-          );
-
-          // Throw a sanitized message for UI
-          throw new Error('Confirmation failed or transaction ID missing.');
-        }
-        dispatchSwap({ type: 'SWAP_SUCCESS', txId: finalTxId });
-
-        // Prevent further operations
-        isThrottledRef.current = true;
-
-        // This is important to prevent further fetches
-        setTimeout(() => {
-          // Do this in next tick to ensure state is updated
-          quoteKeyRef.current = 'completed-swap';
-        }, 0);
-      } catch (psbtError) {
-        // Re-throw to be caught by the outer catch block
-        throw psbtError;
+        // Throw a sanitized message for UI
+        throw new Error('Invalid PSBT data received from API.');
       }
+
+      // 2. Sign PSBT(s) - Remains client-side via LaserEyes
+      dispatchSwap({ type: 'SWAP_STEP', step: 'signing' });
+      const mainSigningResult = await signPsbt(mainPsbtBase64);
+      const signedMainPsbt = mainSigningResult?.signedPsbtBase64;
+      if (!signedMainPsbt) {
+        throw new Error('Main PSBT signing cancelled or failed.');
+      }
+
+      let signedRbfPsbt: string | null = null;
+      if (rbfPsbtBase64) {
+        const rbfSigningResult = await signPsbt(rbfPsbtBase64);
+        signedRbfPsbt = rbfSigningResult?.signedPsbtBase64 ?? null;
+      }
+
+      // 3. Confirm PSBT via API
+      dispatchSwap({ type: 'SWAP_STEP', step: 'confirming' });
+      const confirmParams: ConfirmPSBTParams = {
+        orders: orders,
+        address: address,
+        publicKey: publicKey,
+        paymentAddress: paymentAddress,
+        paymentPublicKey: paymentPublicKey,
+        signedPsbtBase64: signedMainPsbt,
+        swapId: swapId,
+        runeName: runeAsset.name,
+        sell: !isBtcToRune,
+        rbfProtection: !!signedRbfPsbt,
+        ...(signedRbfPsbt && { signedRbfPsbtBase64: signedRbfPsbt }),
+      };
+      // *** Use API client function ***
+      const confirmResult = await confirmPsbtViaApi(confirmParams);
+
+      // Define a basic interface for expected response structure
+      interface SwapConfirmationResult {
+        txid?: string;
+        rbfProtection?: {
+          fundsPreparationTxId?: string;
+        };
+      }
+
+      // Use proper typing instead of 'any'
+      const finalTxId =
+        (confirmResult as SwapConfirmationResult)?.txid ||
+        (confirmResult as SwapConfirmationResult)?.rbfProtection
+          ?.fundsPreparationTxId;
+      if (!finalTxId) {
+        // Log rich context for diagnostics
+        logger.error(
+          'Confirmation failed or transaction ID missing',
+          {
+            hasTxid: !!(confirmResult as SwapConfirmationResult)?.txid,
+            hasRbfTxId: !!(confirmResult as SwapConfirmationResult)
+              ?.rbfProtection?.fundsPreparationTxId,
+            runeName: runeAsset.name,
+            sell: !isBtcToRune,
+          },
+          'API',
+        );
+
+        // Throw a sanitized message for UI
+        throw new Error('Confirmation failed or transaction ID missing.');
+      }
+      dispatchSwap({ type: 'SWAP_SUCCESS', txId: finalTxId });
+
+      // Prevent further operations
+      isThrottledRef.current = true;
+
+      // This is important to prevent further fetches
+      setTimeout(() => {
+        // Do this in next tick to ensure state is updated
+        quoteKeyRef.current = 'completed-swap';
+      }, 0);
     } catch (error: unknown) {
       // Extract error message for better error handling
       const errorMessage =
@@ -486,33 +478,14 @@ Possible solutions:
         dispatchSwap({ type: 'SWAP_ERROR', error: errorMessage });
       }
     } finally {
-      // If we have a transaction ID, ensure success state persists
-      if (swapState.txId) {
-        if (swapState.swapStep !== 'success') {
-          dispatchSwap({ type: 'SWAP_SUCCESS', txId: swapState.txId });
-        }
-        return;
-      }
-
-      // ======================================================================
-      // CRITICAL ERROR HANDLING FIX
-      // This section preserves error states in the UI for the user to see
-      // DO NOT REMOVE THE EARLY RETURN or error messages will disappear immediately
-      // ======================================================================
-      if (errorMessageRef.current) {
-        // Special case for user cancelation - reset back to idle
+      // Avoid unsafe returns in finally; gate actions by state only
+      if (swapState.txId && swapState.swapStep !== 'success') {
+        dispatchSwap({ type: 'SWAP_SUCCESS', txId: swapState.txId });
+      } else if (errorMessageRef.current) {
         if (errorMessageRef.current.includes('User canceled')) {
           dispatchSwap({ type: 'SWAP_STEP', step: 'idle' });
-        } else {
-          // IMPORTANT: Do nothing for non-cancelation errors to preserve the error UI
-          // Future improvement: We could add error categorization here for better UX
-          // e.g., network errors, fee errors, liquidity errors with specific messages
         }
-        return; // <-- CRITICAL: This early return prevents the error state from being reset
-      }
-
-      // Handle non-success states with no errors
-      if (swapState.swapStep !== 'success') {
+      } else if (swapState.swapStep !== 'success') {
         dispatchSwap({ type: 'SWAP_STEP', step: 'idle' });
       }
     }

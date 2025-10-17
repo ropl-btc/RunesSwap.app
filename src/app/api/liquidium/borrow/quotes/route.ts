@@ -1,12 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  handleApiError,
-  validateRequest,
-} from '@/lib/apiUtils';
+import { fail, ok } from '@/lib/apiResponse';
+import { handleApiError, validateRequest } from '@/lib/apiUtils';
 import { getLiquidiumJwt } from '@/lib/liquidiumAuth';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
 import { enforceRateLimit } from '@/lib/rateLimit';
@@ -120,18 +116,20 @@ export async function GET(request: NextRequest) {
         runeAmount,
       });
 
-      return createSuccessResponse(data);
+      return ok(data);
     } catch (sdkError) {
       const message =
         sdkError instanceof Error ? sdkError.message : 'Unknown error';
-      return createErrorResponse('Liquidium borrow quotes error', message, 500);
+      return fail('Liquidium borrow quotes error', {
+        status: 500,
+        details: message,
+      });
     }
   } catch (error) {
     const errorInfo = handleApiError(error, 'Failed to fetch borrow quotes');
-    return createErrorResponse(
-      errorInfo.message,
-      errorInfo.details,
-      errorInfo.status,
-    );
+    return fail(errorInfo.message, {
+      status: errorInfo.status,
+      ...(errorInfo.details ? { details: errorInfo.details } : {}),
+    });
   }
 }

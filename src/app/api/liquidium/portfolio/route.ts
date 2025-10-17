@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
 
-import { createErrorResponse, createSuccessResponse } from '@/lib/apiUtils';
+import { fail, ok } from '@/lib/apiResponse';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
 import { supabase } from '@/lib/supabase';
 import { withApiHandler } from '@/lib/withApiHandler';
@@ -12,11 +12,10 @@ export const GET = withApiHandler(
     const searchParams = request.nextUrl.searchParams;
     const address = searchParams.get('address');
     if (!address) {
-      return createErrorResponse(
-        'Missing address',
-        'address query param is required',
-        400,
-      );
+      return fail('Missing address', {
+        status: 400,
+        details: 'address query param is required',
+      });
     }
 
     const { data: tokenRows, error: tokenError } = await supabase
@@ -26,20 +25,18 @@ export const GET = withApiHandler(
       .limit(1);
     if (tokenError) {
       console.error('[Liquidium] Supabase error:', tokenError);
-      return createErrorResponse(
-        'Database error retrieving authentication',
-        tokenError.message,
-        500,
-      );
+      return fail('Database error retrieving authentication', {
+        status: 500,
+        details: tokenError.message,
+      });
     }
     const firstToken = safeArrayFirst(tokenRows);
     if (!firstToken?.jwt) {
       console.warn('[Liquidium] No JWT found for address:', address);
-      return createErrorResponse(
-        'Liquidium authentication required',
-        'No JWT found for this address',
-        401,
-      );
+      return fail('Liquidium authentication required', {
+        status: 401,
+        details: 'No JWT found for this address',
+      });
     }
     const userJwt = firstToken.jwt;
     const client = createLiquidiumClient(userJwt);
@@ -50,7 +47,7 @@ export const GET = withApiHandler(
       portfolio?.lender?.runes?.loans ??
       [];
 
-    return createSuccessResponse({
+    return ok({
       loans,
       rawPortfolio: portfolio,
     });
