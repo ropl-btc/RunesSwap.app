@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { fetchPopularFromApi, QUERY_KEYS } from '@/lib/api';
 
@@ -15,8 +16,10 @@ export function usePopularRunes<T = Record<string, unknown>>(
     },
   );
 
-  const mapped =
-    mapper && data ? mapper(data) : ((data ?? []) as unknown as T[]);
+  const mapped = useMemo(
+    () => (mapper && data ? mapper(data) : ((data ?? []) as unknown as T[])),
+    [data, mapper],
+  );
 
   return {
     popularRunes: mapped,

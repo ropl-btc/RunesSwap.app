@@ -46,6 +46,8 @@ export function useSwapQuote({
   setExchangeRate,
   setQuoteTimestamp,
 }: UseSwapQuoteArgs) {
+  // Read once to avoid environment lookups in effects
+  const MOCK_ADDRESS = process.env.NEXT_PUBLIC_QUOTE_MOCK_ADDRESS;
   // Parse for debouncing using centralized helper
   const parsedInput = parseAmount(inputAmount) || 0;
   const [debouncedInputAmount] = useDebounce(
@@ -85,9 +87,8 @@ export function useSwapQuote({
     setExchangeRate(null);
 
     // Allow quotes without connection by using an optional mock address from env
-    const mockAddress = process.env.NEXT_PUBLIC_QUOTE_MOCK_ADDRESS;
     const effectiveAddress =
-      address ?? (mockAddress ? String(mockAddress) : undefined);
+      address ?? (MOCK_ADDRESS ? String(MOCK_ADDRESS) : undefined);
     if (!effectiveAddress) return;
 
     try {
@@ -202,9 +203,8 @@ export function useSwapQuote({
       !runeAsset.isBTC;
 
     // Allow pre-connection quotes when a mock address is configured
-    const mockAddress = process.env.NEXT_PUBLIC_QUOTE_MOCK_ADDRESS;
-    const hasAddress = Boolean(address || mockAddress);
-    const addressKey = address || (mockAddress ? 'mock' : '');
+    const hasAddress = Boolean(address || MOCK_ADDRESS);
+    const addressKey = address || (MOCK_ADDRESS ? 'mock' : '');
     const currentKey =
       hasValidInputAmount && hasValidAssets && hasAddress
         ? `${debouncedInputAmount}-${assetIn.id}-${assetOut.id}-${addressKey}`
@@ -269,13 +269,15 @@ export function useSwapQuote({
     }
   }, [
     debouncedInputAmount,
-    assetIn,
-    assetOut,
+    assetIn?.id,
+    assetIn?.isBTC,
+    assetOut?.id,
+    assetOut?.isBTC,
+    address,
     swapState.txId,
     swapState.swapStep,
     swapState.isSwapping,
     dispatchSwap,
-    handleFetchQuote,
     quote,
     outputAmount,
     exchangeRate,
