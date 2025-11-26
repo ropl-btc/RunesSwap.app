@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 
 import styles from '@/app/page.module.css';
-import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
+import ConnectWalletButton from '@/components/wallet/ConnectWalletButton';
 
 /**
  * Union type representing the available tabs in the application.

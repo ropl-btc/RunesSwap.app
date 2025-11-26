@@ -21,7 +21,7 @@ import { truncateAddress } from '@/utils/formatters';
  *
  * @returns The component's JSX: connected state (wallet name and truncated address with a Disconnect button), a disabled "Connecting..." button when connecting, or a "Connect Wallet" button with a wallet options dropdown and optional error/install link.
  */
-export function ConnectWalletButton() {
+function ConnectWalletButton() {
   const {
     connected,
     isConnecting,
