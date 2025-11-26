@@ -87,13 +87,6 @@ export function useSwapQuote({
       address ??
       (MOCK_ADDRESS ? String(MOCK_ADDRESS) : undefined) ??
       DEFAULT_READONLY_ADDRESS;
-    if (!effectiveAddress) {
-      dispatchSwap({
-        type: 'FETCH_QUOTE_ERROR',
-        error: 'Connect your wallet to fetch a quote.',
-      });
-      return;
-    }
 
     dispatchSwap({ type: 'FETCH_QUOTE_START' });
     setOutputAmount('');
