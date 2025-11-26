@@ -7,19 +7,38 @@ import Button from '@/components/ui/Button';
 import type { LiquidiumLoanOffer } from '@/types/liquidium';
 import { formatSatsToBtc } from '@/utils/formatters';
 
+/**
+ * Props for the LiquidiumLoansSection component.
+ */
 interface LiquidiumLoansSectionProps {
+  /** List of active Liquidium loans. */
   loans: LiquidiumLoanOffer[];
+  /** Whether authentication status is being checked. */
   isCheckingAuth: boolean;
+  /** Whether the user is authenticated with Liquidium. */
   liquidiumAuthenticated: boolean;
+  /** Whether authentication is in progress. */
   isAuthenticating: boolean;
+  /** Authentication error message. */
   authError: string | null;
+  /** Whether loans are loading. */
   isLoadingLiquidium: boolean;
+  /** Error loading loans. */
   liquidiumError: string | null;
+  /** ID of the loan currently being repaid. */
   isRepayingLoanId: string | null;
+  /** Callback to trigger authentication. */
   onAuth: () => void;
+  /** Callback to trigger repayment for a loan. */
   onRepay: (loan: LiquidiumLoanOffer) => void;
 }
 
+/**
+ * Component to display a list of Liquidium loans in the portfolio.
+ * Handles authentication state and displays loan details.
+ *
+ * @param props - Component props.
+ */
 const LiquidiumLoansSection: React.FC<LiquidiumLoansSectionProps> = ({
   loans,
   isCheckingAuth,

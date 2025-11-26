@@ -28,4 +28,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export { supabase };
+
+/**
+ * Flag indicating if Supabase is configured.
+ */
 export const hasSupabase = !!supabaseUrl && !!supabaseAnonKey;

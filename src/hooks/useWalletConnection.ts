@@ -117,6 +117,12 @@ export const AVAILABLE_WALLETS: {
   { name: 'Wizz', provider: WIZZ },
 ];
 
+/**
+ * Hook to manage wallet connection state and UI.
+ * Wraps the shared LaserEyes context and adds UI-specific logic for the connection dropdown and error handling.
+ *
+ * @returns Wallet connection state, handlers, and UI helpers.
+ */
 export function useWalletConnection() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);

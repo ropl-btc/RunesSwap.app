@@ -25,13 +25,26 @@ import {
 // Path to hourglass icon used while BTC price is loading
 const HOURGLASS_SRC = '/icons/windows_hourglass.png';
 
+/**
+ * Props for the PriceChart component.
+ */
 interface PriceChartProps {
+  /** The name of the asset to chart. */
   assetName: string;
+  /** The selected timeframe for the chart. */
   timeFrame?: '24h' | '7d' | '30d' | '90d' | undefined;
+  /** Callback to close the chart. */
   onClose?: (() => void) | undefined;
+  /** Current Bitcoin price in USD. */
   btcPriceUsd: number | undefined; // BTC price in USD
 }
 
+/**
+ * Component to display a price chart for a given asset.
+ * Uses Recharts to render the line chart and handles loading states.
+ *
+ * @param props - Component props.
+ */
 const PriceChart: React.FC<PriceChartProps> = ({
   assetName,
   timeFrame = '24h',

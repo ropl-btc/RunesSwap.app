@@ -20,6 +20,13 @@ export interface UseUsdValuesArgs {
   outputRuneMarketInfo: OrdiscanRuneMarketInfo | null | undefined;
 }
 
+/**
+ * Hook to calculate USD values for input and output amounts.
+ * Uses Bitcoin price and Rune market data to estimate values.
+ *
+ * @param args - Arguments including amounts, assets, prices, and market info.
+ * @returns Calculated input and output USD values formatted as currency strings.
+ */
 export default function useUsdValues({
   inputAmount,
   outputAmount,

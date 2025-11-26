@@ -12,6 +12,13 @@ interface UseRunesSearchOptions {
   popularRunesError?: Error | null;
 }
 
+/**
+ * Hook for searching Runes with support for popular items and caching.
+ * Manages search state, focus, and integration with the global store.
+ *
+ * @param options - Options for the search (cached items, loading states).
+ * @returns Search state, handlers, and results.
+ */
 export function useRunesSearch({
   cachedPopularRunes = [],
   isPopularRunesLoading = false,

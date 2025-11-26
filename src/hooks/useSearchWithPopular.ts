@@ -13,6 +13,21 @@ interface UseSearchWithPopularOptions<T, R> {
   initialQuery?: string;
 }
 
+/**
+ * Generic hook for search functionality with a "popular items" fallback.
+ * Handles debouncing, switching between search and popular results, and caching.
+ *
+ * @param options - Configuration options.
+ * @param options.searchFn - Function to search items by query.
+ * @param options.mapper - Function to map items to the desired type.
+ * @param options.popularFn - Function to fetch popular items.
+ * @param options.initialItems - Initial items to display.
+ * @param options.initialLoading - Initial loading state.
+ * @param options.initialError - Initial error state.
+ * @param options.debounceMs - Debounce delay in milliseconds.
+ * @param options.initialQuery - Initial search query.
+ * @returns Search state, results, and reset function.
+ */
 export function useSearchWithPopular<T, R>({
   searchFn,
   mapper,

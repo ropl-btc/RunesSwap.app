@@ -5,6 +5,9 @@ import React, { useEffect, useState } from 'react';
 import styles from '@/app/page.module.css';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 
+/**
+ * Union type representing the available tabs in the application.
+ */
 export type ActiveTab =
   | 'swap'
   | 'runesInfo'
@@ -12,7 +15,11 @@ export type ActiveTab =
   | 'portfolio'
   | 'borrow';
 
+/**
+ * Props for the TabNavigation component.
+ */
 interface TabNavigationProps {
+  /** Optional callback invoked when the active tab changes. */
   onTabChange?: (tab: ActiveTab) => void;
 }
 

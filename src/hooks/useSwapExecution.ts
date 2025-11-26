@@ -111,6 +111,7 @@ interface UseSwapExecutionArgs {
  * Orchestrates the end-to-end swap flow: request PSBTs from the API, prompt the user to sign PSBT(s), confirm the signed PSBT(s) with the API, and update UI state for success or error conditions.
  *
  * @returns An object with `handleSwap`: a function that performs the full swap execution (PSBT retrieval, client-side signing, confirmation) and dispatches swap state updates.
+ */
 export default function useSwapExecution({
   connected,
   address,

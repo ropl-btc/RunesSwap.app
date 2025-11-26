@@ -16,6 +16,13 @@ interface UseSwapRunesArgs {
   setAssetOut: React.Dispatch<React.SetStateAction<Asset | null>>;
 }
 
+/**
+ * Hook to manage available Runes for swapping.
+ * Handles fetching popular Runes and pre-selecting Runes from URL parameters.
+ *
+ * @param args - Arguments including pre-selected rune/asset and state setters.
+ * @returns Popular runes list and loading states.
+ */
 export function useSwapRunes({
   preSelectedRune = null,
   preSelectedAsset = null,

@@ -30,6 +30,11 @@ const serverEnvSchema = z.object({
 export type ClientEnv = z.infer<typeof clientEnvSchema>;
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
+/**
+ * Validates and returns the client-side environment variables.
+ * Throws an error if validation fails.
+ * @returns Validated ClientEnv object.
+ */
 export function getClientEnv(): ClientEnv {
   const parsed = clientEnvSchema.safeParse({
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -42,6 +47,11 @@ export function getClientEnv(): ClientEnv {
   return parsed.data;
 }
 
+/**
+ * Validates and returns the server-side environment variables.
+ * Throws an error if validation fails.
+ * @returns Validated ServerEnv object.
+ */
 export function getServerEnv(): ServerEnv {
   const parsed = serverEnvSchema.safeParse({
     SATS_TERMINAL_API_KEY: process.env.SATS_TERMINAL_API_KEY,

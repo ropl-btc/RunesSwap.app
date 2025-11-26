@@ -29,6 +29,13 @@ interface UseBorrowProcessParams {
   collateralRuneInfo: RuneData | null;
 }
 
+/**
+ * Hook to manage the Liquidium borrow process state and execution.
+ * Handles preparing the loan, signing the PSBT, and submitting the transaction.
+ *
+ * @param params - Parameters including wallet functions and user details.
+ * @returns State variables and functions to control the borrow process.
+ */
 export function useBorrowProcess({
   signPsbt,
   address,

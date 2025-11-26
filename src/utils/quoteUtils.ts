@@ -4,8 +4,13 @@ import type { QuoteResponse } from 'satsterminal-sdk';
 import type { Asset } from '@/types/common';
 import { sanitizeForBig } from '@/utils/formatters';
 
+/**
+ * Display strings for a quote, including formatted output amount and exchange rate.
+ */
 export interface QuoteDisplay {
+  /** Formatted output amount string. */
   outputAmountDisplay: string;
+  /** Formatted exchange rate string (e.g., "$1.23 per Rune"). */
   exchangeRateDisplay: string | null;
 }
 
