@@ -49,7 +49,6 @@ export default defineConfig([
       reportUnusedDisableDirectives: 'off',
     },
     rules: {
-      'no-unused-disable': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/consistent-type-imports': 'off',
       'simple-import-sort/imports': 'off',
