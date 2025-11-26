@@ -7,6 +7,12 @@ import remarkGfm from 'remark-gfm';
 
 import styles from '@/app/page.module.css';
 
+/**
+ * Extracts the changelog content starting at the first H2 heading and removes bottom reference-style link definitions.
+ *
+ * @param raw - The full raw contents of a CHANGELOG.md file
+ * @returns The cleaned changelog string starting at the first H2 heading with reference-style link definitions removed
+ */
 function getCleanChangelog(raw: string): string {
   const lines = raw.split(/\r?\n/);
 

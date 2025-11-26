@@ -54,6 +54,28 @@ interface SwapTabProps {
   preSelectedAsset?: Asset | null;
 }
 
+/**
+ * Renders the swap tab UI for selecting assets, fetching quotes, and executing swaps.
+ *
+ * Manages local input/output amounts, selected assets, balance queries, quote fetching, and swap execution,
+ * and passes computed state and handlers into the SwapTabForm component.
+ *
+ * @param connected - Whether the wallet is connected; enables balance and quote operations when true.
+ * @param address - User's on-chain address used for rune balance and swap operations.
+ * @param paymentAddress - User's BTC payment address used to fetch BTC balance.
+ * @param publicKey - Public key used for swap-related operations that require on-chain identification.
+ * @param paymentPublicKey - Payment public key used for BTC signing flow.
+ * @param signPsbt - Async function that signs a PSBT (used during BTC swap execution).
+ * @param btcPriceUsd - Current BTC price in USD used for USD value calculations.
+ * @param isBtcPriceLoading - Whether the BTC price is currently loading.
+ * @param btcPriceError - Error encountered while fetching BTC price, if any.
+ * @param onShowPriceChart - Optional callback invoked to show or toggle the asset price chart.
+ * @param showPriceChart - Optional flag to control initial visibility of the price chart.
+ * @param preSelectedRune - Optional rune asset name to preselect in the UI.
+ * @param preSelectedAsset - Optional Asset object to preselect in the UI.
+ *
+ * @returns The Swap tab React element configured with current state, handlers, and derived data.
+ */
 export function SwapTab({
   connected,
   address,

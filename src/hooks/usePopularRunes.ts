@@ -3,6 +3,15 @@ import { useMemo } from 'react';
 
 import { fetchPopularFromApi, QUERY_KEYS } from '@/lib/api';
 
+/**
+ * Fetches the popular runes list from the API and exposes mapped data along with loading and error state.
+ *
+ * @param mapper - Optional transformer to convert the raw API records (`Record<string, unknown>[]`) into `T[]`.
+ * @returns An object with:
+ *  - `popularRunes` — the mapped runes array (`T[]`), or an empty array if no data is available.
+ *  - `isLoading` — `true` while the query is in flight, `false` otherwise.
+ *  - `error` — an `Error` when the query failed, or `null` when there is no error.
+ */
 export function usePopularRunes<T = Record<string, unknown>>(
   mapper?: (data: Record<string, unknown>[]) => T[],
 ) {

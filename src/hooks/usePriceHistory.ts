@@ -4,6 +4,19 @@ import { useMemo } from 'react';
 import { fetchRunePriceHistoryFromApi, QUERY_KEYS } from '@/lib/api';
 import { safeArrayAccess, safeArrayFirst } from '@/utils/typeGuards';
 
+/**
+ * Fetches and processes hourly price history for a given asset and timeframe.
+ *
+ * @param assetName - Asset identifier to fetch price history for
+ * @param timeframe - One of '24h', '7d', '30d', or '90d' determining the returned window and tick strategy
+ * @returns An object containing:
+ *  - `filteredPriceData`: Array of price points `{ timestamp: number; price: number }` covering the requested window (hours filled for short windows).
+ *  - `startTime`: `Date` of the first returned point or `null` if no data.
+ *  - `endTime`: `Date` of the last returned point or `null` if no data.
+ *  - `getCustomTicks`: Array of timestamps selected for chart ticks.
+ *  - `isLoading`: `true` while the query is loading, `false` otherwise.
+ *  - `isError`: `true` if the query errored, `false` otherwise.
+ */
 export function usePriceHistory(
   assetName: string,
   timeframe: '24h' | '7d' | '30d' | '90d',

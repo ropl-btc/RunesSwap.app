@@ -8,6 +8,11 @@ import type { ActiveTab } from '@/components/layout/TabNavigation';
 import TabNavigation from '@/components/layout/TabNavigation';
 import { Loading } from '@/components/loading';
 
+/**
+ * Renders the main application layout and manages the currently active tab.
+ *
+ * @returns The page's JSX element containing tab navigation and the application interface, with a Suspense fallback that displays a loading indicator.
+ */
 export default function Home() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('swap');
 

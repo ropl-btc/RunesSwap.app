@@ -23,6 +23,22 @@ interface RuneBalanceItem {
   btcValue: number;
 }
 
+/**
+ * Provides portfolio balances, totals, sorting controls, and loading progress for a given wallet address.
+ *
+ * @param address - Wallet address to load portfolio data for; pass `null` to disable fetching.
+ * @returns An object with:
+ * - `sortedBalances`: Array of Rune balance items (includes `actualBalance`, `btcValue`, `usdValue`, `imageURI`, `formattedName`).
+ * - `totalBtcValue`: Sum of `btcValue` across `sortedBalances`.
+ * - `totalUsdValue`: Sum of `usdValue` across `sortedBalances`.
+ * - `sortField`: Current field used for sorting (`'name' | 'balance' | 'value'`).
+ * - `sortDirection`: Current sort direction (`'asc' | 'desc'`).
+ * - `handleSort`: Function to change the sort field (toggles direction when called with the active field).
+ * - `progress`: Loading progress value between 0 and 1.
+ * - `stepText`: Human-readable label describing the current loading step.
+ * - `isLoading`: Query loading state.
+ * - `error`: Query error, if any.
+ */
 export function usePortfolioData(address: string | null) {
   const [sortField, setSortField] = useState<SortField>('value');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');

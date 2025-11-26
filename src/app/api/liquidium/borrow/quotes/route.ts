@@ -19,6 +19,12 @@ const quoteParamsSchema = z.object({
   address: z.string().trim().min(1), // User's address to find JWT
 });
 
+/**
+ * Fetches borrower collateral rune offers (borrow quotes) for a specified rune and address.
+ *
+ * @param request - The NextRequest whose query must include `runeId`, `runeAmount`, and `address`.
+ * @returns An HTTP response containing the borrow quotes data on success; on failure an error response with an appropriate status and optional details (validation errors, rate-limiting, authentication failure, or SDK/API errors).
+ */
 export async function GET(request: NextRequest) {
   // Validate query parameters first
   const validation = await validateRequest(request, quoteParamsSchema, 'query');

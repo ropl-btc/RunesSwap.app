@@ -15,6 +15,17 @@ const submitBodySchema = z.object({
   address: z.string().trim().min(1), // User's address to find JWT
 });
 
+/**
+ * Handles POST requests to submit a borrow transaction to the Liquidium API.
+ *
+ * Validates the request body (expects `signed_psbt_base_64`, `prepare_offer_id`, and `address`), enforces per-IP rate limiting, retrieves a user JWT, and forwards the submission to the Liquidium SDK.
+ *
+ * @param request - NextRequest whose JSON body must include:
+ *   - `signed_psbt_base_64`: a non-empty Base64-encoded PSBT string
+ *   - `prepare_offer_id`: the offer UUID to submit against
+ *   - `address`: the user address used to obtain a Liquidium JWT
+ * @returns An API response payload: on success the Liquidium SDK response wrapped with `ok(...)`; on failure a validation error, rate-limit response, or a formatted error via `fail(...)`.
+ */
 export async function POST(request: NextRequest) {
   // Validate request body
   const validation = await validateRequest(request, submitBodySchema, 'body');
