@@ -4,12 +4,24 @@ import styles from '@/components/borrow/BorrowTab.module.css';
 import type { LiquidiumBorrowQuoteOffer } from '@/lib/api';
 import { formatSatsToBtc } from '@/utils/formatters';
 
+/**
+ * Props for the BorrowQuotesList component.
+ */
 interface BorrowQuotesListProps {
+  /** List of available loan quotes. */
   quotes: LiquidiumBorrowQuoteOffer[];
+  /** ID of the currently selected quote. */
   selectedQuoteId: string | null;
+  /** Callback when a quote is selected. */
   onSelectQuote: (id: string) => void;
 }
 
+/**
+ * Component to display a list of available loan quotes.
+ * Shows details like loan amount, LTV, term, interest rate, and total repayment.
+ *
+ * @param props - Component props.
+ */
 const BorrowQuotesList: React.FC<BorrowQuotesListProps> = ({
   quotes,
   selectedQuoteId,

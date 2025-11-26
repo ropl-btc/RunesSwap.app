@@ -15,6 +15,12 @@ type BasePopularItem = {
   imageURI: string;
 };
 
+/**
+ * Maps a list of popular rune items (from various sources) to a standard format.
+ * @param items - Array of raw items from API or config.
+ * @param transform - Function to transform the normalized base item to target type T.
+ * @returns Array of transformed items of type T.
+ */
 export const mapPopularItems = <T>(
   items: PopularRuneItem[] | Record<string, unknown>[],
   transform: (item: BasePopularItem) => T,
@@ -41,10 +47,20 @@ export const mapPopularItems = <T>(
     return transform(base);
   });
 
+/**
+ * Maps popular items to Asset objects.
+ * @param items - Array of raw items.
+ * @returns Array of Asset objects.
+ */
 export const mapPopularToAsset = (
   items: PopularRuneItem[] | Record<string, unknown>[],
 ): Asset[] => mapPopularItems(items, (item) => ({ ...item, isBTC: false }));
 
+/**
+ * Maps popular items to Rune objects.
+ * @param items - Array of raw items.
+ * @returns Array of Rune objects.
+ */
 export const mapPopularToRune = (
   items: PopularRuneItem[] | Record<string, unknown>[],
 ): Rune[] => mapPopularItems(items, (item) => item);

@@ -4,6 +4,13 @@ import { createErrorResponse } from '@/lib/apiUtils';
 import { supabase } from '@/lib/supabase';
 import { safeArrayFirst } from '@/utils/typeGuards';
 
+/**
+ * Retrieves a valid Liquidium JWT for the given address from Supabase.
+ * Checks for existence and expiration.
+ *
+ * @param address - The wallet address to check.
+ * @returns The JWT string if valid, or an error NextResponse.
+ */
 export async function getLiquidiumJwt(
   address: string,
 ): Promise<string | NextResponse> {

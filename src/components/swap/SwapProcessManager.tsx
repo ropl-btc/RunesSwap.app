@@ -35,6 +35,13 @@ export const initialSwapProcessState: SwapProcessState = {
   quoteError: null,
 };
 
+/**
+ * Update the swap process state in response to a SwapProcessAction.
+ *
+ * @param state - The current swap process state.
+ * @param action - The action that describes the state transition to apply.
+ * @returns The new SwapProcessState after applying `action`.
+ */
 export function swapProcessReducer(
   state: SwapProcessState,
   action: SwapProcessAction,

@@ -1,6 +1,13 @@
 import { QueryClient } from '@tanstack/react-query';
 
-// Shared QueryClient instance with sensible defaults for server state
+/**
+ * Shared QueryClient instance with sensible defaults for server state management.
+ * Configured with:
+ * - 30s stale time
+ * - 5m cache time
+ * - 2 retries for queries
+ * - No retries for mutations
+ */
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

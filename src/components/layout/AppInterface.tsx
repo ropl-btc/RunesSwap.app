@@ -76,12 +76,23 @@ const YourTxsTab = dynamic(() => import('@/components/portfolio/YourTxsTab'), {
 });
 
 // --- Props Interface --- Update the activeTab type
+/**
+ * Props for the AppInterface component.
+ */
 interface AppInterfaceProps {
+  /** The currently active tab. */
   activeTab: 'swap' | 'runesInfo' | 'yourTxs' | 'portfolio' | 'borrow'; // <-- Added 'borrow'
 }
 // --- End Props ---
 
 // --- Component ---
+/**
+ * Main application interface component.
+ * Manages tab navigation, state for selected assets, and renders the active tab content.
+ * Handles dynamic loading of tab components.
+ *
+ * @param props - Component props.
+ */
 export function AppInterface({ activeTab }: AppInterfaceProps) {
   const searchParams = useSearchParams();
   const preSelectedRune = searchParams.get('rune');

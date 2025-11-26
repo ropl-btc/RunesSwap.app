@@ -6,11 +6,22 @@ import { Loading } from '@/components/loading';
 import { useRuneInfo } from '@/hooks/useRuneInfo';
 import { formatRuneAmount } from '@/utils/runeFormatting';
 
+/**
+ * Props for the FormattedRuneAmount component.
+ */
 interface FormattedRuneAmountProps {
+  /** The name of the Rune. */
   runeName: string | null | undefined;
+  /** The raw amount string. */
   rawAmount: string | null | undefined;
 }
 
+/**
+ * Component to display a formatted Rune amount.
+ * Fetches Rune info to determine decimals and formats the amount accordingly.
+ *
+ * @param props - Component props.
+ */
 export function FormattedRuneAmount({
   runeName,
   rawAmount,

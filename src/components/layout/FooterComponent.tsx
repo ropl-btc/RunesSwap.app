@@ -8,12 +8,23 @@ import styles from '@/components/layout/AppInterface.module.css';
 import buttonStyles from '@/components/ui/Button.module.css';
 import { formatUsd } from '@/utils/formatters';
 
+/**
+ * Props for the FooterComponent.
+ */
 interface FooterComponentProps {
+  /** Current Bitcoin price in USD. */
   btcPriceUsd: number | undefined;
+  /** Whether Bitcoin price is loading. */
   isBtcPriceLoading: boolean;
+  /** Error fetching Bitcoin price. */
   btcPriceError: Error | null;
 }
 
+/**
+ * Footer component displaying Bitcoin price and social links.
+ *
+ * @param props - Component props.
+ */
 export function FooterComponent({
   btcPriceUsd,
   isBtcPriceLoading,

@@ -30,6 +30,29 @@ interface UseSwapQuoteArgs {
   setQuoteTimestamp: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
+/**
+ * Manages debounced, throttled fetching of swap quotes and updates related state and displays.
+ *
+ * @param inputAmount - User-entered input amount string used to request quotes.
+ * @param assetIn - Asset being sent (may be BTC).
+ * @param assetOut - Asset being received (may be BTC).
+ * @param address - Optional user address; a mock or default read-only address will be used if not provided.
+ * @param btcPriceUsd - Optional Bitcoin price in USD used to compute display values.
+ * @param swapState - Current swap process state used to gate quoting and reset behavior.
+ * @param dispatchSwap - Dispatch function for swap process actions (e.g., start, success, error, reset).
+ * @param quote - Current quote response (nullable).
+ * @param setQuote - Setter for the current quote response.
+ * @param outputAmount - Current displayed output amount string.
+ * @param setOutputAmount - Setter for the displayed output amount.
+ * @param exchangeRate - Current displayed exchange rate string.
+ * @param setExchangeRate - Setter for the displayed exchange rate.
+ * @param setQuoteTimestamp - Setter for the quote timestamp (used to mark when a quote was obtained).
+ * @returns An object with:
+ *   - handleFetchQuote: function to trigger a quote fetch immediately,
+ *   - debouncedInputAmount: input amount after debounce,
+ *   - quoteKeyRef: ref containing the current quote key used to avoid redundant fetches,
+ *   - isThrottledRef: ref boolean indicating whether quote requests are currently throttled.
+ */
 export function useSwapQuote({
   inputAmount,
   assetIn,

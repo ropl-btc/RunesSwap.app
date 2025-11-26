@@ -9,12 +9,24 @@ import RuneIcon from '@/components/runes/RuneIcon';
 import { formatNumberWithLocale } from '@/utils/formatters';
 import { calculateActualBalance } from '@/utils/runeFormatting';
 
+/**
+ * Props for the FormattedLiquidiumCollateral component.
+ */
 interface FormattedLiquidiumCollateralProps {
+  /** The ID of the Rune used as collateral. */
   runeId: string;
+  /** The amount of the Rune. */
   runeAmount: number;
+  /** The divisibility of the Rune. */
   runeDivisibility: number;
 }
 
+/**
+ * Component to display formatted Liquidium collateral details.
+ * Fetches Rune information to display the name and icon, or falls back to the ID.
+ *
+ * @param props - Component props.
+ */
 export function FormattedLiquidiumCollateral({
   runeId,
   runeAmount,

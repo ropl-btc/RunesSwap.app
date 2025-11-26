@@ -6,13 +6,28 @@ import {
 } from '@/lib/supabaseQueries';
 import { normalizeRuneName } from '@/utils/runeUtils';
 
+/**
+ * Market data for a Rune.
+ */
 export interface RuneMarketData {
+  /** Price in Satoshis. */
   price_in_sats: number;
+  /** Price in USD. */
   price_in_usd: number;
+  /** Market capitalization in BTC. */
   market_cap_in_btc: number;
+  /** Market capitalization in USD. */
   market_cap_in_usd: number;
 }
 
+/**
+ * Fetches market data for a Rune by name.
+ * Tries to fetch from Supabase cache first, then falls back to Ordiscan API.
+ * Updates Supabase cache on successful API fetch.
+ *
+ * @param runeName - The name of the Rune.
+ * @returns RuneMarketData object or null if not found/error.
+ */
 export async function getRuneMarketData(
   runeName: string,
 ): Promise<RuneMarketData | null> {

@@ -1,33 +1,58 @@
 // Liquidium API Types
 
 // --- Request Bodies ---
+/**
+ * Request body for preparing Liquidium authentication.
+ */
 export interface LiquidiumAuthPrepareRequestBody {
-  payment_address: string; // Example: "bc1q..."
-  ordinals_address: string; // Example: "bc1p..."
+  /** Payment address (e.g., "bc1q..."). */
+  payment_address: string;
+  /** Ordinals address (e.g., "bc1p..."). */
+  ordinals_address: string;
 }
 
+/**
+ * Request body for submitting Liquidium authentication.
+ */
 export interface LiquidiumAuthSubmitRequestBody {
+  /** Ordinals wallet details. */
   ordinals: {
-    address: string; // Example: "bc1p..."
-    signature: string; // Base64 encoded signature from wallet
-    nonce: string; // Nonce received from /auth/prepare
+    /** Ordinals address. */
+    address: string;
+    /** Base64 encoded signature from wallet. */
+    signature: string;
+    /** Nonce received from /auth/prepare. */
+    nonce: string;
   };
+  /** Payment wallet details (optional). */
   payment?: {
-    address: string; // Example: "bc1q..."
-    signature: string; // Base64 encoded signature from wallet
-    nonce: string; // Nonce received from /auth/prepare
+    /** Payment address. */
+    address: string;
+    /** Base64 encoded signature from wallet. */
+    signature: string;
+    /** Nonce received from /auth/prepare. */
+    nonce: string;
   };
 }
 
 // --- Success Response Payloads ---
+/**
+ * Response from Liquidium auth prepare endpoint.
+ */
 export interface LiquidiumAuthPrepareSuccessResponse {
   payment?: { address: string; message: string; nonce: string };
   ordinals: { address: string; message: string; nonce: string };
 }
 
+/**
+ * Response from Liquidium auth submit endpoint.
+ */
 export interface LiquidiumAuthSubmitSuccessResponse {
-  user_jwt: string; // The JWT token for subsequent requests
+  /** The JWT token for subsequent requests. */
+  user_jwt: string;
+  /** Whether this is the first login for the user. */
   is_first_login: boolean;
+  /** Vault address if available. */
   vault_address?: string;
 }
 
@@ -36,9 +61,15 @@ export interface LiquidiumPortfolioSuccessResponse {
 }
 
 // --- Core Data Structures ---
+/**
+ * Represents a loan offer from Liquidium.
+ */
 export interface LiquidiumLoanOffer {
-  id: string; // UUID Example: "123e4567-e89b-12d3-a456-426614174000"
+  /** Unique UUID for the offer. */
+  id: string;
+  /** Details of the loan terms. */
   loan_details: LiquidiumLoanDetails;
+  /** Details of the collateral required. */
   collateral_details: LiquidiumCollateralDetails;
 }
 
@@ -58,27 +89,47 @@ export type LoanStateEnum =
   | 'CANCELLED'
   | 'FAILED';
 
+/**
+ * Detailed terms of a Liquidium loan.
+ */
 export interface LiquidiumLoanDetails {
-  state: LoanStateEnum; // Example: "ACTIVE"
-  principal_amount_sats: number; // Example: 50000000
-  loan_term_days: number; // Example: 30
-  loan_term_end_date: string; // ISO 8601 Example: "2025-03-27T14:30:00Z"
-  start_date: string; // ISO 8601 Example: "2025-02-25T14:30:00Z"
-  escrow_address: string; // Example: "bc1qc7slxfxkknqcq2jevvvkdgvrt8080852dfjewde450x..."
+  /** Current state of the loan. */
+  state: LoanStateEnum;
+  /** Principal amount in Satoshis. */
+  principal_amount_sats: number;
+  /** Duration of the loan in days. */
+  loan_term_days: number;
+  /** ISO 8601 timestamp for loan end date. */
+  loan_term_end_date: string;
+  /** ISO 8601 timestamp for loan start date. */
+  start_date: string;
+  /** Escrow address for the loan. */
+  escrow_address: string;
+  /** Discount details. */
   discount: {
-    discount_rate: number; // Example: 0.15
-    discount_sats: number; // Example: 2000
+    /** Discount rate (e.g., 0.15 for 15%). */
+    discount_rate: number;
+    /** Discount amount in Satoshis. */
+    discount_sats: number;
   };
-  total_repayment_sats?: number; // Example: 51000000 (Calculated or from API)
+  /** Total repayment amount in Satoshis. */
+  total_repayment_sats?: number;
 }
 
 export type CollateralTypeEnum = 'Rune' | 'Brc20' | 'Inscription'; // Example: "Rune"
 
+/**
+ * Details of the collateral for a Liquidium loan.
+ */
 export interface LiquidiumCollateralDetails {
-  rune_id: string; // Example: "840010:907"
+  /** Rune ID (e.g., "840010:907"). */
+  rune_id: string;
+  /** Type of collateral (Rune, Brc20, Inscription). */
   collateral_type: CollateralTypeEnum;
-  rune_divisibility: number; // Example: 8
-  rune_amount: number; // Example: 100005 (Display amount)
+  /** Divisibility of the Rune. */
+  rune_divisibility: number;
+  /** Amount of the Rune (display amount). */
+  rune_amount: number;
 }
 
 // --- Client/Route Response Types (moved from api/liquidium.ts) ---

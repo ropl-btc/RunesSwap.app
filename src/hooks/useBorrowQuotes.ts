@@ -22,6 +22,13 @@ interface UseBorrowQuotesArgs {
   collateralRuneInfo: RuneData | null;
 }
 
+/**
+ * Hook to fetch and manage borrow quotes from Liquidium.
+ * Handles fetching popular runes, min/max ranges, and specific quotes for a collateral amount.
+ *
+ * @param args - Arguments including collateral asset, amount, and user address.
+ * @returns Quotes data, loading states, and functions to fetch quotes.
+ */
 export function useBorrowQuotes({
   collateralAsset,
   collateralAmount,

@@ -24,12 +24,21 @@ import type { Asset } from '@/types/common';
 import { formatUsd, parseAmount, sanitizeForBig } from '@/utils/formatters';
 import { percentageOfRawAmount } from '@/utils/runeFormatting';
 
+/**
+ * Props for the BorrowTab component.
+ */
 interface BorrowTabProps {
+  /** Whether the wallet is connected. */
   connected: boolean;
+  /** The connected wallet address. */
   address: string | null;
+  /** The connected payment address. */
   paymentAddress: string | null;
+  /** The public key of the connected wallet. */
   publicKey: string | null;
+  /** The payment public key. */
   paymentPublicKey: string | null;
+  /** Function to sign a PSBT. */
   signPsbt: (
     tx: string,
     finalize?: boolean,
@@ -42,14 +51,24 @@ interface BorrowTabProps {
       }
     | undefined
   >;
+  /** Function to sign a message (for Liquidium auth). */
   signMessage:
     | ((message: string, address: string) => Promise<string>)
     | undefined;
+  /** Current Bitcoin price in USD. */
   btcPriceUsd: number | undefined;
+  /** Whether Bitcoin price is loading. */
   isBtcPriceLoading: boolean;
+  /** Error fetching Bitcoin price. */
   btcPriceError: Error | null;
 }
 
+/**
+ * Main component for the Borrow tab.
+ * Orchestrates the borrowing process, including collateral selection, quote fetching, and loan initiation.
+ *
+ * @param props - Component props.
+ */
 export function BorrowTab({
   connected,
   address,

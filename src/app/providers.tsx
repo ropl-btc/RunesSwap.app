@@ -59,6 +59,11 @@ const laserEyesStub: LaserEyesStubContext = {
   hasUnisat: false,
 };
 
+/**
+ * Supplies LaserEyesContext to its descendants using the value returned by `useLaserEyes`.
+ *
+ * @param children - Child elements that will receive the provided LaserEyesContext
+ */
 function SharedLaserEyesProvider({ children }: { children: React.ReactNode }) {
   // useLaserEyes is safe here because this component is only mounted when we
   // are wrapped by a real LaserEyesProvider (after client hydration).
@@ -71,6 +76,16 @@ function SharedLaserEyesProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Wraps application UI with shared providers for wallet, query client, and background services.
+ *
+ * Uses an inert wallet context during server-side rendering or before client hydration, then
+ * switches to the real `LaserEyesProvider` (configured for MAINNET) after hydration while reusing
+ * a centralized `QueryClient`.
+ *
+ * @param children - React nodes to render inside the provider tree
+ * @returns The provider-wrapped React element containing `children`
+ */
 export function Providers({ children }: { children: React.ReactNode }) {
   // Reuse a centralized QueryClient with shared defaults
   const [client] = React.useState(() => queryClient);

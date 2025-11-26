@@ -10,10 +10,21 @@ import TitleText from '@/components/ui/TitleText';
 import { useBackground } from '@/context/BackgroundContext';
 import useBtcPrice from '@/hooks/useBtcPrice';
 
+/**
+ * Props for the Layout component.
+ */
 interface LayoutProps {
+  /** Child components to render within the layout. */
   children: React.ReactNode;
 }
 
+/**
+ * Main layout component for the application.
+ * Wraps content in a window-like container and handles background image settings.
+ * Includes the title bar and footer.
+ *
+ * @param props - Component props.
+ */
 export function Layout({ children }: LayoutProps) {
   const { backgroundImage, setBackgroundImage, clearBackgroundImage } =
     useBackground();

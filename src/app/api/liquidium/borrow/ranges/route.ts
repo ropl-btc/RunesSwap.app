@@ -15,6 +15,23 @@ const rangeParamsSchema = z.object({
   address: z.string().trim().min(1), // User's address to find JWT
 });
 
+/**
+ * Handle GET requests to fetch borrow amount ranges for a rune and wallet address.
+ *
+ * Validates query parameters, resolves the canonical rune ID (by exact ID, name, ID prefix, or special-case LIQUIDIUMTOKEN), returns a recent cached range if available, or fetches fresh range data from the Liquidium API using the authenticated user's JWT stored in Supabase. On success returns the computed min/max borrow amounts, optional loan term days, cache flag, and timestamp; handles missing offers, authentication, and database or API errors with structured fail responses.
+ *
+ * @param request - Incoming NextRequest containing query parameters `runeId` and `address`
+ * @returns An object for successful responses containing:
+ *  - `runeId`: the canonical rune identifier used
+ *  - `minAmount`: smallest allowed borrow amount as a string
+ *  - `maxAmount`: largest allowed borrow amount as a string
+ *  - `loanTermDays?`: optional array of supported loan term days
+ *  - `cached`: `true` if the response was served from a recent cache, `false` otherwise
+ *  - `updatedAt`: ISO timestamp of when the range was determined
+ *  - `noOffersAvailable?`: present and `true` when the Liquidium API indicates no offers (in which case `minAmount` and `maxAmount` are `"0"`)
+ *
+ * Failure responses use the standardized fail shape with a message, HTTP `status`, and optional `details`.
+ */
 export async function GET(request: NextRequest) {
   // Validate query parameters first
   const validation = await validateRequest(request, rangeParamsSchema, 'query');

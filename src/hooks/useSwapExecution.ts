@@ -32,6 +32,12 @@ interface SwapConfirmationResult {
   };
 }
 
+/**
+ * Determines whether a value matches the PSBT API response shape.
+ *
+ * @param value - The value to test
+ * @returns `true` if the value contains a `psbtBase64` or `psbt` string and, if present, `swapId` is a string and `rbfProtected.base64` is a string; `false` otherwise.
+ */
 function isPsbtApiResponse(value: unknown): value is PsbtApiResponse {
   if (!value || typeof value !== 'object') return false;
   const v = value as Record<string, unknown>;
@@ -46,6 +52,14 @@ function isPsbtApiResponse(value: unknown): value is PsbtApiResponse {
   return hasPsbt && swapIdOk && rbfOk;
 }
 
+/**
+ * Extracts the main PSBT base64, swap identifier, and RBF PSBT base64 from a PSBT API response value.
+ *
+ * @returns An object with any of the following properties when present:
+ * - `mainPsbtBase64` — the primary PSBT encoded as a base64 string
+ * - `swapId` — the swap identifier returned by the API
+ * - `rbfPsbtBase64` — the RBF (replace-by-fee) PSBT encoded as a base64 string
+ */
 function parsePsbtResult(result: unknown): {
   mainPsbtBase64?: string;
   swapId?: string;
@@ -93,6 +107,11 @@ interface UseSwapExecutionArgs {
   selectedFeeRate?: number;
 }
 
+/**
+ * Orchestrates the end-to-end swap flow: request PSBTs from the API, prompt the user to sign PSBT(s), confirm the signed PSBT(s) with the API, and update UI state for success or error conditions.
+ *
+ * @returns An object with `handleSwap`: a function that performs the full swap execution (PSBT retrieval, client-side signing, confirmation) and dispatches swap state updates.
+ */
 export default function useSwapExecution({
   connected,
   address,

@@ -28,6 +28,13 @@ type StartLoanPrepareRequest = Parameters<
   StartLoanService['postApiV1BorrowerLoansStartPrepare']
 >[0]['requestBody'];
 
+/**
+ * Handle POST requests to prepare a borrower loan with Liquidium.
+ *
+ * Calls validation, enforces rate limits, obtains a user JWT, forwards the prepared payload to the Liquidium SDK, and returns the SDK result.
+ *
+ * @returns A success response containing Liquidium's prepare result, or an error response describing validation failures, rate-limit rejections, JWT retrieval errors, or SDK failures.
+ */
 export async function POST(request: NextRequest) {
   // Validate request body
   const validation = await validateRequest(request, prepareBodySchema, 'body');

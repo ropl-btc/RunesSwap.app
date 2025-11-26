@@ -5,6 +5,9 @@ import React, { useEffect, useState } from 'react';
 import styles from '@/app/page.module.css';
 import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
 
+/**
+ * Union type representing the available tabs in the application.
+ */
 export type ActiveTab =
   | 'swap'
   | 'runesInfo'
@@ -12,10 +15,21 @@ export type ActiveTab =
   | 'portfolio'
   | 'borrow';
 
+/**
+ * Props for the TabNavigation component.
+ */
 interface TabNavigationProps {
+  /** Optional callback invoked when the active tab changes. */
   onTabChange?: (tab: ActiveTab) => void;
 }
 
+/**
+ * Renders the top tab navigation, manages the currently active tab, and keeps it synchronized with the URL and external listeners.
+ *
+ * The component initializes the active tab from the URL `tab` parameter (if present), updates the browser history when the active tab changes, listens for global `tabChange` custom events to update the active tab, and invokes `onTabChange` whenever the active tab changes. When switching to the "swap" tab, an existing `rune` URL parameter is preserved; otherwise the `rune` parameter is removed.
+ *
+ * @param onTabChange - Optional callback invoked with the new active tab whenever the active tab changes
+ */
 export default function TabNavigation({ onTabChange }: TabNavigationProps) {
   const [activeTab, setActiveTab] = useState<ActiveTab>('swap');
 

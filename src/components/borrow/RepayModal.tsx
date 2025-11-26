@@ -3,16 +3,32 @@ import React from 'react';
 import styles from '@/components/portfolio/PortfolioTab.module.css';
 import Button from '@/components/ui/Button';
 
+/**
+ * Props for the RepayModal component.
+ */
 interface RepayModalProps {
+  /** Whether the modal is open. */
   open: boolean;
+  /** The amount to repay. */
   repayAmount: string;
+  /** Preview of the PSBT string. */
   psbtPreview: string;
+  /** Whether repayment is processing. */
   loading: boolean;
+  /** Error message if repayment fails. */
   error: string | null;
+  /** Callback to cancel repayment. */
   onCancel: () => void;
+  /** Callback to confirm repayment. */
   onConfirm: () => void;
 }
 
+/**
+ * Modal component for confirming loan repayment.
+ * Displays repayment amount and PSBT preview.
+ *
+ * @param props - Component props.
+ */
 const RepayModal: React.FC<RepayModalProps> = ({
   open,
   repayAmount,
