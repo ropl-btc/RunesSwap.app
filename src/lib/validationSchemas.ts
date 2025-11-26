@@ -236,6 +236,13 @@ export const envSchema = z.object({
   ORDISCAN_API_KEY: z.string().min(1),
   RUNES_FLOOR_API_KEY: z.string().min(1),
   LIQUIDIUM_API_KEY: z.string().min(1),
+  SATS_TERMINAL_FORCED_FEE_RATE: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || (!Number.isNaN(Number(val)) && Number(val) > 0),
+      'SATS_TERMINAL_FORCED_FEE_RATE must be a positive number when provided',
+    ),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
   // Optional mock address to enable quotes before wallet connection

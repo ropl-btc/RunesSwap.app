@@ -48,25 +48,28 @@ export function computeQuoteDisplay(params: {
       btcValueBig = outputBig;
     }
 
+    const formatBigWithTrim = (value: Big, maxFractionDigits: number) => {
+      const fixed = value.toFixed(maxFractionDigits);
+      return fixed.replace(/\.?0+$/, '') || '0';
+    };
+
     const outputAmountDisplay = assetIn.isBTC
-      ? Number(outputBig.toString()).toLocaleString(undefined, {})
-      : Number(outputBig.toString()).toLocaleString(undefined, {
-          maximumFractionDigits: 8,
-        });
+      ? formatBigWithTrim(outputBig, 8)
+      : formatBigWithTrim(outputBig, 8);
 
     let exchangeRateDisplay: string | null = null;
     if (btcPriceUsd && btcValueBig.gt(0) && runeValueBig.gt(0)) {
       const btcUsdAmount = btcValueBig.times(btcPriceUsd);
       const pricePerRune = btcUsdAmount.div(runeValueBig);
-      const pricePerRuneNum = Number(pricePerRune.toFixed(6));
+      const pricePerRuneStr = pricePerRune.toFixed(6);
+      const formatWithGrouping = (val: string) => {
+        const [intPart, decPart] = val.split('.') as [string, string?];
+        const intWithCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return decPart ? `${intWithCommas}.${decPart}` : intWithCommas;
+      };
       const labelAsset =
         assetIn && !assetIn.isBTC ? assetIn.name : assetOut.name;
-      exchangeRateDisplay = `${pricePerRuneNum.toLocaleString(undefined, {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 6,
-      })} per ${labelAsset}`;
+      exchangeRateDisplay = `$${formatWithGrouping(pricePerRuneStr)} per ${labelAsset}`;
     }
 
     return { outputAmountDisplay, exchangeRateDisplay };

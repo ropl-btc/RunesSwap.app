@@ -3,7 +3,8 @@ import type { GetPSBTParams, Order } from 'satsterminal-sdk';
 import { z } from 'zod';
 
 import { ok } from '@/lib/apiResponse';
-import { validateRequest } from '@/lib/apiUtils';
+import { createErrorResponse, validateRequest } from '@/lib/apiUtils';
+import { logger } from '@/lib/logger';
 import { handleSatsTerminalError } from '@/lib/satsTerminalError';
 import { getSatsTerminalClient } from '@/lib/serverUtils';
 import { withApiHandler } from '@/lib/withApiHandler';
@@ -33,7 +34,18 @@ const handler = async (request: NextRequest) => {
 
   const terminal = getSatsTerminalClient();
 
-  // Convert to SDK-compatible format
+  // Optional override for emergency debugging; defaults to client-provided fee
+  const forcedFeeRateEnv = process.env.SATS_TERMINAL_FORCED_FEE_RATE;
+  const forcedFeeRate =
+    forcedFeeRateEnv && !Number.isNaN(Number(forcedFeeRateEnv))
+      ? Number(forcedFeeRateEnv)
+      : undefined;
+  const feeRate = forcedFeeRate ?? validatedParams.feeRate;
+
+  if (!feeRate || feeRate <= 0) {
+    return createErrorResponse('Invalid fee rate', undefined, 400);
+  }
+
   const psbtParams: GetPSBTParams = {
     orders: validatedParams.orders as Order[],
     address: validatedParams.address,
@@ -43,10 +55,16 @@ const handler = async (request: NextRequest) => {
     runeName: validatedParams.runeName,
     sell: validatedParams.sell ?? false,
     rbfProtection: validatedParams.rbfProtection ?? false,
-    feeRate: validatedParams.feeRate ?? 1,
+    feeRate,
     slippage: validatedParams.slippage ?? 0,
   };
 
+  logger.info('Requesting PSBT from SatsTerminal', {
+    feeRate: psbtParams.feeRate,
+    sell: psbtParams.sell,
+    runeName: psbtParams.runeName,
+    forcedFeeRateApplied: Boolean(forcedFeeRate),
+  });
   const psbtResponse = await terminal.getPSBT(psbtParams);
   return ok(psbtResponse);
 };

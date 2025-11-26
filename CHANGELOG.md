@@ -20,6 +20,14 @@
 - Enforced Zod response validation in `src/app/api/ordiscan/btc-balance/route.ts`.
 - Replaced ad-hoc query checks with Zod-based validation in `src/app/api/ordiscan/rune-info-by-id/route.ts`.
 - Removed unsafe assertions in `src/hooks/useSwapExecution.ts` by introducing `PsbtApiResponse` and a type guard; deduplicated `SwapConfirmationResult`; fixed finally-block to avoid stale state success re-dispatch.
+- Preserved swap error state in `useSwapExecution` so failures remain visible instead of resetting to idle.
+- Prevented swap quote fetch from getting stuck in loading when no wallet address is available by validating before starting the request.
+- Restored default read-only quote address so disconnected users still receive quotes when `NEXT_PUBLIC_QUOTE_MOCK_ADDRESS` is unset.
+- Kept `/api/ordiscan/list-runes` dynamic so new/updated runes stay fresh without redeploys.
+- PSBT creation now respects the client-provided fee rate with an optional `SATS_TERMINAL_FORCED_FEE_RATE` override for emergencies.
+- Quote display formatting now stays in Big.js to avoid precision loss; BTC balance display uses Big-based formatter.
+- PSBT confirmation error handling uses typed guards and proper 4xx responses instead of ad-hoc Response casting.
+- CI: pnpm is set up before the Node cache to keep pnpm caching effective.
 
 All notable changes to this project will be documented in this file.
 

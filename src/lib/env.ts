@@ -18,6 +18,13 @@ const serverEnvSchema = z.object({
   ORDISCAN_API_KEY: z.string().min(1),
   RUNES_FLOOR_API_KEY: z.string().min(1),
   LIQUIDIUM_API_KEY: z.string().min(1),
+  SATS_TERMINAL_FORCED_FEE_RATE: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || (!Number.isNaN(Number(val)) && Number(val) > 0),
+      'SATS_TERMINAL_FORCED_FEE_RATE must be a positive number when provided',
+    ),
 });
 
 export type ClientEnv = z.infer<typeof clientEnvSchema>;
@@ -41,6 +48,7 @@ export function getServerEnv(): ServerEnv {
     ORDISCAN_API_KEY: process.env.ORDISCAN_API_KEY,
     RUNES_FLOOR_API_KEY: process.env.RUNES_FLOOR_API_KEY,
     LIQUIDIUM_API_KEY: process.env.LIQUIDIUM_API_KEY,
+    SATS_TERMINAL_FORCED_FEE_RATE: process.env.SATS_TERMINAL_FORCED_FEE_RATE,
   });
   if (!parsed.success) {
     throw new Error(`Invalid server env: ${parsed.error.message}`);

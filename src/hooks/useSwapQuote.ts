@@ -48,6 +48,7 @@ export function useSwapQuote({
 }: UseSwapQuoteArgs) {
   // Read once to avoid environment lookups in effects
   const MOCK_ADDRESS = process.env.NEXT_PUBLIC_QUOTE_MOCK_ADDRESS;
+  const DEFAULT_READONLY_ADDRESS = '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo';
   // Parse for debouncing using centralized helper
   const parsedInput = parseAmount(inputAmount) || 0;
   const [debouncedInputAmount] = useDebounce(
@@ -81,15 +82,23 @@ export function useSwapQuote({
     }, 3000);
 
     const requestId = ++latestQuoteRequestId.current;
+    // Allow quotes without connection by using an optional mock address or a default read-only address
+    const effectiveAddress =
+      address ??
+      (MOCK_ADDRESS ? String(MOCK_ADDRESS) : undefined) ??
+      DEFAULT_READONLY_ADDRESS;
+    if (!effectiveAddress) {
+      dispatchSwap({
+        type: 'FETCH_QUOTE_ERROR',
+        error: 'Connect your wallet to fetch a quote.',
+      });
+      return;
+    }
+
     dispatchSwap({ type: 'FETCH_QUOTE_START' });
     setOutputAmount('');
     setQuote(null);
     setExchangeRate(null);
-
-    // Allow quotes without connection by using an optional mock address from env
-    const effectiveAddress =
-      address ?? (MOCK_ADDRESS ? String(MOCK_ADDRESS) : undefined);
-    if (!effectiveAddress) return;
 
     try {
       if (
@@ -202,9 +211,13 @@ export function useSwapQuote({
       typeof assetOut.id === 'string' &&
       !runeAsset.isBTC;
 
-    // Allow pre-connection quotes when a mock address is configured
-    const hasAddress = Boolean(address || MOCK_ADDRESS);
-    const addressKey = address || (MOCK_ADDRESS ? 'mock' : '');
+    // Allow pre-connection quotes when a mock or default read-only address is available
+    const hasAddress = Boolean(
+      address || MOCK_ADDRESS || DEFAULT_READONLY_ADDRESS,
+    );
+    const addressKey =
+      address ||
+      (MOCK_ADDRESS ? 'mock' : DEFAULT_READONLY_ADDRESS ? 'default' : '');
     const currentKey =
       hasValidInputAmount && hasValidAssets && hasAddress
         ? `${debouncedInputAmount}-${assetIn.id}-${assetOut.id}-${addressKey}`

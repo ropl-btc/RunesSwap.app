@@ -31,7 +31,6 @@ const FeeSelector: React.FC<FeeSelectorProps> = ({
     if (!availableOptions.includes(option)) {
       setOption(availableOptions[0] ?? 'medium');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableOptions.join('|')]);
 
   useEffect(() => {

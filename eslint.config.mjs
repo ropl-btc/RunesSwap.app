@@ -43,7 +43,13 @@ export default defineConfig([
   // SDK and generated code: relax rules
   {
     files: ['src/sdk/**'],
+    linterOptions: {
+      // Allow inline disable comments inside generated code
+      noInlineConfig: false,
+      reportUnusedDisableDirectives: 'off',
+    },
     rules: {
+      'no-unused-disable': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/consistent-type-imports': 'off',
       'simple-import-sort/imports': 'off',
@@ -120,5 +126,3 @@ export default defineConfig([
     },
   },
 ]);
-
-

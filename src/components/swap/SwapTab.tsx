@@ -19,7 +19,7 @@ import useUsdValues from '@/hooks/useUsdValues';
 import { fetchBtcBalanceFromApi } from '@/lib/api';
 import type { Asset } from '@/types/common';
 import { BTC_ASSET } from '@/types/common';
-import { formatNumberWithLocale } from '@/utils/formatters';
+import { formatNumberWithLocale, formatSatsToBtc } from '@/utils/formatters';
 import {
   calculateActualBalance,
   percentageOfRawAmount,
@@ -309,8 +309,12 @@ export function SwapTab({
         return <Loading variant="balance" className={styles.loadingText} />;
       if (btcBalanceError)
         return <span className={styles.errorText}>Error loading balance</span>;
-      if (btcBalanceSats !== undefined)
-        return `${formatNumberWithLocale(btcBalanceSats / 100_000_000, { maximumFractionDigits: 8 })}`;
+      if (btcBalanceSats !== undefined) {
+        const btcString = formatSatsToBtc(btcBalanceSats);
+        const [intPart, decPart] = btcString.split('.') as [string, string?];
+        const intWithCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return decPart ? `${intWithCommas}.${decPart}` : intWithCommas;
+      }
       return 'N/A';
     }
 

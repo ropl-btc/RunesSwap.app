@@ -1,6 +1,7 @@
 import { useEffect, useReducer } from 'react';
 
 import type { SwapStep } from '@/components/swap/SwapButton';
+import { logger } from '@/lib/logger';
 
 export type SwapProcessState = {
   isSwapping: boolean;
@@ -40,9 +41,7 @@ export function swapProcessReducer(
 ): SwapProcessState {
   // Log actions that contain errors or significant state changes
   if (action.type === 'SWAP_ERROR' || action.type === 'FETCH_QUOTE_ERROR') {
-    // Use centralized logger (warn in UI environment)
-    // eslint-disable-next-line no-console
-    console.warn(`SwapProcess: ${action.type}`, action);
+    logger.warn(`SwapProcess: ${action.type}`, { action }, 'Swap');
   }
   switch (action.type) {
     case 'RESET_SWAP':
@@ -116,8 +115,7 @@ export function swapProcessReducer(
         swapStep: 'error',
       };
     case 'SWAP_SUCCESS':
-      // eslint-disable-next-line no-console
-      console.info('Swap completed successfully with txId:', action.txId);
+      logger.info('Swap completed successfully', { txId: action.txId }, 'Swap');
       return {
         ...state,
         isSwapping: false,

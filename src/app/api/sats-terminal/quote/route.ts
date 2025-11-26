@@ -30,6 +30,8 @@ export const POST = withApiHandler(
       address,
       runeName: normalizedRuneName,
       sell: sell ?? false,
+      // Enable AMM fallback when selling to reduce confirm failures from no-fill
+      ...(sell ? { fill: true } : {}),
     };
 
     const quoteResponse = await terminal.fetchQuote(quoteParams);
@@ -62,6 +64,18 @@ export const POST = withApiHandler(
           status: 503,
           details:
             'The SatsTerminal API is currently unavailable. Please try again later.',
+        });
+      }
+
+      // Map common sell/no-order conditions to 404 for clearer UX
+      if (
+        errorMessage.includes('No marketplace found for your sell order') ||
+        errorMessage.includes('No valid orders') ||
+        errorMessage.toLowerCase().includes('no marketplace found')
+      ) {
+        return fail('No orders available for this trade', {
+          status: 404,
+          details: errorMessage,
         });
       }
 

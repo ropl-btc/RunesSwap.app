@@ -22,7 +22,6 @@ interface AssetSelectorDropdownProps {
   loadingDots: string;
 }
 
-/* eslint-disable arrow-body-style */
 const AssetSelectorDropdown: React.FC<AssetSelectorDropdownProps> = ({
   selectedAsset,
   onAssetChange,
@@ -215,6 +214,5 @@ const AssetSelectorDropdown: React.FC<AssetSelectorDropdownProps> = ({
     </div>
   );
 };
-/* eslint-enable arrow-body-style */
 
 export default AssetSelectorDropdown;

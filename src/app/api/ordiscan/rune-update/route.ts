@@ -5,7 +5,6 @@ import { fail, ok } from '@/lib/apiResponse';
 import { validateRequest } from '@/lib/apiUtils';
 import { logDbError, logger } from '@/lib/logger';
 import { enforceRateLimit } from '@/lib/rateLimit';
-import type { RuneData } from '@/lib/runesData';
 import { getOrdiscanClient } from '@/lib/serverUtils';
 import { supabase } from '@/lib/supabase';
 import { withApiHandler } from '@/lib/withApiHandler';

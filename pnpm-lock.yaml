@@ -51,8 +51,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0
       satsterminal-sdk:
-        specifier: ^1.6.14
-        version: 1.6.14
+        specifier: ^1.6.16
+        version: 1.6.16
       use-debounce:
         specifier: ^10.0.4
         version: 10.0.4(react@19.1.0)
@@ -4404,8 +4404,8 @@ packages:
   sats-connect@2.8.3:
     resolution: {integrity: sha512-9qQj4s/5Rj2OImygbs856AwWm7kAx6w19nUru43Dl4zDGv20uy3xHCBEUrKbBDcmE95bE5/SW+iAe89nU+irIw==}
 
-  satsterminal-sdk@1.6.14:
-    resolution: {integrity: sha512-TP+H1Vrh41D7N94dFmYJEhkn5+co/fwKgKaWtyHP8ZXeu9c+gTgUu4gtKtp9+gL+UX6AIhLJsbpNdrU5McJinQ==}
+  satsterminal-sdk@1.6.16:
+    resolution: {integrity: sha512-3qNQQ6hb0I691j0d4LRRqp/YUrdrEqcictxa+6mf20IYrQxw4YBCKXXCDKBlnWoXPFJ0UCxdVxmBGKfV5dsfDg==}
     engines: {node: '>=14.0.0'}
 
   saxes@6.0.0:
@@ -10189,7 +10189,7 @@ snapshots:
       - debug
       - typescript
 
-  satsterminal-sdk@1.6.14:
+  satsterminal-sdk@1.6.16:
     dependencies:
       bitcoinjs-lib: 6.1.7
       node-fetch: 2.7.0

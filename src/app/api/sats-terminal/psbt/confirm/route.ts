@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server';
 import type { ConfirmPSBTParams, Order } from 'satsterminal-sdk';
 import { z } from 'zod';
 
-import { ok } from '@/lib/apiResponse';
+import { fail, ok } from '@/lib/apiResponse';
 import { validateRequest } from '@/lib/apiUtils';
 import { handleSatsTerminalError } from '@/lib/satsTerminalError';
 import { getSatsTerminalClient } from '@/lib/serverUtils';
@@ -34,6 +34,13 @@ const handler = async (request: NextRequest) => {
 
   const terminal = getSatsTerminalClient();
 
+  type ConfirmResponse = {
+    txid?: string;
+    rbfProtection?: { fundsPreparationTxId?: string };
+    error?: string;
+    code?: string;
+  };
+
   // Convert to SDK-compatible format
   const confirmParams: ConfirmPSBTParams = {
     orders: validatedParams.orders as Order[],
@@ -53,7 +60,23 @@ const handler = async (request: NextRequest) => {
       }),
   };
 
-  const confirmResponse = await terminal.confirmPSBT(confirmParams);
+  const confirmResponse = (await terminal.confirmPSBT(
+    confirmParams,
+  )) as ConfirmResponse;
+  // If the SDK returned an error field or did not include any tx id, map to a client-safe error
+  const txId =
+    confirmResponse.txid ||
+    confirmResponse.rbfProtection?.fundsPreparationTxId ||
+    null;
+
+  if (confirmResponse.error || !txId) {
+    const details = confirmResponse.error || 'No transaction id returned';
+    const feeRegex = /\bfee\b/i;
+    if (feeRegex.test(details)) {
+      return fail('Fee rate too low', { status: 400, details });
+    }
+    return fail('Confirmation failed', { status: 422, details });
+  }
   return ok(confirmResponse);
 };
 

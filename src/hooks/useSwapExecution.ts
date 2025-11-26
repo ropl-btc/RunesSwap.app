@@ -186,7 +186,7 @@ export default function useSwapExecution({
         paymentPublicKey: paymentPublicKey,
         runeName: runeAsset.name,
         sell: !isBtcToRune,
-        feeRate: optimalFeeRate, // Dynamic fee rate based on current network conditions
+        feeRate: Math.max(1, Math.floor(optimalFeeRate)), // ensure integer >=1
       };
 
       // *** Use API client function ***
@@ -315,7 +315,7 @@ export default function useSwapExecution({
             paymentPublicKey,
             runeName: runeAsset.name,
             sell: !isBtcToRune,
-            feeRate: highPriorityFeeRate,
+            feeRate: Math.max(1, Math.floor(highPriorityFeeRate)),
           };
 
           // Removed redundant log as we already logged the fee rate
@@ -499,10 +499,18 @@ Possible solutions:
         dispatchSwap({ type: 'SWAP_ERROR', error: errorMessage });
       }
     } finally {
-      if (!successDispatched) {
-        if (!errorMessageRef.current?.includes('User canceled')) {
+      if (successDispatched) {
+        // No further state changes needed on success
+      } else if (swapState.txId && swapState.swapStep !== 'success') {
+        dispatchSwap({ type: 'SWAP_SUCCESS', txId: swapState.txId });
+      } else if (errorMessageRef.current) {
+        if (errorMessageRef.current.includes('User canceled')) {
           dispatchSwap({ type: 'SWAP_STEP', step: 'idle' });
         }
+        // Keep error state visible for all other errors
+      } else if (swapState.swapStep !== 'success') {
+        // Fallback reset only when no success or error was recorded
+        dispatchSwap({ type: 'SWAP_STEP', step: 'idle' });
       }
     }
   };
