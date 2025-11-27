@@ -5,7 +5,6 @@ import Link from 'next/link';
 import React from 'react';
 
 import styles from '@/components/layout/AppInterface.module.css';
-import buttonStyles from '@/components/ui/Button.module.css';
 import { formatUsd } from '@/utils/formatters';
 
 /**
@@ -42,19 +41,24 @@ export function FooterComponent({
         <span>BTC Price: N/A</span>
       )}
       <div className={styles.socialLinks}>
-        <Link href="/docs" legacyBehavior passHref>
-          <a className={buttonStyles.root} title="Documentation">
-            Docs
-          </a>
-        </Link>
         <Link href="/changelog" legacyBehavior passHref>
-          <a className={buttonStyles.root} title="Changelog">
+          <a className={styles.footerButton} title="Changelog">
             Changelog
           </a>
         </Link>
         <Link href="/legal" legacyBehavior passHref>
-          <a className={buttonStyles.root} title="Legal">
+          <a className={styles.footerButton} title="Legal">
             Legal
+          </a>
+        </Link>
+        <Link href="/docs" legacyBehavior passHref>
+          <a className={styles.footerIconButton} title="Documentation">
+            <Image
+              src="/icons/help_book_big-0.png"
+              alt="Documentation"
+              width={16}
+              height={16}
+            />
           </a>
         </Link>
         <a

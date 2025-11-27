@@ -5,6 +5,7 @@
 - Centralized QueryClient defaults and query key factories.
 - CI workflows: PR (type-check, lint, test) and main build.
 - Optional `NEXT_PUBLIC_QUOTE_MOCK_ADDRESS` to enable pre-connection quotes.
+- Footer layout refreshed: dedicated footer button styles, consistent heights, tightened spacing, and Docs moved next to GitHub.
 
 ### Changed
 - Enforced Zod validation and standardized `ok`/`fail` across APIs; set `dynamic = 'force-static'` on static GETs.
