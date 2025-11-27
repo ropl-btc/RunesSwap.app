@@ -2,6 +2,9 @@
 
 import React from 'react';
 
+/**
+ * Available variants for the Loading component.
+ */
 export type LoadingVariant =
   | 'spinner'
   | 'dots'
@@ -9,6 +12,9 @@ export type LoadingVariant =
   | 'rune-amount'
   | 'balance';
 
+/**
+ * Props for the Loading component.
+ */
 export interface LoadingProps {
   /**
    * Variant of the loading component to render
@@ -40,6 +46,12 @@ export interface LoadingProps {
 
 /**
  * Loading component that handles all loading states
+ */
+/**
+ * Loading component that handles all loading states.
+ * Supports multiple variants like spinner, dots, progress bar, and specific text formats.
+ *
+ * @param props - Component props.
  */
 export function Loading({
   variant = 'spinner',
