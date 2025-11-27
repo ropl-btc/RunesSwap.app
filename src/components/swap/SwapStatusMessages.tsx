@@ -4,6 +4,9 @@ import React from 'react';
 import type { SwapStep } from '@/components/swap/SwapButton';
 import styles from '@/components/swap/SwapStatusMessages.module.css';
 
+/**
+ * Props for the SwapStatusMessages component.
+ */
 interface SwapStatusMessagesProps {
   /**
    * Whether a swap is being processed

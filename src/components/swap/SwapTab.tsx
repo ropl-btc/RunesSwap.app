@@ -26,12 +26,21 @@ import {
   percentageOfSatsToBtcString,
 } from '@/utils/formatting';
 
+/**
+ * Props for the SwapTab component.
+ */
 interface SwapTabProps {
+  /** Whether the wallet is connected. */
   connected: boolean;
+  /** The connected wallet address. */
   address: string | null;
+  /** The connected payment address. */
   paymentAddress: string | null;
+  /** The public key of the connected wallet. */
   publicKey: string | null;
+  /** The payment public key. */
   paymentPublicKey: string | null;
+  /** Function to sign a PSBT. */
   signPsbt: (
     tx: string,
     finalize?: boolean,
@@ -44,13 +53,19 @@ interface SwapTabProps {
       }
     | undefined
   >;
+  /** Current Bitcoin price in USD. */
   btcPriceUsd: number | undefined;
+  /** Whether Bitcoin price is loading. */
   isBtcPriceLoading: boolean;
+  /** Error fetching Bitcoin price. */
   btcPriceError: Error | null;
-  // New props for price chart
+  /** Callback to show the price chart. */
   onShowPriceChart?: (assetName?: string, shouldToggle?: boolean) => void;
+  /** Whether the price chart is shown. */
   showPriceChart?: boolean;
+  /** Pre-selected Rune name. */
   preSelectedRune?: string | null;
+  /** Pre-selected Asset object. */
   preSelectedAsset?: Asset | null;
 }
 

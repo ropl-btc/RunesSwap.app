@@ -3,16 +3,29 @@ import { useEffect, useReducer } from 'react';
 import type { SwapStep } from '@/components/swap/SwapButton';
 import { logger } from '@/lib/logger';
 
+/**
+ * State definition for the swap process.
+ */
 export type SwapProcessState = {
+  /** Whether a swap is currently in progress. */
   isSwapping: boolean;
+  /** Current step of the swap process. */
   swapStep: SwapStep;
+  /** Error message if the swap failed. */
   swapError: string | null;
+  /** Transaction ID of the successful swap. */
   txId: string | null;
+  /** Whether the current quote has expired. */
   quoteExpired: boolean;
+  /** Whether a quote is currently being fetched. */
   isQuoteLoading: boolean;
+  /** Error message if quote fetching failed. */
   quoteError: string | null;
 };
 
+/**
+ * Actions that can be dispatched to update the swap process state.
+ */
 export type SwapProcessAction =
   | { type: 'RESET_SWAP' }
   | { type: 'FETCH_QUOTE_START' }
@@ -25,6 +38,9 @@ export type SwapProcessAction =
   | { type: 'SWAP_SUCCESS'; txId: string }
   | { type: 'SET_GENERIC_ERROR'; error: string };
 
+/**
+ * Initial state for the swap process.
+ */
 export const initialSwapProcessState: SwapProcessState = {
   isSwapping: false,
   swapStep: 'idle',
@@ -136,6 +152,9 @@ export function swapProcessReducer(
   }
 }
 
+/**
+ * Props for the useSwapProcessManager hook.
+ */
 interface UseSwapProcessManagerProps {
   /**
    * Whether the wallet is connected
