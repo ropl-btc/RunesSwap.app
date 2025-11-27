@@ -5,6 +5,14 @@ import React, { useEffect, useState } from 'react';
 import styles from '@/app/page.module.css';
 import ConnectWalletButton from '@/components/wallet/ConnectWalletButton';
 
+const ALLOWED_TABS: ActiveTab[] = [
+  'swap',
+  'runesInfo',
+  'yourTxs',
+  'portfolio',
+  'borrow',
+];
+
 /**
  * Union type representing the available tabs in the application.
  */
@@ -39,14 +47,7 @@ export default function TabNavigation({ onTabChange }: TabNavigationProps) {
       const sp = new URLSearchParams(window.location.search);
       const param = sp.get('tab') as ActiveTab | null;
       if (param) {
-        const allowed: ActiveTab[] = [
-          'swap',
-          'runesInfo',
-          'yourTxs',
-          'portfolio',
-          'borrow',
-        ];
-        if (allowed.includes(param)) {
+        if (ALLOWED_TABS.includes(param)) {
           setActiveTab(param);
         }
       }
@@ -56,14 +57,7 @@ export default function TabNavigation({ onTabChange }: TabNavigationProps) {
   useEffect(() => {
     const handleTabChangeEvent = (event: CustomEvent) => {
       const { tab } = event.detail;
-      const allowed: ActiveTab[] = [
-        'swap',
-        'runesInfo',
-        'yourTxs',
-        'portfolio',
-        'borrow',
-      ];
-      if (allowed.includes(tab)) {
+      if (ALLOWED_TABS.includes(tab)) {
         setActiveTab(tab as ActiveTab);
       }
     };

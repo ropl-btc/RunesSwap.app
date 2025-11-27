@@ -50,6 +50,7 @@ export function useBorrowQuotes({
 
   // Fetch min-max borrow range when collateral asset changes
   useEffect(() => {
+    let cancelled = false;
     const fetchMinMaxRange = async () => {
       if (
         !collateralAsset ||
@@ -67,6 +68,7 @@ export function useBorrowQuotes({
           runeIdForApi = collateralRuneInfo.id;
         }
         const result = await fetchBorrowRangesFromApi(runeIdForApi, address);
+        if (cancelled) return;
         if (result.success && result.data) {
           const { minAmount, maxAmount, noOffersAvailable } = result.data;
 
@@ -93,9 +95,11 @@ export function useBorrowQuotes({
           setBorrowRangeError(null);
         }
       } catch (error) {
+        if (cancelled) return;
         const errorMessage =
           error instanceof Error ? error.message : String(error);
         setMinMaxRange(null);
+        // Liquidium errors currently surface as strings; match known phrases while awaiting structured codes
         if (
           errorMessage.includes('No valid ranges found') ||
           errorMessage.includes(
@@ -113,6 +117,9 @@ export function useBorrowQuotes({
       }
     };
     fetchMinMaxRange();
+    return () => {
+      cancelled = true;
+    };
   }, [collateralAsset, address, collateralRuneInfo]);
 
   const resetQuotes = () => {

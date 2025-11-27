@@ -333,9 +333,9 @@ export function SwapTab({
         return <span className={styles.errorText}>Error loading balance</span>;
       if (btcBalanceSats !== undefined) {
         const btcString = formatSatsToBtc(btcBalanceSats);
-        const [intPart, decPart] = btcString.split('.') as [string, string?];
-        const intWithCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        return decPart ? `${intWithCommas}.${decPart}` : intWithCommas;
+        return formatNumberWithLocale(parseFloat(btcString), {
+          maximumFractionDigits: 8,
+        });
       }
       return 'N/A';
     }

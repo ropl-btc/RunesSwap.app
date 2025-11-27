@@ -13,6 +13,9 @@ import type { Asset } from '@/types/common';
 import { parseAmount, sanitizeForBig } from '@/utils/formatting';
 import { computeQuoteDisplay } from '@/utils/quoteUtils';
 
+const MOCK_ADDRESS = process.env.NEXT_PUBLIC_QUOTE_MOCK_ADDRESS;
+const DEFAULT_READONLY_ADDRESS = '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo';
+
 interface UseSwapQuoteArgs {
   inputAmount: string;
   assetIn: Asset | null;
@@ -69,9 +72,6 @@ export function useSwapQuote({
   setExchangeRate,
   setQuoteTimestamp,
 }: UseSwapQuoteArgs) {
-  // Read once to avoid environment lookups in effects
-  const MOCK_ADDRESS = process.env.NEXT_PUBLIC_QUOTE_MOCK_ADDRESS;
-  const DEFAULT_READONLY_ADDRESS = '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo';
   // Parse for debouncing using centralized helper
   const parsedInput = parseAmount(inputAmount) || 0;
   const [debouncedInputAmount] = useDebounce(
@@ -228,21 +228,15 @@ export function useSwapQuote({
       !runeAsset.isBTC;
 
     // Allow pre-connection quotes when a mock or default read-only address is available
-    const hasAddress = Boolean(
-      address || MOCK_ADDRESS || DEFAULT_READONLY_ADDRESS,
-    );
-    const addressKey =
-      address ||
-      (MOCK_ADDRESS ? 'mock' : DEFAULT_READONLY_ADDRESS ? 'default' : '');
+    const addressKey = address || (MOCK_ADDRESS ? 'mock' : 'default');
     const currentKey =
-      hasValidInputAmount && hasValidAssets && hasAddress
+      hasValidInputAmount && hasValidAssets
         ? `${debouncedInputAmount}-${assetIn.id}-${assetOut.id}-${addressKey}`
         : '';
 
     if (
       hasValidInputAmount &&
       hasValidAssets &&
-      hasAddress &&
       currentKey !== quoteKeyRef.current
     ) {
       // If the parameters changed, clear throttle to allow immediate fetching

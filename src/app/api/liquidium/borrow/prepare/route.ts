@@ -20,6 +20,7 @@ const prepareBodySchema = z.object({
   borrower_payment_pubkey: z.string().trim().min(1),
   borrower_ordinal_address: z.string().trim().min(1),
   borrower_ordinal_pubkey: z.string().trim().min(1),
+  borrower_wallet: z.enum(['xverse', 'orange']).default('xverse'),
   collateral_asset_id: z.string().optional(), // Optional field for rune ID
   address: z.string().trim().min(1), // User's address to find JWT
 });
@@ -57,7 +58,10 @@ export async function POST(request: NextRequest) {
     if (typeof jwt !== 'string') {
       return jwt;
     }
-    const userJwt = jwt;
+
+    const borrowerWallet = (liquidiumPayload.borrower_wallet ?? 'xverse') as
+      | 'xverse'
+      | 'orange';
 
     // Include required wallet field
     const sdkPayload: StartLoanPrepareRequest = {
@@ -68,11 +72,11 @@ export async function POST(request: NextRequest) {
       borrower_payment_pubkey: liquidiumPayload.borrower_payment_pubkey,
       borrower_ordinal_address: liquidiumPayload.borrower_ordinal_address,
       borrower_ordinal_pubkey: liquidiumPayload.borrower_ordinal_pubkey,
-      borrower_wallet: 'xverse',
+      borrower_wallet: borrowerWallet,
     };
 
     // 2. Call Liquidium API via SDK
-    const client = createLiquidiumClient(userJwt);
+    const client = createLiquidiumClient(jwt);
     const response = await client.startLoan.postApiV1BorrowerLoansStartPrepare({
       requestBody: sdkPayload,
     });

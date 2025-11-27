@@ -32,6 +32,7 @@ export function Layout({ children }: LayoutProps) {
 
   // Background settings
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,9 +40,11 @@ export function Layout({ children }: LayoutProps) {
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      alert('Image is too large. Please select an image under 2MB.');
+      setUploadError('Image is too large. Please select an image under 2MB.');
       return;
     }
+
+    setUploadError(null);
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -101,6 +104,8 @@ export function Layout({ children }: LayoutProps) {
               onChange={handleFileUpload}
               style={{ display: 'none' }}
             />
+
+            {uploadError && <p className={styles.errorText}>{uploadError}</p>}
           </div>
         </div>
       )}

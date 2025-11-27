@@ -55,12 +55,11 @@ export function computeQuoteDisplay(params: {
 
     const formatBigWithTrim = (value: Big, maxFractionDigits: number) => {
       const fixed = value.toFixed(maxFractionDigits);
-      return fixed.replace(/\.?0+$/, '') || '0';
+      if (!fixed.includes('.')) return fixed;
+      return fixed.replace(/0+$/, '').replace(/\.$/, '') || '0';
     };
 
-    const outputAmountDisplay = assetIn.isBTC
-      ? formatBigWithTrim(outputBig, 8)
-      : formatBigWithTrim(outputBig, 8);
+    const outputAmountDisplay = formatBigWithTrim(outputBig, 8);
 
     let exchangeRateDisplay: string | null = null;
     if (btcPriceUsd && btcValueBig.gt(0) && runeValueBig.gt(0)) {

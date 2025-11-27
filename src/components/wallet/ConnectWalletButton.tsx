@@ -19,7 +19,7 @@ import { truncateAddress } from '@/utils/formatters';
  * dropdown of available wallets. If a connection error exists, an error message is shown
  * with an optional external install link.
  *
- * @returns The component's JSX: connected state (wallet name and truncated address with a Disconnect button), a disabled "Connecting..." button when connecting, or a "Connect Wallet" button with a wallet options dropdown and optional error/install link.
+ * @returns JSX element representing the wallet connection control in one of its three states.
  */
 function ConnectWalletButton() {
   const {

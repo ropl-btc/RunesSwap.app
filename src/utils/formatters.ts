@@ -87,6 +87,7 @@ export function parseAmount(input: string | null | undefined): number {
  */
 export const truncateTxid = (txid: string, length = 8): string => {
   if (!txid) return '';
+  if (length <= 0) return txid;
   if (txid.length <= length * 2 + 3) return txid;
   return `${txid.substring(0, length)}...${txid.substring(txid.length - length)}`;
 };
@@ -102,6 +103,7 @@ export function formatNumberString(
   defaultDisplay = 'N/A',
 ): string {
   if (numStr == null) return defaultDisplay;
+  if (String(numStr).trim() === '') return defaultDisplay;
   const cleaned = sanitizeForBig(numStr);
   // If sanitize collapses to '0', ensure original looked like zero; else invalid
   if (cleaned === '0') {

@@ -12,6 +12,20 @@ import { fetchPopularFromApi, QUERY_KEYS } from '@/lib/api';
  *  - `isLoading` — `true` while the query is in flight, `false` otherwise.
  *  - `error` — an `Error` when the query failed, or `null` when there is no error.
  */
+export function usePopularRunes(
+  mapper?: (data: Record<string, unknown>[]) => Record<string, unknown>[],
+): {
+  popularRunes: Record<string, unknown>[];
+  isLoading: boolean;
+  error: Error | null;
+};
+export function usePopularRunes<T>(
+  mapper: (data: Record<string, unknown>[]) => T[],
+): {
+  popularRunes: T[];
+  isLoading: boolean;
+  error: Error | null;
+};
 export function usePopularRunes<T = Record<string, unknown>>(
   mapper?: (data: Record<string, unknown>[]) => T[],
 ) {

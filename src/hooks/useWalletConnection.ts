@@ -140,6 +140,8 @@ export function useWalletConnection() {
   } = useSharedLaserEyes();
 
   const checkWalletInstalled = (providerToConnect: ProviderType): boolean => {
+    // Only UNISAT exposes a reliable pre-connection check via hasUnisat;
+    // other wallets surface availability through connection errors.
     switch (providerToConnect) {
       case UNISAT:
         return hasUnisat || false;
@@ -200,6 +202,11 @@ export function useWalletConnection() {
 
         errorMessage = error.message;
       } else {
+        logger.warn(
+          'Non-Error exception during wallet connect',
+          { error },
+          'WALLET',
+        );
         isWalletNotInstalledError = true;
         errorMessage = 'Wallet provider unavailable';
       }

@@ -55,12 +55,6 @@ interface BorrowTabProps {
   signMessage:
     | ((message: string, address: string) => Promise<string>)
     | undefined;
-  /** Current Bitcoin price in USD. */
-  btcPriceUsd: number | undefined;
-  /** Whether Bitcoin price is loading. */
-  isBtcPriceLoading: boolean;
-  /** Error fetching Bitcoin price. */
-  btcPriceError: Error | null;
 }
 
 /**

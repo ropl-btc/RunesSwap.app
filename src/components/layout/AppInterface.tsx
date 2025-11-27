@@ -212,9 +212,6 @@ export function AppInterface({ activeTab }: AppInterfaceProps) {
             paymentPublicKey={paymentPublicKey} // Needed for prepare
             signPsbt={signPsbt} // Needed for submit
             signMessage={signMessage} // Needed for authentication
-            btcPriceUsd={btcPriceUsd}
-            isBtcPriceLoading={isBtcPriceLoading}
-            btcPriceError={btcPriceError}
           />
         );
       // --- End Borrow Tab Case ---
