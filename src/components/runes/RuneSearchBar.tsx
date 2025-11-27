@@ -8,11 +8,22 @@ import styles from '@/components/runes/RunesInfoTab.module.css';
 import useRunesSearch from '@/hooks/useRunesSearch';
 import type { Rune } from '@/types/satsTerminal';
 
+/**
+ * Props for the RuneSearchBar component.
+ */
 interface RuneSearchBarProps {
+  /** Callback when a Rune is selected. */
   onRuneSelect: (rune: Rune) => void;
+  /** The name of the currently selected Rune. */
   selectedRuneName?: string | null;
 }
 
+/**
+ * Component for searching Runes.
+ * Provides a search input with autocomplete results and popular Rune suggestions.
+ *
+ * @param props - Component props.
+ */
 const RuneSearchBar: React.FC<RuneSearchBarProps> = ({
   onRuneSelect,
   selectedRuneName,

@@ -17,24 +17,43 @@ import {
 } from '@/utils/formatters';
 import { getRuneIconUrl } from '@/utils/runeUtils';
 
+/**
+ * Props for the RuneDetails component.
+ */
 interface RuneDetailsProps {
+  /** The selected Rune information from Ordiscan. */
   selectedRune: OrdiscanRuneInfo | null;
+  /** Detailed Rune data. */
   detailedRuneInfo: RuneData | null;
+  /** Error loading detailed Rune info. */
   detailedRuneInfoError: Error | null;
+  /** Whether detailed Rune info is loading. */
   isDetailedRuneInfoLoading: boolean;
+  /** Rune market information. */
   runeMarketInfo: OrdiscanRuneMarketInfo | null;
+  /** Whether Rune market info is loading. */
   isRuneMarketInfoLoading: boolean;
+  /** Error loading Rune market info. */
   runeMarketInfoError: Error | null;
+  /** Whether to show a general loading state. */
   showLoading: boolean;
+  /** Callback to toggle the price chart. */
   onShowPriceChart:
     | ((
         assetName?: string | undefined,
         shouldToggle?: boolean | undefined,
       ) => void)
     | undefined;
+  /** Whether the price chart is currently shown. */
   showPriceChart?: boolean | undefined;
 }
 
+/**
+ * Component to display detailed information about a selected Rune.
+ * Shows supply, minting details, market data, and links to external explorers.
+ *
+ * @param props - Component props.
+ */
 const RuneDetails: React.FC<RuneDetailsProps> = ({
   selectedRune,
   detailedRuneInfo,

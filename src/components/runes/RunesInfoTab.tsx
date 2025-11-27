@@ -11,11 +11,22 @@ import { useRunesInfoStore } from '@/store/runesInfoStore';
 import { type RuneInfo as OrdiscanRuneInfo } from '@/types/ordiscan';
 import type { Rune } from '@/types/satsTerminal';
 
+/**
+ * Props for the RunesInfoTab component.
+ */
 interface RunesInfoTabProps {
+  /** Callback to toggle the price chart. */
   onShowPriceChart?: (assetName?: string, shouldToggle?: boolean) => void;
+  /** Whether the price chart is currently shown. */
   showPriceChart?: boolean;
 }
 
+/**
+ * Main component for the Runes Info tab.
+ * Orchestrates searching for Runes and displaying their details.
+ *
+ * @param props - Component props.
+ */
 export function RunesInfoTab({
   onShowPriceChart,
   showPriceChart = false,
