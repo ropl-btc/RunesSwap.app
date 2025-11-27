@@ -7,6 +7,10 @@ import { logger } from '@/lib/logger';
 import { getOrdiscanClient } from '@/lib/serverUtils';
 import { withApiHandler } from '@/lib/withApiHandler';
 
+/**
+ * GET handler for fetching BTC balance of an address.
+ * Validates the address and sums up UTXO values.
+ */
 export const GET = withApiHandler(
   async (request: NextRequest) => {
     const balanceResponseSchema = z.object({

@@ -7,6 +7,10 @@ import { getOrdiscanClient } from '@/lib/serverUtils';
 import { withApiHandler } from '@/lib/withApiHandler';
 import type { RuneActivityEvent } from '@/types/ordiscan';
 
+/**
+ * GET handler for fetching Rune activity for an address.
+ * Validates the address and returns a list of activity events.
+ */
 export const GET = withApiHandler(
   async (request: NextRequest) => {
     const schema = z.object({ address: z.string().trim().min(1) });

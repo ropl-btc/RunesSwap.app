@@ -6,6 +6,10 @@ import { validateRequest } from '@/lib/apiUtils';
 import { supabase } from '@/lib/supabase';
 import { withApiHandler } from '@/lib/withApiHandler';
 
+/**
+ * GET handler for fetching Rune information by ID prefix.
+ * Searches the database for a Rune matching the given ID prefix.
+ */
 export const GET = withApiHandler(
   async (request: NextRequest) => {
     const schema = z.object({ prefix: z.string().trim().min(1) });

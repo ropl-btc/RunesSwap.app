@@ -3,6 +3,10 @@ import { getOrdiscanClient } from '@/lib/serverUtils';
 import { withApiHandler } from '@/lib/withApiHandler';
 import type { RuneInfo } from '@/types/ordiscan';
 
+/**
+ * GET handler for listing the newest Runes.
+ * Fetches a list of Runes from Ordiscan sorted by newest.
+ */
 export const GET = withApiHandler(
   async () => {
     const ordiscan = getOrdiscanClient();

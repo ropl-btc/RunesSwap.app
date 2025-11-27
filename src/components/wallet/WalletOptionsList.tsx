@@ -4,18 +4,35 @@ import React from 'react';
 
 import styles from '@/components/wallet/ConnectWalletButton.module.css';
 
+/**
+ * Represents a wallet option available for connection.
+ */
 export interface WalletOption {
+  /** Display name of the wallet. */
   name: string;
+  /** Provider type identifier. */
   provider: ProviderType;
+  /** Optional disclaimer or warning message. */
   disclaimer?: string;
 }
 
+/**
+ * Props for the WalletOptionsList component.
+ */
 interface WalletOptionsListProps {
+  /** List of wallet options to display. */
   wallets: WalletOption[];
+  /** Callback when a wallet is selected. */
   onSelect: (provider: ProviderType) => void;
+  /** Whether a connection is currently in progress. */
   isConnecting: boolean;
 }
 
+/**
+ * Component that renders a list of available wallet options.
+ *
+ * @param props - Component props.
+ */
 const WalletOptionsList: React.FC<WalletOptionsListProps> = ({
   wallets,
   onSelect,

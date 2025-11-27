@@ -9,6 +9,11 @@ import { getOrdiscanClient } from '@/lib/serverUtils';
 import { supabase } from '@/lib/supabase';
 import { withApiHandler } from '@/lib/withApiHandler';
 
+/**
+ * POST handler for updating Rune information in the database.
+ * Fetches the latest data from Ordiscan and updates the corresponding record in Supabase.
+ * Enforces rate limiting.
+ */
 export const POST = withApiHandler(
   async (request: NextRequest) => {
     // Runtime validation schema for the rune data we return

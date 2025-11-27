@@ -107,8 +107,8 @@ export function useSwapQuote({
     const requestId = ++latestQuoteRequestId.current;
     // Allow quotes without connection by using an optional mock address or a default read-only address
     const effectiveAddress =
-      address ??
-      (MOCK_ADDRESS ? String(MOCK_ADDRESS) : undefined) ??
+      address ||
+      (MOCK_ADDRESS ? String(MOCK_ADDRESS) : undefined) ||
       DEFAULT_READONLY_ADDRESS;
 
     dispatchSwap({ type: 'FETCH_QUOTE_START' });
