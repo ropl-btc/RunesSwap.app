@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import React from 'react';
 
 import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
 import styles from '@/components/portfolio/PortfolioTab.module.css';
@@ -57,12 +56,24 @@ export function FormattedLiquidiumCollateral({
         const response = await fetch(
           `/api/ordiscan/rune-info-by-id?prefix=${encodeURIComponent(runeId)}`,
         );
-        if (response.ok) {
-          const data = await response.json();
-          if (data) {
-            return data;
-          }
+        if (!response.ok) {
+          logger.error(
+            'Failed to fetch rune info',
+            {
+              runeId,
+              status: response.status,
+              statusText: response.statusText,
+            },
+            'API',
+          );
+          return null;
         }
+        const data = await response.json();
+        if (data) {
+          return data;
+        }
+        logger.error('Empty data received for rune info', { runeId }, 'API');
+        return null;
       } catch (error) {
         logger.error('Error fetching rune by ID', { error, runeId }, 'API');
       }

@@ -287,17 +287,25 @@ export async function GET(request: NextRequest) {
     }
 
     // Store the range in the database
-    await supabase.from('rune_borrow_ranges').upsert(
-      {
-        rune_id: runeId,
-        min_amount: minAmount,
-        max_amount: maxAmount,
-        updated_at: new Date().toISOString(),
-      },
-      {
-        onConflict: 'rune_id',
-      },
-    );
+    const { error: upsertError } = await supabase
+      .from('rune_borrow_ranges')
+      .upsert(
+        {
+          rune_id: runeId,
+          min_amount: minAmount,
+          max_amount: maxAmount,
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: 'rune_id',
+        },
+      );
+    if (upsertError) {
+      logger.warn('Failed to upsert rune_borrow_ranges', {
+        error: upsertError,
+        runeId,
+      });
+    }
 
     // Return successful response
     return ok({

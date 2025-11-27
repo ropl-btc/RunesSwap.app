@@ -165,12 +165,6 @@ export function useSwapProcessManager({
     dispatchSwap({ type: 'RESET_SWAP' });
   }, [address, connected]);
 
-  // Special handling for successful swaps - ensure the success state persists
-  useEffect(() => {
-    // Success state persists until the user manually resets
-    // (e.g., by starting a new swap)
-  }, [swapState.swapStep, swapState.txId]);
-
   return { swapState, dispatchSwap };
 }
 

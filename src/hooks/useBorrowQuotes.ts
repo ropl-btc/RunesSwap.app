@@ -15,6 +15,16 @@ import { convertToRawAmount } from '@/utils/runeFormatting';
 import { formatRuneAmount } from '@/utils/runeFormatting';
 import { safeArrayAccess, safeArrayFirst } from '@/utils/typeGuards';
 
+const BORROW_UNAVAILABLE_PATTERNS = [
+  'No valid ranges found',
+  'Could not find valid borrow ranges for this rune',
+  'Not Found',
+  'does not exist',
+] as const;
+
+const isBorrowUnavailableError = (message: string): boolean =>
+  BORROW_UNAVAILABLE_PATTERNS.some((pattern) => message.includes(pattern));
+
 interface UseBorrowQuotesArgs {
   collateralAsset: Asset | null;
   collateralAmount: string;
@@ -100,14 +110,7 @@ export function useBorrowQuotes({
           error instanceof Error ? error.message : String(error);
         setMinMaxRange(null);
         // Liquidium errors currently surface as strings; match known phrases while awaiting structured codes
-        if (
-          errorMessage.includes('No valid ranges found') ||
-          errorMessage.includes(
-            'Could not find valid borrow ranges for this rune',
-          ) ||
-          errorMessage.includes('Not Found') ||
-          errorMessage.includes('does not exist')
-        ) {
+        if (isBorrowUnavailableError(errorMessage)) {
           setBorrowRangeError(
             'This rune is not currently available for borrowing on Liquidium.',
           );

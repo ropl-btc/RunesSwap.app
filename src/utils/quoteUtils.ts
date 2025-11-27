@@ -1,6 +1,7 @@
 import Big from 'big.js';
 import type { QuoteResponse } from 'satsterminal-sdk';
 
+import { logger } from '@/lib/logger';
 import type { Asset } from '@/types/common';
 import { sanitizeForBig } from '@/utils/formatters';
 
@@ -77,7 +78,8 @@ export function computeQuoteDisplay(params: {
     }
 
     return { outputAmountDisplay, exchangeRateDisplay };
-  } catch {
+  } catch (err) {
+    logger.warn('computeQuoteDisplay calculation failed', { err });
     return {
       outputAmountDisplay: 'Error',
       exchangeRateDisplay: 'Error calculating rate',

@@ -40,7 +40,9 @@ export default function ChangelogPage() {
     console.error('Error reading CHANGELOG.md:', err);
   }
 
-  const content = getCleanChangelog(fileContents);
+  const content = fileContents
+    ? getCleanChangelog(fileContents)
+    : 'No changelog is currently available.';
 
   return (
     <div className={styles.container}>

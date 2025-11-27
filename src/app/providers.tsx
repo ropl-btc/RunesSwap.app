@@ -87,9 +87,6 @@ function SharedLaserEyesProvider({ children }: { children: React.ReactNode }) {
  * @returns The provider-wrapped React element containing `children`
  */
 export function Providers({ children }: { children: React.ReactNode }) {
-  // Reuse a centralized QueryClient with shared defaults
-  const [client] = React.useState(() => queryClient);
-
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -101,7 +98,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   if (!isClient) {
     return (
       <LaserEyesContext.Provider value={laserEyesStub}>
-        <QueryClientProvider client={client}>
+        <QueryClientProvider client={queryClient}>
           <BackgroundProvider>
             {/* children are rendered but **without** wallet functionality */}
             {children}
@@ -114,7 +111,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <LaserEyesProvider config={{ network: MAINNET }}>
       <SharedLaserEyesProvider>
-        <QueryClientProvider client={client}>
+        <QueryClientProvider client={queryClient}>
           <BackgroundProvider>{children}</BackgroundProvider>
         </QueryClientProvider>
       </SharedLaserEyesProvider>

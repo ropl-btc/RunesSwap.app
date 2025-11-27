@@ -5,6 +5,7 @@ import { fail, ok } from '@/lib/apiResponse';
 import { handleApiError, validateRequest } from '@/lib/apiUtils';
 import { getLiquidiumJwt } from '@/lib/liquidiumAuth';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
+import { logger } from '@/lib/logger';
 import { enforceRateLimit } from '@/lib/rateLimit';
 import { supabase } from '@/lib/supabase';
 import { safeArrayFirst } from '@/utils/typeGuards';
@@ -54,7 +55,10 @@ export async function GET(request: NextRequest) {
         .limit(1);
 
       if (runeErrorByName) {
-        // Log via centralized logger in upstream utils if needed
+        logger.warn('Supabase lookup failed (rune by name)', {
+          runeId,
+          error: runeErrorByName,
+        });
       } else {
         const firstRuneByName = safeArrayFirst(runeDataByName);
         if (firstRuneByName?.id) {
@@ -68,7 +72,10 @@ export async function GET(request: NextRequest) {
             .limit(1);
 
           if (runeErrorById) {
-            // Log via centralized logger in upstream utils if needed
+            logger.warn('Supabase lookup failed (rune by id prefix)', {
+              runeId,
+              error: runeErrorById,
+            });
           } else {
             const firstRuneById = safeArrayFirst(runeDataById);
             if (firstRuneById?.id) {
@@ -84,7 +91,9 @@ export async function GET(request: NextRequest) {
                     .limit(1);
 
                 if (liquidiumError) {
-                  // Log via centralized logger in upstream utils if needed
+                  logger.warn('Supabase lookup failed (LIQUIDIUMTOKEN)', {
+                    error: liquidiumError,
+                  });
                 } else {
                   const firstLiquidiumData = safeArrayFirst(liquidiumData);
                   if (firstLiquidiumData?.id) {

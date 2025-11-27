@@ -60,12 +60,28 @@ function isPsbtApiResponse(value: unknown): value is PsbtApiResponse {
   const hasPsbt =
     typeof v.psbtBase64 === 'string' || typeof v.psbt === 'string';
   const swapIdOk = v.swapId === undefined || typeof v.swapId === 'string';
+  // RBF protection is optional; when present, base64 must be a string or undefined
   const rbfOk =
     v.rbfProtected === undefined ||
     (typeof v.rbfProtected === 'object' &&
-      (typeof (v.rbfProtected as { base64?: unknown }).base64 === 'string' ||
-        (v.rbfProtected as { base64?: unknown }).base64 === undefined));
+      v.rbfProtected !== null &&
+      (typeof (v.rbfProtected as Record<string, unknown>).base64 === 'string' ||
+        (v.rbfProtected as Record<string, unknown>).base64 === undefined));
   return hasPsbt && swapIdOk && rbfOk;
+}
+
+function isSwapConfirmationResult(
+  value: unknown,
+): value is SwapConfirmationResult {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  const hasTxid = typeof v.txid === 'string';
+  const hasRbf =
+    typeof v.rbfProtection === 'object' &&
+    v.rbfProtection !== null &&
+    typeof (v.rbfProtection as Record<string, unknown>).fundsPreparationTxId ===
+      'string';
+  return hasTxid || hasRbf;
 }
 
 /**
@@ -139,18 +155,21 @@ async function signAndConfirmPsbt({
   };
 
   const confirmResult = await confirmPsbtViaApi(confirmParams);
+  if (!isSwapConfirmationResult(confirmResult)) {
+    throw new Error('Invalid confirmation response from API.');
+  }
+
+  const confirmedResult: SwapConfirmationResult = confirmResult;
+
   const finalTxId =
-    (confirmResult as SwapConfirmationResult)?.txid ||
-    (confirmResult as SwapConfirmationResult)?.rbfProtection
-      ?.fundsPreparationTxId;
+    confirmedResult.txid || confirmedResult.rbfProtection?.fundsPreparationTxId;
 
   if (!finalTxId) {
     logger.error(
       `Confirmation failed or transaction ID missing${isRetry ? ' (retry)' : ''}`,
       {
-        hasTxid: !!(confirmResult as SwapConfirmationResult)?.txid,
-        hasRbfTxId: !!(confirmResult as SwapConfirmationResult)?.rbfProtection
-          ?.fundsPreparationTxId,
+        hasTxid: !!confirmedResult.txid,
+        hasRbfTxId: !!confirmedResult.rbfProtection?.fundsPreparationTxId,
         runeName,
         sell: !isBtcToRune,
         retryAttempt: isRetry,
@@ -317,9 +336,9 @@ export default function useSwapExecution({
       }
 
       await signAndConfirmPsbt({
-        mainPsbtBase64: mainPsbtBase64!,
+        mainPsbtBase64,
         rbfPsbtBase64: rbfPsbtBase64 ?? null,
-        swapId: swapId!,
+        swapId,
         orders,
         address,
         publicKey,
@@ -406,9 +425,9 @@ export default function useSwapExecution({
           }
 
           await signAndConfirmPsbt({
-            mainPsbtBase64: mainPsbtBase64!,
+            mainPsbtBase64,
             rbfPsbtBase64: rbfPsbtBase64 ?? null,
-            swapId: swapId!,
+            swapId,
             orders,
             address,
             publicKey,
@@ -518,17 +537,20 @@ Possible solutions:
         dispatchSwap({ type: 'SWAP_ERROR', error: errorMessage });
       }
     } finally {
+      // Success path already handled
       if (successDispatched) {
-        // No further state changes needed on success
+        // No further action required
       } else if (swapState.txId && swapState.swapStep !== 'success') {
+        // If we received a txId but didn't dispatch success, ensure UI reflects success
         dispatchSwap({ type: 'SWAP_SUCCESS', txId: swapState.txId });
       } else if (errorMessageRef.current) {
+        // Handle recorded errors
         if (errorMessageRef.current.includes('User canceled')) {
           dispatchSwap({ type: 'SWAP_STEP', step: 'idle' });
         }
-        // Keep error state visible for all other errors
+        // Keep error state visible for other errors
       } else if (swapState.swapStep !== 'success') {
-        // Fallback reset only when no success or error was recorded
+        // Fallback reset when no success or explicit error was recorded
         dispatchSwap({ type: 'SWAP_STEP', step: 'idle' });
       }
     }

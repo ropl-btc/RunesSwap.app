@@ -96,6 +96,7 @@ export async function getRuneData(runeName: string): Promise<RuneData | null> {
 
     const normalizedApiRune = normalizeRuneData(runeData as Partial<RuneData>);
     if (!normalizedApiRune) {
+      logApiError('getRuneData', 'Ordiscan rune data missing required fields');
       return null;
     }
 

@@ -5,23 +5,18 @@ import React, { useEffect, useState } from 'react';
 import styles from '@/app/page.module.css';
 import ConnectWalletButton from '@/components/wallet/ConnectWalletButton';
 
-const ALLOWED_TABS: ActiveTab[] = [
+const ALLOWED_TABS = [
   'swap',
   'runesInfo',
   'yourTxs',
   'portfolio',
   'borrow',
-];
+] as const;
 
 /**
  * Union type representing the available tabs in the application.
  */
-export type ActiveTab =
-  | 'swap'
-  | 'runesInfo'
-  | 'yourTxs'
-  | 'portfolio'
-  | 'borrow';
+export type ActiveTab = (typeof ALLOWED_TABS)[number];
 
 /**
  * Props for the TabNavigation component.
@@ -55,9 +50,9 @@ export default function TabNavigation({ onTabChange }: TabNavigationProps) {
   }, []);
 
   useEffect(() => {
-    const handleTabChangeEvent = (event: CustomEvent) => {
-      const { tab } = event.detail;
-      if (ALLOWED_TABS.includes(tab)) {
+    const handleTabChangeEvent = (event: CustomEvent<{ tab?: string }>) => {
+      const tab = event.detail?.tab;
+      if (tab && ALLOWED_TABS.includes(tab as ActiveTab)) {
         setActiveTab(tab as ActiveTab);
       }
     };
@@ -72,6 +67,9 @@ export default function TabNavigation({ onTabChange }: TabNavigationProps) {
 
   useEffect(() => {
     onTabChange?.(activeTab);
+  }, [activeTab, onTabChange]);
+
+  useEffect(() => {
     if (typeof window === 'undefined') return;
     const url = new URL(window.location.href);
     url.searchParams.set('tab', activeTab);
@@ -83,7 +81,7 @@ export default function TabNavigation({ onTabChange }: TabNavigationProps) {
       url.searchParams.delete('rune');
     }
     window.history.pushState({}, '', url.toString());
-  }, [activeTab, onTabChange]);
+  }, [activeTab]);
 
   const handleClick = (tab: ActiveTab) => setActiveTab(tab);
 
