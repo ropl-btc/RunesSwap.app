@@ -14,11 +14,22 @@ import { formatDateTime, truncateTxid } from '@/utils/formatters';
 import { getRuneIconUrl } from '@/utils/runeUtils';
 import { interpretRuneTransaction } from '@/utils/transactionHelpers';
 
+/**
+ * Props for the YourTxsTab component.
+ */
 interface YourTxsTabProps {
+  /** Whether the wallet is connected. */
   connected: boolean;
+  /** The connected wallet address. */
   address: string | null;
 }
 
+/**
+ * Component to display the user's recent Rune transactions.
+ * Fetches transaction history from the API and displays details.
+ *
+ * @param props - Component props.
+ */
 export function YourTxsTab({ connected, address }: YourTxsTabProps) {
   // --- Query for User's Rune Transaction Activity ---
   const {

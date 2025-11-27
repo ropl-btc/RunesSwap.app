@@ -16,6 +16,11 @@ const RepayModal = dynamic(() => import('@/components/borrow/RepayModal'), {
   ssr: false,
 });
 
+/**
+ * Main component for the Portfolio tab.
+ * Displays user's Rune balances and Liquidium loans.
+ * Handles sorting, swapping, and loan repayment.
+ */
 export default function PortfolioTab() {
   const router = useRouter();
   const { address, paymentAddress, signMessage, signPsbt } =
