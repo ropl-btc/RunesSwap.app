@@ -8,20 +8,41 @@ import styles from '@/components/swap/InputArea.module.css';
 import type { Asset } from '@/types/common';
 import { BTC_ASSET } from '@/types/common';
 
+/**
+ * Props for the AssetSelectorDropdown component.
+ */
 interface AssetSelectorDropdownProps {
+  /** The currently selected asset. */
   selectedAsset: Asset | null;
+  /** Callback when an asset is selected. */
   onAssetChange: (asset: Asset) => void;
+  /** List of available assets to select from. */
   availableAssets: Asset[];
+  /** Whether the dropdown is disabled. */
   disabled?: boolean;
+  /** Whether to show BTC as an option. */
   showBtcInSelector?: boolean;
+  /** Whether assets are currently loading. */
   isAssetsLoading?: boolean;
+  /** Error message if loading assets failed. */
   assetsError?: string | null;
+  /** Whether a preselected asset is loading. */
   isPreselectedAssetLoading?: boolean;
+  /** Current search query string. */
   searchQuery: string;
+  /** Callback when search query changes. */
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  /** Loading dots animation string. */
   loadingDots: string;
 }
 
+/**
+ * Dropdown component for selecting an asset.
+ * Uses Headless UI Listbox for accessibility and styling.
+ * Supports searching and displaying asset icons.
+ *
+ * @param props - Component props.
+ */
 const AssetSelectorDropdown: React.FC<AssetSelectorDropdownProps> = ({
   selectedAsset,
   onAssetChange,

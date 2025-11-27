@@ -2,13 +2,25 @@ import React from 'react';
 
 import styles from '@/components/swap/InputArea.module.css';
 
+/**
+ * Props for the AmountHelpers component.
+ */
 interface AmountHelpersProps {
+  /** Whether to show percentage shortcut buttons (25%, 50%, 75%, Max). */
   showPercentageShortcuts?: boolean | undefined;
+  /** Callback when a percentage shortcut is clicked. */
   onPercentageClick: ((percentage: number) => void) | undefined;
+  /** Display element for available balance. */
   availableBalance?: React.ReactNode | undefined;
+  /** Whether the buttons are disabled. */
   disabled?: boolean | undefined;
 }
 
+/**
+ * Component to display amount helper shortcuts (percentages) and available balance.
+ *
+ * @param props - Component props.
+ */
 const AmountHelpers: React.FC<AmountHelpersProps> = ({
   showPercentageShortcuts = false,
   onPercentageClick,

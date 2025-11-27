@@ -5,6 +5,9 @@ import styles from '@/components/swap/SwapButton.module.css';
 import type { Asset } from '@/types/common';
 import { parseAmount } from '@/utils/formatters';
 
+/**
+ * Represents the current step in the swap process.
+ */
 export type SwapStep =
   | 'idle'
   | 'fetching_quote'
@@ -15,6 +18,9 @@ export type SwapStep =
   | 'success'
   | 'error';
 
+/**
+ * Props for the SwapButton component.
+ */
 interface SwapButtonProps {
   /**
    * Whether the user's wallet is connected

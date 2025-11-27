@@ -4,6 +4,9 @@ import React from 'react';
 import styles from '@/components/swap/SwapDirectionButton.module.css';
 import type { Asset } from '@/types/common';
 
+/**
+ * Props for the SwapDirectionButton component.
+ */
 interface SwapDirectionButtonProps {
   /**
    * The input asset in the swap

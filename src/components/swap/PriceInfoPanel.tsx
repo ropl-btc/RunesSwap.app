@@ -3,6 +3,9 @@ import React from 'react';
 import styles from '@/components/swap/PriceInfoPanel.module.css';
 import type { Asset } from '@/types/common';
 
+/**
+ * Props for the PriceInfoPanel component.
+ */
 interface PriceInfoPanelProps {
   /**
    * The input asset in the swap
