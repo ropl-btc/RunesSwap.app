@@ -1,6 +1,6 @@
-import { fetchRunesFromApi } from '@/lib/api';
 import useSearchWithPopular from '@/hooks/useSearchWithPopular';
-import { Asset } from '@/types/common';
+import { fetchRunesFromApi } from '@/lib/api';
+import type { Asset } from '@/types/common';
 import type { Rune } from '@/types/satsTerminal';
 
 interface UseAssetSearchArgs {
@@ -9,6 +9,16 @@ interface UseAssetSearchArgs {
   assetsError?: string | null;
 }
 
+/**
+ * Hook for searching assets (Runes) with support for popular items.
+ * Wraps useSearchWithPopular with specific logic for Asset type.
+ *
+ * @param args - Arguments for the hook.
+ * @param args.availableAssets - List of initially available assets (e.g. popular ones).
+ * @param args.isAssetsLoading - Loading state for initial assets.
+ * @param args.assetsError - Error state for initial assets.
+ * @returns Search state and results.
+ */
 export function useAssetSearch({
   availableAssets,
   isAssetsLoading = false,

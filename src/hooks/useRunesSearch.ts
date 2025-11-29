@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { fetchPopularFromApi, fetchRunesFromApi } from '@/lib/api';
+
 import useSearchWithPopular from '@/hooks/useSearchWithPopular';
+import { fetchPopularFromApi, fetchRunesFromApi } from '@/lib/api';
 import { useRunesInfoStore } from '@/store/runesInfoStore';
 import type { Rune } from '@/types/satsTerminal';
 import { mapPopularToRune } from '@/utils/popularRunes';
@@ -11,6 +12,13 @@ interface UseRunesSearchOptions {
   popularRunesError?: Error | null;
 }
 
+/**
+ * Hook for searching Runes with support for popular items and caching.
+ * Manages search state, focus, and integration with the global store.
+ *
+ * @param options - Options for the search (cached items, loading states).
+ * @returns Search state, handlers, and results.
+ */
 export function useRunesSearch({
   cachedPopularRunes = [],
   isPopularRunesLoading = false,

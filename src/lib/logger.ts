@@ -43,13 +43,14 @@ class Logger {
     component?: string,
   ): void {
     if (level < this.minLevel) return;
+    // Extra guard: silence non-error logs during tests to keep Jest output clean
+    if (process.env.NODE_ENV === 'test' && level < LogLevel.ERROR) return;
 
     const componentPrefix = component ? `[${component}]` : '';
     const formattedMessage = `${componentPrefix} ${message}`;
 
     switch (level) {
       case LogLevel.DEBUG:
-        // eslint-disable-next-line no-console
         console.debug(formattedMessage, context || '');
         break;
       case LogLevel.INFO:

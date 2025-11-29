@@ -1,15 +1,13 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  handleApiError,
-  validateRequest,
-} from '@/lib/apiUtils';
+
+import { fail, ok } from '@/lib/apiResponse';
+import { handleApiError, validateRequest } from '@/lib/apiUtils';
+import { getLiquidiumJwt } from '@/lib/liquidiumAuth';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
+import { logger } from '@/lib/logger';
 import { enforceRateLimit } from '@/lib/rateLimit';
 import { supabase } from '@/lib/supabase';
-import { getLiquidiumJwt } from '@/lib/liquidiumAuth';
 import { safeArrayFirst } from '@/utils/typeGuards';
 
 // Schema for query parameters
@@ -22,6 +20,12 @@ const quoteParamsSchema = z.object({
   address: z.string().trim().min(1), // User's address to find JWT
 });
 
+/**
+ * Fetches borrower collateral rune offers (borrow quotes) for a specified rune and address.
+ *
+ * @param request - The NextRequest whose query must include `runeId`, `runeAmount`, and `address`.
+ * @returns An HTTP response containing the borrow quotes data on success; on failure an error response with an appropriate status and optional details (validation errors, rate-limiting, authentication failure, or SDK/API errors).
+ */
 export async function GET(request: NextRequest) {
   // Validate query parameters first
   const validation = await validateRequest(request, quoteParamsSchema, 'query');
@@ -40,10 +44,9 @@ export async function GET(request: NextRequest) {
   const { runeAmount, address } = validation.data;
 
   try {
-    // 0. Look up the actual rune ID from our database
-    // First check if the runeId is already in the correct format (e.g., "810010:907")
-    if (runeId.includes(':')) {
-    } else {
+    // 0. Look up the actual rune ID from our database only if not already in prefix:id format
+    // Example of correct format: "810010:907"
+    if (!runeId.includes(':')) {
       // Try to find by name first
       const { data: runeDataByName, error: runeErrorByName } = await supabase
         .from('runes')
@@ -52,10 +55,10 @@ export async function GET(request: NextRequest) {
         .limit(1);
 
       if (runeErrorByName) {
-        console.error(
-          '[API Error] Failed to fetch rune by name',
-          runeErrorByName,
-        );
+        logger.warn('Supabase lookup failed (rune by name)', {
+          runeId,
+          error: runeErrorByName,
+        });
       } else {
         const firstRuneByName = safeArrayFirst(runeDataByName);
         if (firstRuneByName?.id) {
@@ -69,10 +72,10 @@ export async function GET(request: NextRequest) {
             .limit(1);
 
           if (runeErrorById) {
-            console.error(
-              '[API Error] Failed to fetch rune by ID',
-              runeErrorById,
-            );
+            logger.warn('Supabase lookup failed (rune by id prefix)', {
+              runeId,
+              error: runeErrorById,
+            });
           } else {
             const firstRuneById = safeArrayFirst(runeDataById);
             if (firstRuneById?.id) {
@@ -88,10 +91,9 @@ export async function GET(request: NextRequest) {
                     .limit(1);
 
                 if (liquidiumError) {
-                  console.error(
-                    '[API Error] Failed to fetch LIQUIDIUMTOKEN',
-                    liquidiumError,
-                  );
+                  logger.warn('Supabase lookup failed (LIQUIDIUMTOKEN)', {
+                    error: liquidiumError,
+                  });
                 } else {
                   const firstLiquidiumData = safeArrayFirst(liquidiumData);
                   if (firstLiquidiumData?.id) {
@@ -120,18 +122,20 @@ export async function GET(request: NextRequest) {
         runeAmount,
       });
 
-      return createSuccessResponse(data);
+      return ok(data);
     } catch (sdkError) {
       const message =
         sdkError instanceof Error ? sdkError.message : 'Unknown error';
-      return createErrorResponse('Liquidium borrow quotes error', message, 500);
+      return fail('Liquidium borrow quotes error', {
+        status: 500,
+        details: message,
+      });
     }
   } catch (error) {
     const errorInfo = handleApiError(error, 'Failed to fetch borrow quotes');
-    return createErrorResponse(
-      errorInfo.message,
-      errorInfo.details,
-      errorInfo.status,
-    );
+    return fail(errorInfo.message, {
+      status: errorInfo.status,
+      ...(errorInfo.details ? { details: errorInfo.details } : {}),
+    });
   }
 }

@@ -1,20 +1,23 @@
-import { NextRequest } from 'next/server';
-import { createErrorResponse, createSuccessResponse } from '@/lib/apiUtils';
+import type { NextRequest } from 'next/server';
+import { z } from 'zod';
+
+import { fail, ok } from '@/lib/apiResponse';
+import { validateRequest } from '@/lib/apiUtils';
 import { supabase } from '@/lib/supabase';
 import { withApiHandler } from '@/lib/withApiHandler';
 
+/**
+ * GET handler for fetching Rune information by ID prefix.
+ * Searches the database for a Rune matching the given ID prefix.
+ */
 export const GET = withApiHandler(
   async (request: NextRequest) => {
-    const searchParams = request.nextUrl.searchParams;
-    const prefix = searchParams.get('prefix');
-
-    if (!prefix) {
-      return createErrorResponse(
-        'Missing required parameter: prefix',
-        undefined,
-        400,
-      );
+    const schema = z.object({ prefix: z.string().trim().min(1) });
+    const validation = await validateRequest(request, schema, 'query');
+    if (!validation.success) {
+      return validation.errorResponse;
     }
+    const { prefix } = validation.data;
 
     const { data: existingRune } = await supabase
       .from('runes')
@@ -29,20 +32,12 @@ export const GET = withApiHandler(
         .ilike('id', `${prefix}:%`)
         .limit(1);
 
-      if (prefixRune && prefixRune.length > 0) {
-        return createSuccessResponse(prefixRune[0]);
-      }
+      if (prefixRune && prefixRune.length > 0) return ok(prefixRune[0]);
     }
 
-    if (existingRune && existingRune.length > 0) {
-      return createSuccessResponse(existingRune[0]);
-    }
+    if (existingRune && existingRune.length > 0) return ok(existingRune[0]);
 
-    return createErrorResponse(
-      'Rune not found with the given prefix',
-      undefined,
-      404,
-    );
+    return fail('Rune not found with the given prefix', { status: 404 });
   },
   { defaultErrorMessage: 'Failed to fetch rune info by ID' },
 );

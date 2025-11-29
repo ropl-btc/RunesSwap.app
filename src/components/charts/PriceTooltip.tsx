@@ -1,11 +1,22 @@
 import React from 'react';
+
 import styles from '@/components/layout/AppInterface.module.css';
 
+/**
+ * Props for the PriceTooltip component.
+ */
 interface PriceTooltipProps {
+  /** Whether the tooltip is visible. */
   show: boolean;
+  /** Callback to set tooltip visibility. */
   setShow: (value: boolean) => void;
 }
 
+/**
+ * Component to display an informational tooltip about price accuracy.
+ *
+ * @param props - Component props.
+ */
 const PriceTooltip: React.FC<PriceTooltipProps> = ({ show, setShow }) => (
   <div
     className={styles.infoIconContainer}

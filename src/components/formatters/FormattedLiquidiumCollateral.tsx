@@ -1,90 +1,90 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import React, { useEffect, useState } from 'react';
-import { formatNumberWithLocale } from '@/utils/formatters';
-import { calculateActualBalance } from '@/utils/runeFormatting';
+
+import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
 import styles from '@/components/portfolio/PortfolioTab.module.css';
 import RuneIcon from '@/components/runes/RuneIcon';
-import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
+import { logger } from '@/lib/logger';
+import { formatNumberWithLocale } from '@/utils/formatters';
+import { calculateActualBalance } from '@/utils/runeFormatting';
 
+const formatCollateralAmount = (
+  amount: number,
+  divisibility: number,
+): string => {
+  if (divisibility === 0) {
+    return formatNumberWithLocale(amount);
+  }
+
+  const actualBalance = calculateActualBalance(amount, divisibility);
+  return formatNumberWithLocale(actualBalance, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: divisibility,
+  });
+};
+
+/**
+ * Props for the FormattedLiquidiumCollateral component.
+ */
 interface FormattedLiquidiumCollateralProps {
+  /** The ID of the Rune used as collateral. */
   runeId: string;
+  /** The amount of the Rune. */
   runeAmount: number;
+  /** The divisibility of the Rune. */
   runeDivisibility: number;
 }
 
+/**
+ * Component to display formatted Liquidium collateral details.
+ * Fetches Rune information to display the name and icon, or falls back to the ID.
+ *
+ * @param props - Component props.
+ */
 export function FormattedLiquidiumCollateral({
   runeId,
   runeAmount,
   runeDivisibility,
 }: FormattedLiquidiumCollateralProps) {
-  const [runeName, setRuneName] = useState<string | null>(null);
-  const [formattedRuneName, setFormattedRuneName] = useState<string | null>(
-    null,
-  );
-  const [runeIdForQuery, setRuneIdForQuery] = useState<string | null>(null);
-
-  // Use the full rune_id for querying
-  useEffect(() => {
-    if (runeId) {
-      setRuneIdForQuery(runeId);
-    }
-  }, [runeId]);
-
   // Fetch rune info to get the actual rune name
   const { data: runeInfo } = useQuery({
-    queryKey: ['runeInfoById', runeIdForQuery],
+    queryKey: ['runeInfoById', runeId],
     queryFn: async () => {
-      // Try to fetch by the full rune_id
-      if (runeIdForQuery) {
-        try {
-          // We'll try to find a rune with this ID in our database
-          const response = await fetch(
-            `/api/ordiscan/rune-info-by-id?prefix=${encodeURIComponent(runeIdForQuery)}`,
+      if (!runeId) return null;
+      try {
+        const response = await fetch(
+          `/api/ordiscan/rune-info-by-id?prefix=${encodeURIComponent(runeId)}`,
+        );
+        if (!response.ok) {
+          logger.error(
+            'Failed to fetch rune info',
+            {
+              runeId,
+              status: response.status,
+              statusText: response.statusText,
+            },
+            'API',
           );
-          if (response.ok) {
-            const data = await response.json();
-            if (data) {
-              return data;
-            }
-          }
-        } catch (error) {
-          console.error('Error fetching rune by ID:', error);
+          return null;
         }
+        const data = await response.json();
+        if (data) {
+          return data;
+        }
+        logger.error('Empty data received for rune info', { runeId }, 'API');
+        return null;
+      } catch (error) {
+        logger.error('Error fetching rune by ID', { error, runeId }, 'API');
       }
       return null;
     },
-    enabled: !!runeIdForQuery,
+    enabled: !!runeId,
     staleTime: 60 * 60 * 1000, // Cache for 1 hour
   });
 
-  // Update state when runeInfo changes
-  useEffect(() => {
-    if (runeInfo) {
-      if (runeInfo.name) {
-        setRuneName(runeInfo.name);
-      }
-      if (runeInfo.formatted_name) {
-        setFormattedRuneName(runeInfo.formatted_name);
-      } else if (runeInfo.name) {
-        setFormattedRuneName(runeInfo.name);
-      }
-    }
-  }, [runeInfo]);
-
-  // Format the amount based on divisibility
-  const formattedAmount = (amount: number, divisibility: number): string => {
-    if (divisibility === 0) {
-      return formatNumberWithLocale(amount);
-    }
-
-    const actualBalance = calculateActualBalance(amount, divisibility);
-    return formatNumberWithLocale(actualBalance, {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: divisibility,
-    });
-  };
+  const runeName = runeInfo?.name ?? null;
+  const formattedRuneName = runeInfo?.formatted_name ?? runeInfo?.name ?? null;
 
   // If we have a rune name, use FormattedRuneAmount
   if (runeName) {
@@ -116,7 +116,7 @@ export function FormattedLiquidiumCollateral({
   return (
     <div className={styles.collateralDetails}>
       <div className={styles.collateralAmount}>
-        {formattedAmount(runeAmount, runeDivisibility)}
+        {formatCollateralAmount(runeAmount, runeDivisibility)}
       </div>
       <div className={styles.collateralName}>{runeId}</div>
     </div>

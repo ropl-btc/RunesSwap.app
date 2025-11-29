@@ -50,8 +50,40 @@ export async function fetchWithRetry<T = unknown>(
         });
 
         if (!response.ok) {
+          // Attempt to read server error body for meaningful message
+          let enhancedMessage = `HTTP ${response.status}: ${response.statusText}`;
+          try {
+            const rawText = await response.text();
+            if (rawText) {
+              try {
+                const maybeJson = JSON.parse(rawText) as {
+                  success?: boolean;
+                  error?: { message?: string; details?: string };
+                  message?: string;
+                  details?: string;
+                };
+                const bodyMsg =
+                  maybeJson?.error?.message || maybeJson?.message || '';
+                const bodyDetails =
+                  maybeJson?.error?.details || maybeJson?.details || '';
+                const tail = [bodyMsg, bodyDetails]
+                  .filter(Boolean)
+                  .join(' - ')
+                  .trim();
+                if (tail) enhancedMessage = `${enhancedMessage} - ${tail}`;
+              } catch {
+                // Not JSON; include raw text truncated
+                const trimmed = rawText.trim();
+                if (trimmed) {
+                  enhancedMessage = `${enhancedMessage} - ${trimmed.slice(0, 200)}`;
+                }
+              }
+            }
+          } catch {
+            // Ignore body parse failures; keep base message
+          }
           throw new FetchError(
-            `HTTP ${response.status}: ${response.statusText}`,
+            enhancedMessage,
             response.status,
             response.statusText,
             url,

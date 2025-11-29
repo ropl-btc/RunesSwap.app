@@ -11,6 +11,7 @@
   --win98-red: #b20000;
   --win98-green: #008000;
   --win98-dark-green: #006400;
+  --error-red: #b00020;
 
   /* Typography - just 3 key sizes */
   --font-size-small: 0.75rem; /* 12px */

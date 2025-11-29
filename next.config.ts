@@ -1,11 +1,17 @@
+import bundleAnalyzer from '@next/bundle-analyzer';
 import type { NextConfig } from "next";
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
+
+const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
 const nextConfig: NextConfig = {
-  reactStrictMode: false, // Temporarily disable Strict Mode for testing
+  reactStrictMode: true,
+  eslint: {
+    dirs: ['src'],
+    // Re-enable build-time linting after cleanup
+    ignoreDuringBuilds: false,
+  },
   experimental: {
     optimizePackageImports: [
       '@heroicons/react',
@@ -18,24 +24,6 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'icon.unisat.io',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'sats-terminal-node.azurewebsites.net',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'ordinals.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'ordiscan.com',
         port: '',
         pathname: '/**',
       },

@@ -1,14 +1,13 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  validateRequest,
-} from '@/lib/apiUtils';
+
+import { ok } from '@/lib/apiResponse';
+import { createErrorResponse, validateRequest } from '@/lib/apiUtils';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
+import { logger } from '@/lib/logger';
+import { enforceRateLimit } from '@/lib/rateLimit';
 import { supabase } from '@/lib/supabase';
 import { withApiHandler } from '@/lib/withApiHandler';
-import { enforceRateLimit } from '@/lib/rateLimit';
 import { safeParseJWT } from '@/utils/typeGuards';
 
 const AuthSchema = z.object({
@@ -69,8 +68,10 @@ export const POST = withApiHandler(
     if (payload && typeof payload.exp === 'number') {
       expiresAt = new Date(payload.exp * 1000);
     } else {
-      console.warn(
-        '[API Debug] Failed to decode JWT for expiry: Invalid payload structure',
+      logger.warn(
+        'Failed to decode JWT for expiry: Invalid payload structure',
+        undefined,
+        'API',
       );
     }
 
@@ -82,22 +83,32 @@ export const POST = withApiHandler(
       expires_at: expiresAt,
       last_used_at: new Date().toISOString(),
     };
-    console.info('[API Debug] Upserting Liquidium JWT with data:', upsertData);
+    // Avoid logging sensitive JWT token
+    const sanitizedUpsertData = {
+      ...upsertData,
+      jwt: '[REDACTED]',
+    };
+    logger.info(
+      'Upserting Liquidium JWT with data',
+      { upsertData: sanitizedUpsertData },
+      'API',
+    );
 
     const { error, data: upsertResult } = await supabase
       .from('liquidium_tokens')
       .upsert(upsertData, { onConflict: 'wallet_address' });
 
     if (error) {
-      console.error('[API Error] Failed to store Liquidium JWT', error);
+      logger.error('Failed to store Liquidium JWT', { error }, 'API');
+      // Do not expose internal error details to clients
       return createErrorResponse(
         'Failed to store Liquidium JWT',
-        JSON.stringify(error),
+        undefined,
         500,
       );
     }
-    console.info('[API Debug] Upsert result:', upsertResult);
-    return createSuccessResponse({ jwt: authSubmitResponse.user_jwt });
+    logger.info('Upsert result', { upsertResult }, 'API');
+    return ok({ jwt: authSubmitResponse.user_jwt });
   },
   { defaultErrorMessage: 'Liquidium authentication failed' },
 );

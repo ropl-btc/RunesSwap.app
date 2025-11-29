@@ -79,17 +79,31 @@ export function parseAmount(input: string | null | undefined): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+/**
+ * Truncates a transaction ID to a shorter format (e.g., "1234...5678").
+ * @param txid - The transaction ID string.
+ * @param length - Number of characters to keep at start and end (default: 8).
+ * @returns Truncated transaction ID string.
+ */
 export const truncateTxid = (txid: string, length = 8): string => {
   if (!txid) return '';
+  if (length <= 0) return txid;
   if (txid.length <= length * 2 + 3) return txid;
   return `${txid.substring(0, length)}...${txid.substring(txid.length - length)}`;
 };
 
+/**
+ * Formats a numeric string for display, handling various input formats and locales.
+ * @param numStr - The numeric string to format.
+ * @param defaultDisplay - Fallback string if input is invalid (default: 'N/A').
+ * @returns Formatted number string with commas.
+ */
 export function formatNumberString(
   numStr?: string | null,
   defaultDisplay = 'N/A',
 ): string {
   if (numStr == null) return defaultDisplay;
+  if (String(numStr).trim() === '') return defaultDisplay;
   const cleaned = sanitizeForBig(numStr);
   // If sanitize collapses to '0', ensure original looked like zero; else invalid
   if (cleaned === '0') {
@@ -111,6 +125,11 @@ export function formatNumberString(
   return sign + formatted;
 }
 
+/**
+ * Formats a number with commas for thousands separator.
+ * @param value - The number to format.
+ * @returns Formatted number string.
+ */
 export function formatNumber(value: number): string {
   const [intPart, decPart] = value.toString().split('.') as [string, string?];
   const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');

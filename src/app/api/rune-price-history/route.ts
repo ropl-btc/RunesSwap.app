@@ -1,10 +1,8 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  validateRequest,
-} from '@/lib/apiUtils';
+
+import { fail, ok } from '@/lib/apiResponse';
+import { validateRequest } from '@/lib/apiUtils';
 import { withApiHandler } from '@/lib/withApiHandler';
 import { normalizeRuneName } from '@/utils/runeUtils';
 
@@ -67,11 +65,10 @@ export const GET = withApiHandler(
     // Check if API key is set
     const apiKey = process.env.RUNES_FLOOR_API_KEY;
     if (!apiKey) {
-      return createErrorResponse(
-        'API key not configured',
-        'Missing RUNES_FLOOR_API_KEY environment variable',
-        500,
-      );
+      return fail('API key not configured', {
+        status: 500,
+        details: 'Missing RUNES_FLOOR_API_KEY environment variable',
+      });
     }
 
     // Fetch data from the external API
@@ -87,18 +84,17 @@ export const GET = withApiHandler(
     if (!response.ok) {
       if (response.status === 404) {
         // Return a successful response with available: false
-        return createSuccessResponse({
+        return ok({
           slug: formattedSlug,
           prices: [],
           available: false,
         });
       }
 
-      return createErrorResponse(
-        `Failed to fetch price history (${response.status})`,
-        `Status: ${response.status}`,
-        500,
-      );
+      return fail(`Failed to fetch price history (${response.status})`, {
+        status: 500,
+        details: `Status: ${response.status}`,
+      });
     }
 
     // Parse the response body
@@ -106,7 +102,7 @@ export const GET = withApiHandler(
 
     // Check if we have any price data
     if (!data || !Array.isArray(data)) {
-      return createSuccessResponse({
+      return ok({
         slug: formattedSlug,
         prices: [],
         available: false,
@@ -125,7 +121,7 @@ export const GET = withApiHandler(
     // Make sure the available flag is set correctly
     const available = prices.length > 0;
 
-    return createSuccessResponse({
+    return ok({
       slug: formattedSlug,
       prices,
       available,

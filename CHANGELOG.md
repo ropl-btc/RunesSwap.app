@@ -1,4 +1,34 @@
 # Changelog
+## [Unreleased]
+
+### Added
+- Centralized QueryClient defaults and query key factories.
+- CI workflows: PR (type-check, lint, test) and main build.
+- Optional `NEXT_PUBLIC_QUOTE_MOCK_ADDRESS` to enable pre-connection quotes.
+- Footer layout refreshed: dedicated footer button styles, consistent heights, tightened spacing, and Docs moved next to GitHub.
+
+### Changed
+- Enforced Zod validation and standardized `ok`/`fail` across APIs; set `dynamic = 'force-static'` on static GETs.
+- Strict Mode effect cleanups (timers/listeners) for predictable behavior.
+- Re-enabled build-time linting.
+- Simplified Husky hooks to use lint-staged in pre-commit and checks in pre-push.
+- Migrated to ESLint 9 flat config and Prettier 3 config.
+- Scoped Next.js ESLint dirs and minor next.config.ts tidy.
+- Reduced unnecessary quote requests and improved swap percentage helpers.
+
+### Fixed
+- Logging consistency: replaced stray `console.*` with `logger` in APIs; reduced noisy logs.
+- Enforced Zod response validation in `src/app/api/ordiscan/btc-balance/route.ts`.
+- Replaced ad-hoc query checks with Zod-based validation in `src/app/api/ordiscan/rune-info-by-id/route.ts`.
+- Removed unsafe assertions in `src/hooks/useSwapExecution.ts` by introducing `PsbtApiResponse` and a type guard; deduplicated `SwapConfirmationResult`; fixed finally-block to avoid stale state success re-dispatch.
+- Preserved swap error state in `useSwapExecution` so failures remain visible instead of resetting to idle.
+- Prevented swap quote fetch from getting stuck in loading when no wallet address is available by validating before starting the request.
+- Restored default read-only quote address so disconnected users still receive quotes when `NEXT_PUBLIC_QUOTE_MOCK_ADDRESS` is unset.
+- Kept `/api/ordiscan/list-runes` dynamic so new/updated runes stay fresh without redeploys.
+- PSBT creation now respects the client-provided fee rate with an optional `SATS_TERMINAL_FORCED_FEE_RATE` override for emergencies.
+- Quote display formatting now stays in Big.js to avoid precision loss; BTC balance display uses Big-based formatter.
+- PSBT confirmation error handling uses typed guards and proper 4xx responses instead of ad-hoc Response casting.
+- CI: pnpm is set up before the Node cache to keep pnpm caching effective.
 
 All notable changes to this project will be documented in this file.
 

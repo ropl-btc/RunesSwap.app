@@ -10,11 +10,8 @@ import { Ordiscan } from 'ordiscan';
 
 // Loaded dynamically in each test to avoid memoization bleed
 const loadServerUtils = () =>
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   require('@/lib/serverUtils') as typeof import('@/lib/serverUtils');
-const loadLogger = () =>
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require('@/lib/logger').logger;
+const loadLogger = () => require('@/lib/logger').logger;
 
 const MockedOrdiscan = Ordiscan as jest.MockedClass<typeof Ordiscan>;
 

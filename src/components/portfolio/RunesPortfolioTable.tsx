@@ -1,31 +1,58 @@
 import React from 'react';
-import type { Asset } from '@/types/common';
-import { formatNumberWithLocale } from '@/utils/formatters';
+
 import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
+import styles from '@/components/portfolio/PortfolioTab.module.css';
 import RuneIcon from '@/components/runes/RuneIcon';
 import Button from '@/components/ui/Button';
-import styles from '@/components/portfolio/PortfolioTab.module.css';
+import type { Asset } from '@/types/common';
+import { formatNumberWithLocale } from '@/utils/formatters';
 
+/**
+ * Interface representing a single Rune balance item.
+ */
 interface RuneBalanceItem {
+  /** The unique name of the Rune. */
   name: string;
+  /** The formatted name of the Rune (with spacers). */
   formattedName: string;
+  /** The balance amount as a string. */
   balance: string;
+  /** The URI of the Rune's image. */
   imageURI?: string;
+  /** The USD value of the balance. */
   usdValue: number;
+  /** The actual numeric balance. */
   actualBalance: number;
+  /** The BTC value of the balance. */
   btcValue: number;
 }
 
+/**
+ * Props for the RunesPortfolioTable component.
+ */
 interface RunesPortfolioTableProps {
+  /** List of Rune balance items to display. */
   balances: RuneBalanceItem[];
+  /** Total value of the portfolio in BTC. */
   totalBtcValue: number;
+  /** Total value of the portfolio in USD. */
   totalUsdValue: number;
+  /** Field to sort by. */
   sortField: 'name' | 'balance' | 'value';
+  /** Direction to sort by. */
   sortDirection: 'asc' | 'desc';
+  /** Callback to handle sorting. */
   onSort: (field: 'name' | 'balance' | 'value') => void;
+  /** Callback to initiate a swap for a specific asset. */
   onSwap: (asset: Asset) => void;
 }
 
+/**
+ * Component to display a table of Rune balances.
+ * Supports sorting and initiating swaps.
+ *
+ * @param props - Component props.
+ */
 const RunesPortfolioTable: React.FC<RunesPortfolioTableProps> = ({
   balances,
   totalBtcValue,

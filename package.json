@@ -7,18 +7,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "type-check": "tsc --noEmit",
-    "ai-check": "next lint --fix && pnpm format && pnpm format:check && pnpm lint && pnpm type-check && pnpm test && pnpm build",
+    "ai-check": "pnpm lint && pnpm format:check && pnpm type-check && pnpm test && pnpm build",
     "pre-commit-check": "pnpm type-check && pnpm test",
     "prepare": "husky",
     "gen:liquidium-sdk": "openapi -i liquidium-openapi/liquidium-instant-loan-api.yaml -o src/sdk/liquidium --client fetch --useOptions --useUnionTypes --exportSchemas true --name LiquidiumApi"
   },
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=22.0.0",
     "pnpm": ">=10.8.0"
   },
   "dependencies": {
@@ -36,7 +36,7 @@
     "react-markdown": "^9.0.1",
     "recharts": "^2.15.3",
     "remark-gfm": "^4.0.0",
-    "satsterminal-sdk": "^1.6.14",
+    "satsterminal-sdk": "^1.6.16",
     "use-debounce": "^10.0.4",
     "zod": "^3.24.2",
     "zustand": "^5.0.3"
@@ -44,7 +44,10 @@
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.24.0",
     "@next/bundle-analyzer": "^15.4.5",
+    "@next/eslint-plugin-next": "^15.5.6",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
@@ -55,18 +58,33 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^16.5.0",
+    "eslint": "^9.24.0",
     "eslint-config-next": "15.2.4",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
     "husky": "^9.1.7",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jsdom": "^26.1.0",
+    "lint-staged": "^15.2.10",
     "openapi-typescript-codegen": "^0.29.0",
     "prettier": "^3.5.3",
     "stylelint": "^16.19.1",
     "stylelint-config-standard": "^38.0.0",
     "ts-jest": "^29.3.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "typescript-eslint": "^8.46.1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "pnpm exec eslint --fix"
+    ],
+    "*.{md,json,yml,yaml,ts,tsx,js,jsx}": [
+      "pnpm exec prettier --write"
+    ],
+    "src/**/*.css": [
+      "pnpm exec stylelint --fix"
+    ]
   },
   "packageManager": "pnpm@10.8.0"
 }

@@ -1,6 +1,8 @@
-import { NextRequest } from 'next/server';
-import { createSuccessResponse, validateRequest } from '@/lib/apiUtils';
-import { RuneData } from '@/lib/runesData';
+import type { NextRequest } from 'next/server';
+
+import { ok } from '@/lib/apiResponse';
+import { validateRequest } from '@/lib/apiUtils';
+import type { RuneData } from '@/lib/runesData';
 import { getOrdiscanClient } from '@/lib/serverUtils';
 import {
   batchFetchRuneMarketData,
@@ -8,7 +10,7 @@ import {
 } from '@/lib/supabaseQueries';
 import { requestSchemas } from '@/lib/validationSchemas';
 import { withApiHandler } from '@/lib/withApiHandler';
-import { RuneBalance, RuneMarketInfo } from '@/types/ordiscan';
+import type { RuneBalance, RuneMarketInfo } from '@/types/ordiscan';
 
 export const GET = withApiHandler(
   async (request: NextRequest) => {
@@ -34,7 +36,7 @@ export const GET = withApiHandler(
       : [];
 
     if (validBalances.length === 0) {
-      return createSuccessResponse({
+      return ok({
         balances: [],
         runeInfos: {},
         marketData: {},
@@ -108,7 +110,7 @@ export const GET = withApiHandler(
       return { name: balance.name, balance: amt };
     });
 
-    return createSuccessResponse({
+    return ok({
       balances: formattedBalances,
       runeInfos: runeInfoMap,
       marketData: marketDataMap,

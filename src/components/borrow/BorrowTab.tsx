@@ -1,35 +1,44 @@
 'use client';
 
+import Big from 'big.js';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
-import { useBorrowProcess } from '@/hooks/useBorrowProcess';
-import useBorrowQuotes from '@/hooks/useBorrowQuotes';
-import { useLiquidiumAuth } from '@/hooks/useLiquidiumAuth';
-import { useRuneBalance } from '@/hooks/useRuneBalance';
-import { useRuneInfo } from '@/hooks/useRuneInfo';
-import { useRuneMarketData } from '@/hooks/useRuneMarketData';
-import { useRuneBalances } from '@/hooks/useRuneBalances';
-import { Asset } from '@/types/common';
-import { percentageOfRawAmount } from '@/utils/runeFormatting';
-import { formatUsd, parseAmount, sanitizeForBig } from '@/utils/formatters';
-import Big from 'big.js';
 import BorrowQuotesList from '@/components/borrow/BorrowQuotesList';
 import BorrowSuccessMessage from '@/components/borrow/BorrowSuccessMessage';
+import styles from '@/components/borrow/BorrowTab.module.css';
 import CollateralInput from '@/components/borrow/CollateralInput';
 import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
 import { Loading } from '@/components/loading';
 import Button from '@/components/ui/Button';
 import FeeSelector from '@/components/ui/FeeSelector';
-import styles from '@/components/borrow/BorrowTab.module.css';
+import { useBorrowProcess } from '@/hooks/useBorrowProcess';
+import useBorrowQuotes from '@/hooks/useBorrowQuotes';
+import { useLiquidiumAuth } from '@/hooks/useLiquidiumAuth';
+import { useRuneBalance } from '@/hooks/useRuneBalance';
+import { useRuneBalances } from '@/hooks/useRuneBalances';
+import { useRuneInfo } from '@/hooks/useRuneInfo';
+import { useRuneMarketData } from '@/hooks/useRuneMarketData';
+import type { Asset } from '@/types/common';
+import { formatUsd, parseAmount, sanitizeForBig } from '@/utils/formatters';
+import { percentageOfRawAmount } from '@/utils/runeFormatting';
 
+/**
+ * Props for the BorrowTab component.
+ */
 interface BorrowTabProps {
+  /** Whether the wallet is connected. */
   connected: boolean;
+  /** The connected wallet address. */
   address: string | null;
+  /** The connected payment address. */
   paymentAddress: string | null;
+  /** The public key of the connected wallet. */
   publicKey: string | null;
+  /** The payment public key. */
   paymentPublicKey: string | null;
+  /** Function to sign a PSBT. */
   signPsbt: (
     tx: string,
     finalize?: boolean,
@@ -42,14 +51,18 @@ interface BorrowTabProps {
       }
     | undefined
   >;
+  /** Function to sign a message (for Liquidium auth). */
   signMessage:
     | ((message: string, address: string) => Promise<string>)
     | undefined;
-  btcPriceUsd: number | undefined;
-  isBtcPriceLoading: boolean;
-  btcPriceError: Error | null;
 }
 
+/**
+ * Main component for the Borrow tab.
+ * Orchestrates the borrowing process, including collateral selection, quote fetching, and loan initiation.
+ *
+ * @param props - Component props.
+ */
 export function BorrowTab({
   connected,
   address,

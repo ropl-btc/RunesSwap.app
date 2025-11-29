@@ -4,14 +4,27 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 const STORAGE_KEY = 'runesswap-background';
 
+/**
+ * Context type for managing the application background image.
+ */
 interface BackgroundContextType {
+  /** The current background image URL or null if none. */
   backgroundImage: string | null;
+  /** Function to set the background image. */
   setBackgroundImage: (image: string | null) => void;
+  /** Function to clear the background image. */
   clearBackgroundImage: () => void;
 }
 
 const BackgroundContext = createContext<BackgroundContextType | null>(null);
 
+/**
+ * Provider component for the BackgroundContext.
+ * Persists the background image selection to localStorage.
+ *
+ * @param props - Component props.
+ * @param props.children - Child components.
+ */
 export function BackgroundProvider({
   children,
 }: {
@@ -54,6 +67,12 @@ export function BackgroundProvider({
   );
 }
 
+/**
+ * Hook to use the background context.
+ *
+ * @throws Error if used outside of a BackgroundProvider.
+ * @returns The background context value.
+ */
 export const useBackground = () => {
   const context = useContext(BackgroundContext);
   if (!context)

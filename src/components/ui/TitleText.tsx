@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { safeArrayAccess } from '@/utils/typeGuards';
+
 import styles from '@/components/layout/Layout.module.css';
+import { safeArrayAccess } from '@/utils/typeGuards';
 
 // Constants
 const DEFAULT_TITLE = 'RunesSwap.app';
@@ -34,6 +35,10 @@ const FUNNY_TEXTS = [
   'Liquidium did over 94k loans',
 ];
 
+/**
+ * Component that displays a rotating title text in the header.
+ * Cycles through a list of funny or informative messages.
+ */
 export function TitleText() {
   const [currentText, setCurrentText] = useState(DEFAULT_TITLE);
   const [isTransitioning, setIsTransitioning] = useState(false);

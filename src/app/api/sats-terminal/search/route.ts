@@ -1,12 +1,10 @@
 import { createHash } from 'crypto';
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import type { SearchParams } from 'satsterminal-sdk';
 import { z } from 'zod';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  validateRequest,
-} from '@/lib/apiUtils';
+
+import { fail, ok } from '@/lib/apiResponse';
+import { validateRequest } from '@/lib/apiUtils';
 import { getSatsTerminalClient } from '@/lib/serverUtils';
 import { withApiHandler } from '@/lib/withApiHandler';
 import type { Rune } from '@/types/satsTerminal';
@@ -79,7 +77,7 @@ export const GET = withApiHandler(
         }))
       : [];
 
-    return createSuccessResponse(transformedResults);
+    return ok(transformedResults);
   },
   {
     defaultErrorMessage: 'Failed to search',
@@ -88,19 +86,18 @@ export const GET = withApiHandler(
         error instanceof Error ? error.message : String(error);
 
       if (errorMessage.includes('Rate limit')) {
-        return createErrorResponse(
-          'Rate limit exceeded',
-          'Please try again later',
-          429,
-        );
+        return fail('Rate limit exceeded', {
+          status: 429,
+          details: 'Please try again later',
+        });
       }
 
       if (errorMessage.includes('Unexpected token')) {
-        return createErrorResponse(
-          'API service unavailable',
-          'The SatsTerminal API is currently unavailable. Please try again later.',
-          503,
-        );
+        return fail('API service unavailable', {
+          status: 503,
+          details:
+            'The SatsTerminal API is currently unavailable. Please try again later.',
+        });
       }
 
       return null;

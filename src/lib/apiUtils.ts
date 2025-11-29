@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import type { ZodSchema } from 'zod';
+
 import { logger } from '@/lib/logger';
 
 /**
@@ -130,11 +132,10 @@ export function handleApiError(
  */
 export async function validateRequest<T>(
   request: Request,
-  schema: import('zod').ZodSchema<T>,
+  schema: ZodSchema<T>,
   source: 'body' | 'query' = 'body',
 ): Promise<
-  | { success: true; data: T }
-  | { success: false; errorResponse: import('next/server').NextResponse }
+  { success: true; data: T } | { success: false; errorResponse: NextResponse }
 > {
   let rawData: unknown;
   try {

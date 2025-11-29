@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+
 import { apiGet } from '@/lib/api/createApiClient';
 
 // Request helpers
@@ -37,8 +38,6 @@ export async function expectErrorResponse(
   return data;
 }
 
-// API test pattern helper
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function runApiTests<T extends (...args: any[]) => Promise<any>>(
   name: string,
   fn: T,

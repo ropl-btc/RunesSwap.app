@@ -2,10 +2,14 @@
  * Represents a generic asset, which can be BTC or a Rune.
  */
 export interface Asset {
-  id: string; // Rune ID or 'BTC'
-  name: string; // Rune name or 'BTC'
-  imageURI: string; // URI for the asset image (required for AI type safety)
-  isBTC?: boolean | undefined; // Flag to explicitly identify BTC
+  /** Unique identifier for the asset. Rune ID or 'BTC'. */
+  id: string;
+  /** Display name of the asset. Rune name or 'BTC'. */
+  name: string;
+  /** URI for the asset image. Required for UI display. */
+  imageURI: string;
+  /** Optional flag to explicitly identify Bitcoin. */
+  isBTC?: boolean | undefined;
 }
 
 // Re-export RuneData for tests

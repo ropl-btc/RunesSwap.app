@@ -155,7 +155,6 @@ describe('sanitizeForBig', () => {
   });
 
   it('produces strings that work with Big.js constructor', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const Big = require('big.js');
 
     const testValues = ['1,234.56', '1.234,56', '123.45', '-999.99'];

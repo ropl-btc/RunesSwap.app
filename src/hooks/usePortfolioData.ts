@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
-import { QUERY_KEYS, fetchPortfolioDataFromApi } from '@/lib/api';
+import { useEffect, useMemo, useRef, useState } from 'react';
+
+import { fetchPortfolioDataFromApi, QUERY_KEYS } from '@/lib/api';
 import {
   calculateActualBalance,
   calculateBtcValue,
   calculateUsdValue,
 } from '@/utils/runeFormatting';
-import { safeArrayAccess } from '@/utils/typeGuards';
 import { getRuneIconUrl } from '@/utils/runeUtils';
+import { safeArrayAccess } from '@/utils/typeGuards';
 
 export type SortField = 'name' | 'balance' | 'value';
 export type SortDirection = 'asc' | 'desc';
@@ -22,11 +23,28 @@ interface RuneBalanceItem {
   btcValue: number;
 }
 
+/**
+ * Provides portfolio balances, totals, sorting controls, and loading progress for a given wallet address.
+ *
+ * @param address - Wallet address to load portfolio data for; pass `null` to disable fetching.
+ * @returns An object with:
+ * - `sortedBalances`: Array of Rune balance items (includes `actualBalance`, `btcValue`, `usdValue`, `imageURI`, `formattedName`).
+ * - `totalBtcValue`: Sum of `btcValue` across `sortedBalances`.
+ * - `totalUsdValue`: Sum of `usdValue` across `sortedBalances`.
+ * - `sortField`: Current field used for sorting (`'name' | 'balance' | 'value'`).
+ * - `sortDirection`: Current sort direction (`'asc' | 'desc'`).
+ * - `handleSort`: Function to change the sort field (toggles direction when called with the active field).
+ * - `progress`: Loading progress value between 0 and 1.
+ * - `stepText`: Human-readable label describing the current loading step.
+ * - `isLoading`: Query loading state.
+ * - `error`: Query error, if any.
+ */
 export function usePortfolioData(address: string | null) {
   const [sortField, setSortField] = useState<SortField>('value');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [progress, setProgress] = useState(0); // 0 to 1
   const [stepText, setStepText] = useState('');
+  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
     data: portfolioData,
@@ -40,7 +58,15 @@ export function usePortfolioData(address: string | null) {
   });
 
   useEffect(() => {
-    if (!isLoading) return;
+    if (!isLoading) {
+      // Clear any pending timer when loading completes
+      if (progressTimerRef.current) {
+        clearTimeout(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
+      return;
+    }
+
     let isMounted = true;
     let step = 0;
     const totalSteps = 4;
@@ -55,24 +81,33 @@ export function usePortfolioData(address: string | null) {
     if (firstLabel) {
       setStepText(firstLabel);
     }
-    function nextStep() {
-      if (!isMounted) return;
-      step++;
-      if (step < totalSteps) {
-        setProgress(step / totalSteps);
-        const nextLabel = safeArrayAccess(stepLabels, step);
-        if (nextLabel) {
-          setStepText(nextLabel);
-        }
-        setTimeout(nextStep, 400 + Math.random() * 400);
-      } else {
-        setProgress(1);
-        setStepText('Finalizing...');
-      }
-    }
-    setTimeout(nextStep, 400 + Math.random() * 400);
+    const scheduleNext = () => {
+      progressTimerRef.current = setTimeout(
+        () => {
+          if (!isMounted) return;
+          step++;
+          if (step < totalSteps) {
+            setProgress(step / totalSteps);
+            const nextLabel = safeArrayAccess(stepLabels, step);
+            if (nextLabel) {
+              setStepText(nextLabel);
+            }
+            scheduleNext();
+          } else {
+            setProgress(1);
+            setStepText('Finalizing...');
+          }
+        },
+        400 + Math.random() * 400,
+      );
+    };
+    scheduleNext();
     return () => {
       isMounted = false;
+      if (progressTimerRef.current) {
+        clearTimeout(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
     };
   }, [isLoading]);
 

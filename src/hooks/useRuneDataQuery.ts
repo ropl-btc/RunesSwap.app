@@ -6,6 +6,16 @@ interface UseRuneDataOptions {
   retry?: number;
 }
 
+/**
+ * Generic hook for fetching rune-related data.
+ * Wraps useApiQuery with specific configuration for rune data.
+ *
+ * @param queryKey - The key for the query.
+ * @param runeName - The name of the rune to fetch data for.
+ * @param fetcher - The function to fetch the data.
+ * @param options - Options for the query (enabled, staleTime, retry).
+ * @returns The query result.
+ */
 export function useRuneDataQuery<T>(
   queryKey: string,
   runeName: string | null | undefined,

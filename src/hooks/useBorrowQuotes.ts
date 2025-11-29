@@ -1,19 +1,29 @@
 import Big from 'big.js';
-import { sanitizeForBig } from '@/utils/formatters';
-import { convertToRawAmount } from '@/utils/runeFormatting';
 import { useEffect, useState } from 'react';
-import {
+
+import usePopularRunes from '@/hooks/usePopularRunes';
+import type {
   LiquidiumBorrowQuoteOffer,
   LiquidiumBorrowQuoteResponse,
-  fetchBorrowQuotesFromApi,
-  fetchBorrowRangesFromApi,
 } from '@/lib/api';
+import { fetchBorrowQuotesFromApi, fetchBorrowRangesFromApi } from '@/lib/api';
 import type { RuneData } from '@/lib/runesData';
-import { Asset } from '@/types/common';
+import type { Asset } from '@/types/common';
+import { sanitizeForBig } from '@/utils/formatters';
 import { mapPopularToAsset } from '@/utils/popularRunes';
+import { convertToRawAmount } from '@/utils/runeFormatting';
 import { formatRuneAmount } from '@/utils/runeFormatting';
 import { safeArrayAccess, safeArrayFirst } from '@/utils/typeGuards';
-import usePopularRunes from '@/hooks/usePopularRunes';
+
+const BORROW_UNAVAILABLE_PATTERNS = [
+  'No valid ranges found',
+  'Could not find valid borrow ranges for this rune',
+  'Not Found',
+  'does not exist',
+] as const;
+
+const isBorrowUnavailableError = (message: string): boolean =>
+  BORROW_UNAVAILABLE_PATTERNS.some((pattern) => message.includes(pattern));
 
 interface UseBorrowQuotesArgs {
   collateralAsset: Asset | null;
@@ -22,6 +32,13 @@ interface UseBorrowQuotesArgs {
   collateralRuneInfo: RuneData | null;
 }
 
+/**
+ * Hook to fetch and manage borrow quotes from Liquidium.
+ * Handles fetching popular runes, min/max ranges, and specific quotes for a collateral amount.
+ *
+ * @param args - Arguments including collateral asset, amount, and user address.
+ * @returns Quotes data, loading states, and functions to fetch quotes.
+ */
 export function useBorrowQuotes({
   collateralAsset,
   collateralAmount,
@@ -43,6 +60,7 @@ export function useBorrowQuotes({
 
   // Fetch min-max borrow range when collateral asset changes
   useEffect(() => {
+    let cancelled = false;
     const fetchMinMaxRange = async () => {
       if (
         !collateralAsset ||
@@ -60,6 +78,7 @@ export function useBorrowQuotes({
           runeIdForApi = collateralRuneInfo.id;
         }
         const result = await fetchBorrowRangesFromApi(runeIdForApi, address);
+        if (cancelled) return;
         if (result.success && result.data) {
           const { minAmount, maxAmount, noOffersAvailable } = result.data;
 
@@ -86,17 +105,12 @@ export function useBorrowQuotes({
           setBorrowRangeError(null);
         }
       } catch (error) {
+        if (cancelled) return;
         const errorMessage =
           error instanceof Error ? error.message : String(error);
         setMinMaxRange(null);
-        if (
-          errorMessage.includes('No valid ranges found') ||
-          errorMessage.includes(
-            'Could not find valid borrow ranges for this rune',
-          ) ||
-          errorMessage.includes('Not Found') ||
-          errorMessage.includes('does not exist')
-        ) {
+        // Liquidium errors currently surface as strings; match known phrases while awaiting structured codes
+        if (isBorrowUnavailableError(errorMessage)) {
           setBorrowRangeError(
             'This rune is not currently available for borrowing on Liquidium.',
           );
@@ -106,6 +120,9 @@ export function useBorrowQuotes({
       }
     };
     fetchMinMaxRange();
+    return () => {
+      cancelled = true;
+    };
   }, [collateralAsset, address, collateralRuneInfo]);
 
   const resetQuotes = () => {

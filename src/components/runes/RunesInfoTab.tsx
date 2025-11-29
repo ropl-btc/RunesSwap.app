@@ -1,20 +1,32 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+
+import RuneDetails from '@/components/runes/RuneDetails';
+import RuneSearchBar from '@/components/runes/RuneSearchBar';
+import styles from '@/components/runes/RunesInfoTab.module.css';
 import { useRuneInfo } from '@/hooks/useRuneInfo';
 import { useRuneMarketData } from '@/hooks/useRuneMarketData';
 import { useRunesInfoStore } from '@/store/runesInfoStore';
 import { type RuneInfo as OrdiscanRuneInfo } from '@/types/ordiscan';
 import type { Rune } from '@/types/satsTerminal';
-import RuneDetails from '@/components/runes/RuneDetails';
-import RuneSearchBar from '@/components/runes/RuneSearchBar';
-import styles from '@/components/runes/RunesInfoTab.module.css';
 
+/**
+ * Props for the RunesInfoTab component.
+ */
 interface RunesInfoTabProps {
+  /** Callback to toggle the price chart. */
   onShowPriceChart?: (assetName?: string, shouldToggle?: boolean) => void;
+  /** Whether the price chart is currently shown. */
   showPriceChart?: boolean;
 }
 
+/**
+ * Main component for the Runes Info tab.
+ * Orchestrates searching for Runes and displaying their details.
+ *
+ * @param props - Component props.
+ */
 export function RunesInfoTab({
   onShowPriceChart,
   showPriceChart = false,

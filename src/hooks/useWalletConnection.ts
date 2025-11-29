@@ -11,6 +11,7 @@ import {
   XVERSE,
 } from '@omnisat/lasereyes';
 import { useEffect, useRef, useState } from 'react';
+
 import { useSharedLaserEyes } from '@/context/LaserEyesContext';
 import { logger } from '@/lib/logger';
 
@@ -116,6 +117,12 @@ export const AVAILABLE_WALLETS: {
   { name: 'Wizz', provider: WIZZ },
 ];
 
+/**
+ * Hook to manage wallet connection state and UI.
+ * Wraps the shared LaserEyes context and adds UI-specific logic for the connection dropdown and error handling.
+ *
+ * @returns Wallet connection state, handlers, and UI helpers.
+ */
 export function useWalletConnection() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -133,6 +140,8 @@ export function useWalletConnection() {
   } = useSharedLaserEyes();
 
   const checkWalletInstalled = (providerToConnect: ProviderType): boolean => {
+    // Only UNISAT exposes a reliable pre-connection check via hasUnisat;
+    // other wallets surface availability through connection errors.
     switch (providerToConnect) {
       case UNISAT:
         return hasUnisat || false;
@@ -193,6 +202,11 @@ export function useWalletConnection() {
 
         errorMessage = error.message;
       } else {
+        logger.warn(
+          'Non-Error exception during wallet connect',
+          { error },
+          'WALLET',
+        );
         isWalletNotInstalledError = true;
         errorMessage = 'Wallet provider unavailable';
       }

@@ -1,23 +1,46 @@
 import React from 'react';
-import { Asset } from '@/types/common';
-import InputArea from '@/components/swap/InputArea';
 
+import InputArea from '@/components/swap/InputArea';
+import type { Asset } from '@/types/common';
+
+/**
+ * Props for the CollateralInput component.
+ */
 interface CollateralInputProps {
+  /** Whether the wallet is connected. */
   connected: boolean;
+  /** The selected collateral asset. */
   collateralAsset: Asset | null;
+  /** Callback when collateral asset changes. */
   onCollateralAssetChange: (asset: Asset) => void;
+  /** The amount of collateral. */
   collateralAmount: string;
+  /** Callback when collateral amount changes. */
   onCollateralAmountChange: (value: string) => void;
+  /** List of available assets for collateral. */
   availableAssets: Asset[];
+  /** Whether assets are loading. */
   isAssetsLoading?: boolean | undefined;
+  /** Error loading assets. */
   assetsError?: string | null | undefined;
+  /** Display element for available balance. */
   availableBalance?: React.ReactNode | undefined;
+  /** USD value of the collateral amount. */
   usdValue: string | undefined;
+  /** Min/Max range string for display. */
   minMaxRange?: string | undefined;
+  /** Whether the input is disabled. */
   disabled?: boolean | undefined;
+  /** Callback when a percentage shortcut is clicked. */
   onPercentageClick: ((percentage: number) => void) | undefined;
 }
 
+/**
+ * Component for inputting collateral amount and selecting asset.
+ * Wraps the generic InputArea component with specific props for collateral.
+ *
+ * @param props - Component props.
+ */
 const CollateralInput: React.FC<CollateralInputProps> = ({
   connected,
   collateralAsset,

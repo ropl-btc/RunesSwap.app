@@ -1,4 +1,5 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
+
 import { createErrorResponse } from '@/lib/apiUtils';
 
 // Simple in-memory sliding-window rate limiter (best-effort in serverless)
@@ -19,6 +20,16 @@ function getClientIp(req: NextRequest): string {
   return 'unknown';
 }
 
+/**
+ * Enforces a sliding-window rate limit for a given key and IP address.
+ *
+ * @param req - The NextRequest object to extract IP from.
+ * @param opts - Options for the rate limiter.
+ * @param opts.key - Unique key for the route/action.
+ * @param opts.limit - Maximum number of requests allowed in the window.
+ * @param opts.windowMs - Duration of the window in milliseconds.
+ * @returns An error NextResponse if limit exceeded, otherwise null.
+ */
 export function enforceRateLimit(
   req: NextRequest,
   opts: { key: string; limit: number; windowMs: number },

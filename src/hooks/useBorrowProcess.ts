@@ -1,14 +1,14 @@
 //
-import { convertToRawAmount } from '@/utils/runeFormatting';
-import { parseAmount } from '@/utils/formatters';
 import { useState } from 'react';
-import {
+
+import type {
   LiquidiumPrepareBorrowResponse,
   LiquidiumSubmitBorrowResponse,
-  prepareLiquidiumBorrow,
-  submitLiquidiumBorrow,
 } from '@/lib/api';
+import { prepareLiquidiumBorrow, submitLiquidiumBorrow } from '@/lib/api';
 import type { RuneData } from '@/lib/runesData';
+import { parseAmount } from '@/utils/formatters';
+import { convertToRawAmount } from '@/utils/runeFormatting';
 
 interface UseBorrowProcessParams {
   signPsbt: (
@@ -29,6 +29,13 @@ interface UseBorrowProcessParams {
   collateralRuneInfo: RuneData | null;
 }
 
+/**
+ * Hook to manage the Liquidium borrow process state and execution.
+ * Handles preparing the loan, signing the PSBT, and submitting the transaction.
+ *
+ * @param params - Parameters including wallet functions and user details.
+ * @returns State variables and functions to control the borrow process.
+ */
 export function useBorrowProcess({
   signPsbt,
   address,

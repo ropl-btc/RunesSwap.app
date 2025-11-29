@@ -1,15 +1,27 @@
 'use client';
 
 import React from 'react';
+
+import styles from '@/components/wallet/ConnectWalletButton.module.css';
+import WalletOptionsList from '@/components/wallet/WalletOptionsList';
 import {
   AVAILABLE_WALLETS,
   useWalletConnection,
 } from '@/hooks/useWalletConnection';
 import { truncateAddress } from '@/utils/formatters';
-import styles from '@/components/wallet/ConnectWalletButton.module.css';
-import WalletOptionsList from '@/components/wallet/WalletOptionsList';
 
-export function ConnectWalletButton() {
+/**
+ * Render a wallet connection control that reflects connection state and provides actions.
+ *
+ * Displays one of three primary UI states: when connected it shows the connected wallet's
+ * name and truncated address with a Disconnect button; when connecting it shows a disabled
+ * "Connecting..." button; otherwise it shows a "Connect Wallet" button that toggles a
+ * dropdown of available wallets. If a connection error exists, an error message is shown
+ * with an optional external install link.
+ *
+ * @returns JSX element representing the wallet connection control in one of its three states.
+ */
+function ConnectWalletButton() {
   const {
     connected,
     isConnecting,

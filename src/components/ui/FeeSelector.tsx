@@ -1,17 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import useFeeRates from '@/hooks/useFeeRates';
+
 import styles from '@/components/ui/FeeSelector.module.css';
+import useFeeRates from '@/hooks/useFeeRates';
 import { parseAmount } from '@/utils/formatters';
 
+/**
+ * Available fee options.
+ */
 export type FeeOption = 'slow' | 'medium' | 'fast' | 'custom';
 
+/**
+ * Props for the FeeSelector component.
+ */
 interface FeeSelectorProps {
+  /** Callback when the fee rate changes. */
   onChange: (rate: number) => void;
+  /** List of available fee options to display. */
   availableOptions?: FeeOption[];
 }
 
 const ALL_OPTIONS: FeeOption[] = ['slow', 'medium', 'fast', 'custom'];
 
+/**
+ * Component for selecting Bitcoin network fee rates.
+ * Fetches current fee rates and allows custom input.
+ *
+ * @param props - Component props.
+ */
 const FeeSelector: React.FC<FeeSelectorProps> = ({
   onChange,
   availableOptions = ALL_OPTIONS,
@@ -30,7 +45,6 @@ const FeeSelector: React.FC<FeeSelectorProps> = ({
     if (!availableOptions.includes(option)) {
       setOption(availableOptions[0] ?? 'medium');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableOptions.join('|')]);
 
   useEffect(() => {

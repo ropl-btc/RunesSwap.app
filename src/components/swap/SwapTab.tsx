@@ -1,10 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { type QuoteResponse } from 'satsterminal-sdk';
-import Big from 'big.js';
 
+import { Loading } from '@/components/loading';
+import { SwapTabForm, useSwapProcessManager } from '@/components/swap';
+import styles from '@/components/swap/SwapTab.module.css';
+import FeeSelector from '@/components/ui/FeeSelector';
 // Import our new components
 import { useRuneBalance } from '@/hooks/useRuneBalance';
+import { useRuneBalances } from '@/hooks/useRuneBalances';
 import { useRuneInfo } from '@/hooks/useRuneInfo';
 import { useRuneMarketData } from '@/hooks/useRuneMarketData';
 import useSwapAssets from '@/hooks/useSwapAssets';
@@ -13,25 +17,30 @@ import useSwapQuote from '@/hooks/useSwapQuote';
 import useSwapRunes from '@/hooks/useSwapRunes';
 import useUsdValues from '@/hooks/useUsdValues';
 import { fetchBtcBalanceFromApi } from '@/lib/api';
-import { useRuneBalances } from '@/hooks/useRuneBalances';
-import { Asset, BTC_ASSET } from '@/types/common';
-import {
-  formatAmountWithPrecision,
-  percentageOfRawAmount,
-  calculateActualBalance,
-} from '@/utils/runeFormatting';
+import type { Asset } from '@/types/common';
+import { BTC_ASSET } from '@/types/common';
 import { formatNumberWithLocale } from '@/utils/formatters';
-import { Loading } from '@/components/loading';
-import FeeSelector from '@/components/ui/FeeSelector';
-import styles from '@/components/swap/SwapTab.module.css';
-import { SwapTabForm, useSwapProcessManager } from '@/components/swap';
+import {
+  calculateActualBalance,
+  percentageOfRawAmount,
+  percentageOfSatsToBtcString,
+} from '@/utils/formatting';
 
+/**
+ * Props for the SwapTab component.
+ */
 interface SwapTabProps {
+  /** Whether the wallet is connected. */
   connected: boolean;
+  /** The connected wallet address. */
   address: string | null;
+  /** The connected payment address. */
   paymentAddress: string | null;
+  /** The public key of the connected wallet. */
   publicKey: string | null;
+  /** The payment public key. */
   paymentPublicKey: string | null;
+  /** Function to sign a PSBT. */
   signPsbt: (
     tx: string,
     finalize?: boolean,
@@ -44,16 +53,44 @@ interface SwapTabProps {
       }
     | undefined
   >;
+  /** Current Bitcoin price in USD. */
   btcPriceUsd: number | undefined;
+  /** Whether Bitcoin price is loading. */
   isBtcPriceLoading: boolean;
+  /** Error fetching Bitcoin price. */
   btcPriceError: Error | null;
-  // New props for price chart
+  /** Callback to show the price chart. */
   onShowPriceChart?: (assetName?: string, shouldToggle?: boolean) => void;
+  /** Whether the price chart is shown. */
   showPriceChart?: boolean;
+  /** Pre-selected Rune name. */
   preSelectedRune?: string | null;
+  /** Pre-selected Asset object. */
   preSelectedAsset?: Asset | null;
 }
 
+/**
+ * Renders the swap tab UI for selecting assets, fetching quotes, and executing swaps.
+ *
+ * Manages local input/output amounts, selected assets, balance queries, quote fetching, and swap execution,
+ * and passes computed state and handlers into the SwapTabForm component.
+ *
+ * @param connected - Whether the wallet is connected; enables balance and quote operations when true.
+ * @param address - User's on-chain address used for rune balance and swap operations.
+ * @param paymentAddress - User's BTC payment address used to fetch BTC balance.
+ * @param publicKey - Public key used for swap-related operations that require on-chain identification.
+ * @param paymentPublicKey - Payment public key used for BTC signing flow.
+ * @param signPsbt - Async function that signs a PSBT (used during BTC swap execution).
+ * @param btcPriceUsd - Current BTC price in USD used for USD value calculations.
+ * @param isBtcPriceLoading - Whether the BTC price is currently loading.
+ * @param btcPriceError - Error encountered while fetching BTC price, if any.
+ * @param onShowPriceChart - Optional callback invoked to show or toggle the asset price chart.
+ * @param showPriceChart - Optional flag to control initial visibility of the price chart.
+ * @param preSelectedRune - Optional rune asset name to preselect in the UI.
+ * @param preSelectedAsset - Optional Asset object to preselect in the UI.
+ *
+ * @returns The Swap tab React element configured with current state, handlers, and derived data.
+ */
 export function SwapTab({
   connected,
   address,
@@ -294,53 +331,59 @@ export function SwapTab({
       }
     }
 
-    // BTC path: Calculate percentage of available BTC balance directly from sats using Big.js
-    const availableBalanceBig = new Big(btcBalanceSats!.toString()).div(
-      new Big(10).pow(8),
+    // BTC path: use shared helper for clarity and precision
+    const formattedBtc = percentageOfSatsToBtcString(
+      btcBalanceSats!,
+      percentage,
     );
-    const newAmountBig =
-      percentage === 1
-        ? availableBalanceBig
-        : availableBalanceBig.times(percentage);
-    const formattedAmount = formatAmountWithPrecision(
-      newAmountBig.toString(),
-      decimals,
-    );
-    setInputAmount(formattedAmount);
+    setInputAmount(formattedBtc);
   };
 
-  const availableBalanceNode =
-    connected && assetIn ? (
-      assetIn.isBTC ? (
-        isBtcBalanceLoading ? (
-          <Loading variant="balance" className={styles.loadingText} />
-        ) : btcBalanceError ? (
-          <span className={styles.errorText}>Error loading balance</span>
-        ) : btcBalanceSats !== undefined ? (
-          `${formatNumberWithLocale(btcBalanceSats / 100_000_000, { maximumFractionDigits: 8 })}`
-        ) : (
-          'N/A'
-        )
-      ) : isRuneBalancesLoading || isSwapRuneInfoLoading ? (
-        <Loading variant="balance" className={styles.loadingText} />
-      ) : runeBalancesError || swapRuneInfoError ? (
-        <span className={styles.errorText}>Error loading balance</span>
-      ) : (
-        (() => {
-          const rawBalance = inputRuneRawBalance;
-          if (rawBalance === null) return 'N/A';
-          try {
-            const balanceNum = parseFloat(rawBalance);
-            if (isNaN(balanceNum)) return 'Invalid Balance';
-            const decimals = swapRuneInfo?.decimals ?? 0;
-            const displayValue = calculateActualBalance(rawBalance, decimals);
-            return `${formatNumberWithLocale(displayValue, { maximumFractionDigits: decimals })}`;
-          } catch {
-            return 'Formatting Error';
-          }
-        })()
-      )
-    ) : null;
+  const availableBalanceNode = useMemo(() => {
+    if (!connected || !assetIn) return null;
+    if (assetIn.isBTC) {
+      if (isBtcBalanceLoading)
+        return <Loading variant="balance" className={styles.loadingText} />;
+      if (btcBalanceError)
+        return <span className={styles.errorText}>Error loading balance</span>;
+      if (btcBalanceSats !== undefined) {
+        const btcValue = btcBalanceSats / 1e8;
+        return formatNumberWithLocale(btcValue, {
+          maximumFractionDigits: 8,
+        });
+      }
+      return 'N/A';
+    }
+
+    if (isRuneBalancesLoading || isSwapRuneInfoLoading)
+      return <Loading variant="balance" className={styles.loadingText} />;
+    if (runeBalancesError || swapRuneInfoError)
+      return <span className={styles.errorText}>Error loading balance</span>;
+
+    const rawBalance = inputRuneRawBalance;
+    if (rawBalance === null) return 'N/A';
+    try {
+      const balanceNum = parseFloat(rawBalance);
+      if (isNaN(balanceNum)) return 'Invalid Balance';
+      const decimals = swapRuneInfo?.decimals ?? 0;
+      const displayValue = calculateActualBalance(rawBalance, decimals);
+      return `${formatNumberWithLocale(displayValue, { maximumFractionDigits: decimals })}`;
+    } catch {
+      return 'Formatting Error';
+    }
+  }, [
+    connected,
+    assetIn,
+    isBtcBalanceLoading,
+    btcBalanceError,
+    btcBalanceSats,
+    isRuneBalancesLoading,
+    isSwapRuneInfoLoading,
+    runeBalancesError,
+    swapRuneInfoError,
+    inputRuneRawBalance,
+    swapRuneInfo?.decimals,
+  ]);
 
   return (
     <SwapTabForm

@@ -1,5 +1,6 @@
-import { NextRequest } from 'next/server';
-import { createErrorResponse, createSuccessResponse } from '@/lib/apiUtils';
+import type { NextRequest } from 'next/server';
+
+import { fail, ok } from '@/lib/apiResponse';
 import { createLiquidiumClient } from '@/lib/liquidiumSdk';
 import { supabase } from '@/lib/supabase';
 import { withApiHandler } from '@/lib/withApiHandler';
@@ -15,11 +16,10 @@ export const POST = withApiHandler(
       feeRate: feeRateInput,
     } = await request.json();
     if (!loanId || !address) {
-      return createErrorResponse(
-        'Missing parameters',
-        'loanId and address are required',
-        400,
-      );
+      return fail('Missing parameters', {
+        status: 400,
+        details: 'loanId and address are required',
+      });
     }
 
     const { data: tokenRows, error: tokenError } = await supabase
@@ -28,19 +28,17 @@ export const POST = withApiHandler(
       .eq('wallet_address', address)
       .limit(1);
     if (tokenError) {
-      return createErrorResponse(
-        'Database error retrieving authentication',
-        tokenError.message,
-        500,
-      );
+      return fail('Database error retrieving authentication', {
+        status: 500,
+        details: tokenError.message,
+      });
     }
     const firstToken = safeArrayFirst(tokenRows);
     if (!firstToken?.jwt) {
-      return createErrorResponse(
-        'Liquidium authentication required',
-        'No JWT found for this address',
-        401,
-      );
+      return fail('Liquidium authentication required', {
+        status: 401,
+        details: 'No JWT found for this address',
+      });
     }
     const userJwt = firstToken.jwt;
     const client = createLiquidiumClient(userJwt);
@@ -54,7 +52,7 @@ export const POST = withApiHandler(
           },
         },
       );
-      return createSuccessResponse(response);
+      return ok(response);
     }
 
     const DEFAULT_FEE_RATE = 5;
@@ -69,7 +67,7 @@ export const POST = withApiHandler(
         fee_rate: feeRate,
       },
     });
-    return createSuccessResponse(resp);
+    return ok(resp);
   },
   { defaultErrorMessage: 'Failed to process repayment' },
 );

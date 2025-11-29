@@ -1,5 +1,6 @@
-import { createErrorResponse, handleApiError } from '@/lib/apiUtils';
 import type { NextResponse } from 'next/server';
+
+import { createErrorResponse, handleApiError } from '@/lib/apiUtils';
 
 /**
  * Handles known SatsTerminal API error cases

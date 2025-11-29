@@ -1,17 +1,20 @@
+import Big from 'big.js';
 import { useCallback, useEffect, useRef } from 'react';
 import { type QuoteResponse } from 'satsterminal-sdk';
 import { useDebounce } from 'use-debounce';
+
 import type {
   SwapProcessAction,
   SwapProcessState,
 } from '@/components/swap/SwapProcessManager';
 import { fetchQuoteFromApi } from '@/lib/api';
 import { logger } from '@/lib/logger';
-import { Asset } from '@/types/common';
-import { parseAmount, sanitizeForBig } from '@/utils/formatters';
-import Big from 'big.js';
+import type { Asset } from '@/types/common';
+import { parseAmount, sanitizeForBig } from '@/utils/formatting';
+import { computeQuoteDisplay } from '@/utils/quoteUtils';
 
-const MOCK_ADDRESS = '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo';
+const MOCK_ADDRESS = process.env.NEXT_PUBLIC_QUOTE_MOCK_ADDRESS;
+const DEFAULT_READONLY_ADDRESS = '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo';
 
 interface UseSwapQuoteArgs {
   inputAmount: string;
@@ -30,6 +33,29 @@ interface UseSwapQuoteArgs {
   setQuoteTimestamp: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
+/**
+ * Manages debounced, throttled fetching of swap quotes and updates related state and displays.
+ *
+ * @param inputAmount - User-entered input amount string used to request quotes.
+ * @param assetIn - Asset being sent (may be BTC).
+ * @param assetOut - Asset being received (may be BTC).
+ * @param address - Optional user address; a mock or default read-only address will be used if not provided.
+ * @param btcPriceUsd - Optional Bitcoin price in USD used to compute display values.
+ * @param swapState - Current swap process state used to gate quoting and reset behavior.
+ * @param dispatchSwap - Dispatch function for swap process actions (e.g., start, success, error, reset).
+ * @param quote - Current quote response (nullable).
+ * @param setQuote - Setter for the current quote response.
+ * @param outputAmount - Current displayed output amount string.
+ * @param setOutputAmount - Setter for the displayed output amount.
+ * @param exchangeRate - Current displayed exchange rate string.
+ * @param setExchangeRate - Setter for the displayed exchange rate.
+ * @param setQuoteTimestamp - Setter for the quote timestamp (used to mark when a quote was obtained).
+ * @returns An object with:
+ *   - handleFetchQuote: function to trigger a quote fetch immediately,
+ *   - debouncedInputAmount: input amount after debounce,
+ *   - quoteKeyRef: ref containing the current quote key used to avoid redundant fetches,
+ *   - isThrottledRef: ref boolean indicating whether quote requests are currently throttled.
+ */
 export function useSwapQuote({
   inputAmount,
   assetIn,
@@ -79,19 +105,16 @@ export function useSwapQuote({
     }, 3000);
 
     const requestId = ++latestQuoteRequestId.current;
+    // Allow quotes without connection by using an optional mock address or a default read-only address
+    const effectiveAddress =
+      address ||
+      (MOCK_ADDRESS ? String(MOCK_ADDRESS) : undefined) ||
+      DEFAULT_READONLY_ADDRESS;
+
     dispatchSwap({ type: 'FETCH_QUOTE_START' });
     setOutputAmount('');
     setQuote(null);
     setExchangeRate(null);
-
-    const effectiveAddress = address || MOCK_ADDRESS;
-    if (!effectiveAddress) {
-      dispatchSwap({
-        type: 'FETCH_QUOTE_ERROR',
-        error: 'Internal error: Missing address for quote.',
-      });
-      return;
-    }
 
     try {
       if (
@@ -124,64 +147,16 @@ export function useSwapQuote({
       if (requestId === latestQuoteRequestId.current) {
         setQuote(quoteResponse ?? null);
         setQuoteTimestamp(Date.now());
-        let calculatedOutputAmount = '';
-        let calculatedRate: string | null = null;
-        if (quoteResponse) {
-          const inputBig = new Big(sanitizeForBig(inputAmount));
-          let outputBig = new Big(0);
-          let btcValueBig = new Big(0);
-          let runeValueBig = new Big(0);
-          try {
-            if (assetIn?.isBTC) {
-              const parsedOutputBig = new Big(
-                sanitizeForBig(quoteResponse.totalFormattedAmount || '0'),
-              );
-              if (parsedOutputBig.lte(0)) {
-                throw new Error('Invalid quote output amount');
-              }
-              outputBig = parsedOutputBig;
-              btcValueBig = inputBig;
-              runeValueBig = outputBig;
-              // display only
-              calculatedOutputAmount = Number(
-                outputBig.toString(),
-              ).toLocaleString(undefined, {});
-            } else {
-              const parsedPriceBig = new Big(
-                sanitizeForBig(quoteResponse.totalPrice || '0'),
-              );
-              if (parsedPriceBig.lte(0)) {
-                throw new Error('Invalid quote price');
-              }
-              outputBig = parsedPriceBig;
-              runeValueBig = inputBig;
-              btcValueBig = outputBig;
-              calculatedOutputAmount = Number(
-                outputBig.toString(),
-              ).toLocaleString(undefined, {
-                maximumFractionDigits: 8,
-              });
-            }
-            if (btcPriceUsd && btcValueBig.gt(0) && runeValueBig.gt(0)) {
-              const btcUsdAmount = btcValueBig.times(btcPriceUsd);
-              const pricePerRune = btcUsdAmount.div(runeValueBig);
-              const pricePerRuneNum = Number(pricePerRune.toFixed(6));
-              calculatedRate = `${pricePerRuneNum.toLocaleString(undefined, {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 6,
-              })} per ${
-                assetIn && !assetIn.isBTC ? assetIn.name : assetOut?.name
-              }`;
-            }
-            setExchangeRate(calculatedRate);
-          } catch {
-            calculatedOutputAmount = 'Error';
-            setExchangeRate('Error calculating rate');
-          }
-        }
-        setOutputAmount(calculatedOutputAmount);
+        const { outputAmountDisplay, exchangeRateDisplay } =
+          computeQuoteDisplay({
+            inputAmount,
+            assetIn,
+            assetOut,
+            quote: quoteResponse,
+            btcPriceUsd,
+          });
+        setOutputAmount(outputAmountDisplay);
+        setExchangeRate(exchangeRateDisplay);
         dispatchSwap({ type: 'FETCH_QUOTE_SUCCESS' });
       }
     } catch (err) {
@@ -252,9 +227,11 @@ export function useSwapQuote({
       typeof assetOut.id === 'string' &&
       !runeAsset.isBTC;
 
+    // Allow pre-connection quotes when a mock or default read-only address is available
+    const addressKey = address || (MOCK_ADDRESS ? 'mock' : 'default');
     const currentKey =
       hasValidInputAmount && hasValidAssets
-        ? `${debouncedInputAmount}-${assetIn.id}-${assetOut.id}`
+        ? `${debouncedInputAmount}-${assetIn.id}-${assetOut.id}-${addressKey}`
         : '';
 
     if (
@@ -315,13 +292,15 @@ export function useSwapQuote({
     }
   }, [
     debouncedInputAmount,
-    assetIn,
-    assetOut,
+    assetIn?.id,
+    assetIn?.isBTC,
+    assetOut?.id,
+    assetOut?.isBTC,
+    address,
     swapState.txId,
     swapState.swapStep,
     swapState.isSwapping,
     dispatchSwap,
-    handleFetchQuote,
     quote,
     outputAmount,
     exchangeRate,

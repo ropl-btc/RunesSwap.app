@@ -1,11 +1,13 @@
 'use client';
 
-import { LaserEyesProvider, MAINNET, useLaserEyes } from '@omnisat/lasereyes';
 import type { ProviderType } from '@omnisat/lasereyes';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { LaserEyesProvider, MAINNET, useLaserEyes } from '@omnisat/lasereyes';
+import { QueryClientProvider } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
+
 import { BackgroundProvider } from '@/context/BackgroundContext';
 import { LaserEyesContext } from '@/context/LaserEyesContext';
+import { queryClient } from '@/lib/queryClient';
 
 interface LaserEyesStubContext {
   connected: boolean;
@@ -57,6 +59,11 @@ const laserEyesStub: LaserEyesStubContext = {
   hasUnisat: false,
 };
 
+/**
+ * Supplies LaserEyesContext to its descendants using the value returned by `useLaserEyes`.
+ *
+ * @param children - Child elements that will receive the provided LaserEyesContext
+ */
 function SharedLaserEyesProvider({ children }: { children: React.ReactNode }) {
   // useLaserEyes is safe here because this component is only mounted when we
   // are wrapped by a real LaserEyesProvider (after client hydration).
@@ -69,23 +76,17 @@ function SharedLaserEyesProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Wraps application UI with shared providers for wallet, query client, and background services.
+ *
+ * Uses an inert wallet context during server-side rendering or before client hydration, then
+ * switches to the real `LaserEyesProvider` (configured for MAINNET) after hydration while reusing
+ * a centralized `QueryClient`.
+ *
+ * @param children - React nodes to render inside the provider tree
+ * @returns The provider-wrapped React element containing `children`
+ */
 export function Providers({ children }: { children: React.ReactNode }) {
-  // This ensures we create only a single instance of the QueryClient
-  const [queryClient] = React.useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 5 * 60 * 1000, // 5 minutes
-            gcTime: 60 * 60 * 1000, // 1 hour
-            refetchOnMount: false,
-            refetchOnWindowFocus: false,
-            refetchOnReconnect: false,
-          },
-        },
-      }),
-  );
-
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {

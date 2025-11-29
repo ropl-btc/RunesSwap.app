@@ -3,16 +3,28 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useRef, useState } from 'react';
-import { useBackground } from '@/context/BackgroundContext';
-import useBtcPrice from '@/hooks/useBtcPrice';
-import TitleText from '@/components/ui/TitleText';
+
 import FooterComponent from '@/components/layout/FooterComponent';
 import styles from '@/components/layout/Layout.module.css';
+import TitleText from '@/components/ui/TitleText';
+import { useBackground } from '@/context/BackgroundContext';
+import useBtcPrice from '@/hooks/useBtcPrice';
 
+/**
+ * Props for the Layout component.
+ */
 interface LayoutProps {
+  /** Child components to render within the layout. */
   children: React.ReactNode;
 }
 
+/**
+ * Main layout component for the application.
+ * Wraps content in a window-like container and handles background image settings.
+ * Includes the title bar and footer.
+ *
+ * @param props - Component props.
+ */
 export function Layout({ children }: LayoutProps) {
   const { backgroundImage, setBackgroundImage, clearBackgroundImage } =
     useBackground();
@@ -20,6 +32,7 @@ export function Layout({ children }: LayoutProps) {
 
   // Background settings
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,9 +40,11 @@ export function Layout({ children }: LayoutProps) {
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      alert('Image is too large. Please select an image under 2MB.');
+      setUploadError('Image is too large. Please select an image under 2MB.');
       return;
     }
+
+    setUploadError(null);
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -89,6 +104,8 @@ export function Layout({ children }: LayoutProps) {
               onChange={handleFileUpload}
               style={{ display: 'none' }}
             />
+
+            {uploadError && <p className={styles.errorText}>{uploadError}</p>}
           </div>
         </div>
       )}

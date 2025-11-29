@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import {
-  RepayLiquidiumLoanResponse,
-  repayLiquidiumLoan,
-  submitRepayPsbt,
-} from '@/lib/api';
-import { LiquidiumLoanOffer } from '@/types/liquidium';
+
+import type { RepayLiquidiumLoanResponse } from '@/lib/api';
+import { repayLiquidiumLoan, submitRepayPsbt } from '@/lib/api';
+import type { LiquidiumLoanOffer } from '@/types/liquidium';
 
 interface Args {
   address: string | null;
@@ -21,6 +19,13 @@ interface Args {
   >;
 }
 
+/**
+ * Hook to manage the Liquidium loan repayment modal and process.
+ * Handles fetching repayment info, signing the PSBT, and submitting the transaction.
+ *
+ * @param args - Arguments including wallet address and signing function.
+ * @returns Modal state and handler functions.
+ */
 export function useRepayModal({ address, signPsbt }: Args) {
   const [isRepayingLoanId, setIsRepayingLoanId] = useState<string | null>(null);
   const [repayModal, setRepayModal] = useState<{

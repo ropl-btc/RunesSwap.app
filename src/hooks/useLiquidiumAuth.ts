@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
+
 import { get, post } from '@/lib/fetchWrapper';
 import { logFetchError } from '@/lib/logger';
-import { LiquidiumLoanOffer } from '@/types/liquidium';
+import type { LiquidiumLoanOffer } from '@/types/liquidium';
 
 interface Args {
   address: string | null;
@@ -11,6 +12,13 @@ interface Args {
     | undefined;
 }
 
+/**
+ * Hook to manage Liquidium authentication and loan fetching.
+ * Handles the challenge-response authentication flow and JWT management.
+ *
+ * @param args - Arguments including wallet address and signing function.
+ * @returns Authentication state, loans data, and auth functions.
+ */
 export function useLiquidiumAuth({
   address,
   paymentAddress,

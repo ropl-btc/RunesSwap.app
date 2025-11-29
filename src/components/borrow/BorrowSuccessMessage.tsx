@@ -1,14 +1,26 @@
 import Image from 'next/image';
 import React from 'react';
-import Button from '@/components/ui/Button';
-import styles from '@/components/borrow/BorrowTab.module.css';
 
+import styles from '@/components/borrow/BorrowTab.module.css';
+import Button from '@/components/ui/Button';
+
+/**
+ * Props for the BorrowSuccessMessage component.
+ */
 interface BorrowSuccessMessageProps {
+  /** The transaction ID of the successful loan. */
   loanTxId: string | null;
+  /** Callback to view the portfolio. */
   onViewPortfolio: () => void;
+  /** Callback to start another loan. */
   onStartAnother: () => void;
 }
 
+/**
+ * Component to display a success message after a loan is initiated.
+ *
+ * @param props - Component props.
+ */
 const BorrowSuccessMessage: React.FC<BorrowSuccessMessageProps> = ({
   loanTxId,
   onViewPortfolio,

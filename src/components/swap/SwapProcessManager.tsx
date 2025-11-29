@@ -1,16 +1,31 @@
 import { useEffect, useReducer } from 'react';
-import { SwapStep } from '@/components/swap/SwapButton';
 
+import type { SwapStep } from '@/components/swap/SwapButton';
+import { logger } from '@/lib/logger';
+
+/**
+ * State definition for the swap process.
+ */
 export type SwapProcessState = {
+  /** Whether a swap is currently in progress. */
   isSwapping: boolean;
+  /** Current step of the swap process. */
   swapStep: SwapStep;
+  /** Error message if the swap failed. */
   swapError: string | null;
+  /** Transaction ID of the successful swap. */
   txId: string | null;
+  /** Whether the current quote has expired. */
   quoteExpired: boolean;
+  /** Whether a quote is currently being fetched. */
   isQuoteLoading: boolean;
+  /** Error message if quote fetching failed. */
   quoteError: string | null;
 };
 
+/**
+ * Actions that can be dispatched to update the swap process state.
+ */
 export type SwapProcessAction =
   | { type: 'RESET_SWAP' }
   | { type: 'FETCH_QUOTE_START' }
@@ -23,6 +38,9 @@ export type SwapProcessAction =
   | { type: 'SWAP_SUCCESS'; txId: string }
   | { type: 'SET_GENERIC_ERROR'; error: string };
 
+/**
+ * Initial state for the swap process.
+ */
 export const initialSwapProcessState: SwapProcessState = {
   isSwapping: false,
   swapStep: 'idle',
@@ -33,14 +51,20 @@ export const initialSwapProcessState: SwapProcessState = {
   quoteError: null,
 };
 
+/**
+ * Update the swap process state in response to a SwapProcessAction.
+ *
+ * @param state - The current swap process state.
+ * @param action - The action that describes the state transition to apply.
+ * @returns The new SwapProcessState after applying `action`.
+ */
 export function swapProcessReducer(
   state: SwapProcessState,
   action: SwapProcessAction,
 ): SwapProcessState {
   // Log actions that contain errors or significant state changes
   if (action.type === 'SWAP_ERROR' || action.type === 'FETCH_QUOTE_ERROR') {
-    // Use warn to avoid triggering Next.js error overlay while still logging
-    console.warn(`SwapProcess: ${action.type}`, action);
+    logger.warn(`SwapProcess: ${action.type}`, { action }, 'Swap');
   }
   switch (action.type) {
     case 'RESET_SWAP':
@@ -114,7 +138,7 @@ export function swapProcessReducer(
         swapStep: 'error',
       };
     case 'SWAP_SUCCESS':
-      console.info('Swap completed successfully with txId:', action.txId);
+      logger.info('Swap completed successfully', { txId: action.txId }, 'Swap');
       return {
         ...state,
         isSwapping: false,
@@ -128,6 +152,9 @@ export function swapProcessReducer(
   }
 }
 
+/**
+ * Props for the useSwapProcessManager hook.
+ */
 interface UseSwapProcessManagerProps {
   /**
    * Whether the wallet is connected
@@ -156,12 +183,6 @@ export function useSwapProcessManager({
   useEffect(() => {
     dispatchSwap({ type: 'RESET_SWAP' });
   }, [address, connected]);
-
-  // Special handling for successful swaps - ensure the success state persists
-  useEffect(() => {
-    // Success state persists until the user manually resets
-    // (e.g., by starting a new swap)
-  }, [swapState.swapStep, swapState.txId]);
 
   return { swapState, dispatchSwap };
 }

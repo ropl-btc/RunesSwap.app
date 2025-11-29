@@ -1,20 +1,38 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+
 import styles from '@/app/page.module.css';
-import { ConnectWalletButton } from '@/components/wallet/ConnectWalletButton';
+import ConnectWalletButton from '@/components/wallet/ConnectWalletButton';
 
-export type ActiveTab =
-  | 'swap'
-  | 'runesInfo'
-  | 'yourTxs'
-  | 'portfolio'
-  | 'borrow';
+const ALLOWED_TABS = [
+  'swap',
+  'runesInfo',
+  'yourTxs',
+  'portfolio',
+  'borrow',
+] as const;
 
+/**
+ * Union type representing the available tabs in the application.
+ */
+export type ActiveTab = (typeof ALLOWED_TABS)[number];
+
+/**
+ * Props for the TabNavigation component.
+ */
 interface TabNavigationProps {
+  /** Optional callback invoked when the active tab changes. */
   onTabChange?: (tab: ActiveTab) => void;
 }
 
+/**
+ * Renders the top tab navigation, manages the currently active tab, and keeps it synchronized with the URL and external listeners.
+ *
+ * The component initializes the active tab from the URL `tab` parameter (if present), updates the browser history when the active tab changes, listens for global `tabChange` custom events to update the active tab, and invokes `onTabChange` whenever the active tab changes. When switching to the "swap" tab, an existing `rune` URL parameter is preserved; otherwise the `rune` parameter is removed.
+ *
+ * @param onTabChange - Optional callback invoked with the new active tab whenever the active tab changes
+ */
 export default function TabNavigation({ onTabChange }: TabNavigationProps) {
   const [activeTab, setActiveTab] = useState<ActiveTab>('swap');
 
@@ -24,14 +42,7 @@ export default function TabNavigation({ onTabChange }: TabNavigationProps) {
       const sp = new URLSearchParams(window.location.search);
       const param = sp.get('tab') as ActiveTab | null;
       if (param) {
-        const allowed: ActiveTab[] = [
-          'swap',
-          'runesInfo',
-          'yourTxs',
-          'portfolio',
-          'borrow',
-        ];
-        if (allowed.includes(param)) {
+        if (ALLOWED_TABS.includes(param)) {
           setActiveTab(param);
         }
       }
@@ -39,29 +50,26 @@ export default function TabNavigation({ onTabChange }: TabNavigationProps) {
   }, []);
 
   useEffect(() => {
-    const handleTabChangeEvent = (event: CustomEvent) => {
-      const { tab } = event.detail;
-      const allowed: ActiveTab[] = [
-        'swap',
-        'runesInfo',
-        'yourTxs',
-        'portfolio',
-        'borrow',
-      ];
-      if (allowed.includes(tab)) {
+    const handleTabChangeEvent = (event: CustomEvent<{ tab?: string }>) => {
+      const tab = event.detail?.tab;
+      if (tab && ALLOWED_TABS.includes(tab as ActiveTab)) {
         setActiveTab(tab as ActiveTab);
       }
     };
     window.addEventListener('tabChange', handleTabChangeEvent as EventListener);
-    return () =>
+    return () => {
       window.removeEventListener(
         'tabChange',
         handleTabChangeEvent as EventListener,
       );
+    };
   }, []);
 
   useEffect(() => {
     onTabChange?.(activeTab);
+  }, [activeTab, onTabChange]);
+
+  useEffect(() => {
     if (typeof window === 'undefined') return;
     const url = new URL(window.location.href);
     url.searchParams.set('tab', activeTab);
@@ -73,7 +81,7 @@ export default function TabNavigation({ onTabChange }: TabNavigationProps) {
       url.searchParams.delete('rune');
     }
     window.history.pushState({}, '', url.toString());
-  }, [activeTab, onTabChange]);
+  }, [activeTab]);
 
   const handleClick = (tab: ActiveTab) => setActiveTab(tab);
 

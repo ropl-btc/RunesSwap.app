@@ -1,20 +1,26 @@
 'use client';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
+
+import LiquidiumLoansSection from '@/components/borrow/LiquidiumLoansSection';
+import styles from '@/components/portfolio/PortfolioTab.module.css';
+import RunesPortfolioTable from '@/components/portfolio/RunesPortfolioTable';
 import { useSharedLaserEyes } from '@/context/LaserEyesContext';
 import { useLiquidiumAuth } from '@/hooks/useLiquidiumAuth';
 import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { useRepayModal } from '@/hooks/useRepayModal';
 import type { Asset } from '@/types/common';
 import { formatSatsToBtc } from '@/utils/formatters';
-import LiquidiumLoansSection from '@/components/borrow/LiquidiumLoansSection';
-import styles from '@/components/portfolio/PortfolioTab.module.css';
-import RunesPortfolioTable from '@/components/portfolio/RunesPortfolioTable';
 
 const RepayModal = dynamic(() => import('@/components/borrow/RepayModal'), {
   ssr: false,
 });
 
+/**
+ * Main component for the Portfolio tab.
+ * Displays user's Rune balances and Liquidium loans.
+ * Handles sorting, swapping, and loan repayment.
+ */
 export default function PortfolioTab() {
   const router = useRouter();
   const { address, paymentAddress, signMessage, signPsbt } =

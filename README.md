@@ -13,15 +13,14 @@ A Uniswap‑style swap interface for Bitcoin Runes, built with Next.js, TypeScri
 - Strict TypeScript safety, ESLint/Prettier formatting, and Git hooks for code quality.
 
 ## Tech Stack
-- Next.js (App Router)
-- TypeScript (strict mode)
+- Next.js 15 (App Router) with React 19 Strict Mode
+- TypeScript (strict)
 - CSS Modules & global CSS variables (Windows 98 theme)
-- SatsTerminal SDK (`satsterminal-sdk`)
-- Laser Eyes wallet connector (`@omnisat/lasereyes`)
-- React Query (TanStack Query) & Zustand for data/state
-- Supabase (public & session management)
+- SatsTerminal SDK (`satsterminal-sdk`) & Laser Eyes (`@omnisat/lasereyes`)
+- TanStack Query v5 & Zustand
+- Supabase (public URL/anon key client‑side only)
 - Ordiscan SDK for on‑chain data
-- ESLint, Prettier, Husky + lint‑staged for linting & formatting
+- ESLint 9 flat config, Prettier 3, Husky + lint‑staged, Stylelint (staged CSS only)
 
 ## Getting Started
 ### Prerequisites
@@ -37,10 +36,22 @@ ORDISCAN_API_KEY=<your-ordiscan-api-key>
 SATS_TERMINAL_API_KEY=<your-satsterminal-api-key>
 LIQUIDIUM_API_URL=<liquidium-server-url>
 LIQUIDIUM_API_KEY=<your-liquidium-api-key>
+NEXT_PUBLIC_QUOTE_MOCK_ADDRESS=34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo # optional: enables pre-connection quotes
 ```
 
-`LIQUIDIUM_API_URL` and `LIQUIDIUM_API_KEY` are used on the server to
-authenticate with Liquidium's API. They should never be exposed to the client.
+`LIQUIDIUM_API_URL` and `LIQUIDIUM_API_KEY` are used on the server only to
+authenticate with Liquidium's API. Never expose service keys to the client.
+Environment variables are validated via Zod in `src/lib/env.ts`.
+
+### Query & Caching Defaults
+- Central `QueryClient` in `src/lib/queryClient.ts` with sensible defaults
+  (retry, staleTime, gcTime, no refetchOnWindowFocus). Use key factories from
+  `src/lib/queryKeys.ts`. Prefer `useSuspenseQuery` for read‑only components
+  and wrap with error/suspense boundaries at the tab/page level.
+
+### Logging
+Use `src/lib/logger.ts` instead of `console.*`. Add `operation` context in APIs
+and avoid PII.
 
 ### Installation & Development
 ```bash

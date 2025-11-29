@@ -1,10 +1,22 @@
+/**
+ * Props for the ErrorState component.
+ */
 interface ErrorStateProps {
+  /** The error message to display. */
   message?: string;
+  /** The error object, if available. */
   error?: Error | null;
+  /** Additional CSS class name. */
   className?: string;
+  /** Callback function to retry the operation. */
   onRetry?: () => void;
 }
 
+/**
+ * Component to display an error message with an optional retry button.
+ *
+ * @param props - Component props.
+ */
 export function ErrorState({
   message = 'An error occurred',
   error,

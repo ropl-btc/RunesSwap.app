@@ -1,16 +1,12 @@
 // Jest setup for React testing
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 require('@testing-library/jest-dom');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { cleanup } = require('@testing-library/react');
 
 // Configure React environment for concurrent features
 global.IS_REACT_ACT_ENVIRONMENT = true;
 
 // Add necessary polyfills for libraries that require them
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 global.TextEncoder = require('util').TextEncoder;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 global.TextDecoder = require('util').TextDecoder;
 
 // Mock fetch for Node.js environment

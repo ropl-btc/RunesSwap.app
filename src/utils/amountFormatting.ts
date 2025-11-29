@@ -76,3 +76,24 @@ export function percentageOfRawAmount(
   // Ensure we do not exceed decimal precision
   return formatAmountWithPrecision(desired.toString(), decimals);
 }
+
+/**
+ * Calculates a percentage of a BTC balance in satoshis and returns a
+ * formatted BTC string with 8 decimal places.
+ *
+ * @param sats - BTC balance in satoshis (number|string|bigint)
+ * @param percentage - Percentage as decimal (e.g., 0.5)
+ * @returns BTC amount string with 8 decimals
+ */
+export function percentageOfSatsToBtcString(
+  sats: number | string | bigint,
+  percentage: number,
+): string {
+  const satsBig = new Big(
+    typeof sats === 'bigint' ? sats.toString() : String(sats),
+  );
+  const availableBtc = satsBig.div(new Big(10).pow(8));
+  const desiredBtc =
+    percentage === 1 ? availableBtc : availableBtc.times(percentage);
+  return formatAmountWithPrecision(desiredBtc.toString(), 8);
+}

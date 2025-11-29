@@ -1,8 +1,10 @@
 import { type QuoteResponse } from 'satsterminal-sdk';
+
 import type { SwapProcessAction } from '@/components/swap/SwapProcessManager';
-import { Asset, BTC_ASSET } from '@/types/common';
-import { safeArrayFirst } from '@/utils/typeGuards';
+import type { Asset } from '@/types/common';
+import { BTC_ASSET } from '@/types/common';
 import { sanitizeForBig } from '@/utils/formatters';
+import { safeArrayFirst } from '@/utils/typeGuards';
 
 interface UseSwapAssetsArgs {
   popularRunes: Asset[];
@@ -26,6 +28,13 @@ interface UseSwapAssetsArgs {
   setAssetOut: React.Dispatch<React.SetStateAction<Asset | null>>;
 }
 
+/**
+ * Hook to manage asset selection and swapping direction.
+ * Handles logic for selecting input/output assets and swapping them.
+ *
+ * @param args - Arguments including current assets, amounts, and handlers.
+ * @returns Asset selection state and handlers.
+ */
 export function useSwapAssets({
   popularRunes,
   showPriceChart,

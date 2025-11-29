@@ -3,11 +3,12 @@
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+
+import styles from '@/components/layout/AppInterface.module.css';
+import { Loading } from '@/components/loading';
 import { useSharedLaserEyes } from '@/context/LaserEyesContext';
 import useBtcPrice from '@/hooks/useBtcPrice';
 import type { Asset } from '@/types/common';
-import { Loading } from '@/components/loading';
-import styles from '@/components/layout/AppInterface.module.css';
 
 // Dynamic imports for tab components (performance optimization)
 
@@ -75,12 +76,23 @@ const YourTxsTab = dynamic(() => import('@/components/portfolio/YourTxsTab'), {
 });
 
 // --- Props Interface --- Update the activeTab type
+/**
+ * Props for the AppInterface component.
+ */
 interface AppInterfaceProps {
+  /** The currently active tab. */
   activeTab: 'swap' | 'runesInfo' | 'yourTxs' | 'portfolio' | 'borrow'; // <-- Added 'borrow'
 }
 // --- End Props ---
 
 // --- Component ---
+/**
+ * Main application interface component.
+ * Manages tab navigation, state for selected assets, and renders the active tab content.
+ * Handles dynamic loading of tab components.
+ *
+ * @param props - Component props.
+ */
 export function AppInterface({ activeTab }: AppInterfaceProps) {
   const searchParams = useSearchParams();
   const preSelectedRune = searchParams.get('rune');
@@ -200,9 +212,6 @@ export function AppInterface({ activeTab }: AppInterfaceProps) {
             paymentPublicKey={paymentPublicKey} // Needed for prepare
             signPsbt={signPsbt} // Needed for submit
             signMessage={signMessage} // Needed for authentication
-            btcPriceUsd={btcPriceUsd}
-            isBtcPriceLoading={isBtcPriceLoading}
-            btcPriceError={btcPriceError}
           />
         );
       // --- End Borrow Tab Case ---
