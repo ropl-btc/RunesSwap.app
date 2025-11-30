@@ -29,6 +29,11 @@ interface PriceDataPoint {
   floor_value: number;
 }
 
+/**
+ * GET handler for fetching Rune price history.
+ * Fetches historical price data for a given Rune slug from an external API.
+ * Normalizes the Rune name and handles API key authentication.
+ */
 export const GET = withApiHandler(
   async (request: NextRequest) => {
     const validation = await validateRequest(request, QuerySchema, 'query');

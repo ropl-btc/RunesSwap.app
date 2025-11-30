@@ -69,6 +69,10 @@ const handler = async (request: NextRequest) => {
   return ok(psbtResponse);
 };
 
+/**
+ * POST handler for creating a PSBT (Partially Signed Bitcoin Transaction).
+ * Validates the request body, retrieves the SatsTerminal client, and requests a PSBT.
+ */
 export const POST = withApiHandler(handler, {
   defaultErrorMessage: 'Failed to generate PSBT',
   customErrorHandler: handleSatsTerminalError,

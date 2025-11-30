@@ -80,6 +80,10 @@ const handler = async (request: NextRequest) => {
   return ok(confirmResponse);
 };
 
+/**
+ * POST handler for confirming a PSBT.
+ * Validates the request body, retrieves the SatsTerminal client, and confirms the PSBT.
+ */
 export const POST = withApiHandler(handler, {
   defaultErrorMessage: 'Failed to confirm PSBT',
   customErrorHandler: handleSatsTerminalError,

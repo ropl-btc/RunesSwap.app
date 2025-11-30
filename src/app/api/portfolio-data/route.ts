@@ -12,6 +12,11 @@ import { requestSchemas } from '@/lib/validationSchemas';
 import { withApiHandler } from '@/lib/withApiHandler';
 import type { RuneBalance, RuneMarketInfo } from '@/types/ordiscan';
 
+/**
+ * GET handler for fetching portfolio data.
+ * Fetches Rune balances, Rune info, and market data for a given address.
+ * Aggregates data from multiple sources (Ordiscan, Supabase) and returns a consolidated portfolio object.
+ */
 export const GET = withApiHandler(
   async (request: NextRequest) => {
     const validation = await validateRequest(
