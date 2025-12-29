@@ -1,4 +1,17 @@
 # Changelog
+## [0.2.7] - 2025-12-29
+
+### Added
+- Added a Jest mock for the LaserEyes SDK to keep tests stable with ESM packages.
+
+### Changed
+- Updated dependency toolchain/testing packages (eslint, @eslint/eslintrc, @commitlint/config-conventional, jest/@types/jest, jest-environment-jsdom) and @omnisat/lasereyes.
+- Adjusted LaserEyes typings usage across swap/borrow flows to align with updated SDK types.
+- Updated Jest config to handle LaserEyes with pnpm-aware transform rules.
+
+### Removed
+- Removed ts-jest (no Jest 30-compatible release).
+
 ## [Unreleased]
 
 ### Added
@@ -16,7 +29,6 @@
 - Scoped Next.js ESLint dirs and minor next.config.ts tidy.
 - Reduced unnecessary quote requests and improved swap percentage helpers.
 - Upgraded Next.js and related ESLint config to 15.2.6.
-- Updated dependency toolchain/testing packages (eslint, @eslint/eslintrc, @commitlint/config-conventional, jest/@types/jest, jest-environment-jsdom) and @omnisat/lasereyes; removed ts-jest.
 
 ### Fixed
 - Logging consistency: replaced stray `console.*` with `logger` in APIs; reduced noisy logs.
@@ -195,6 +207,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Initial release: swap interface, price chart, core API routes and foundational UI.
+[Unreleased]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.7...HEAD
+[0.2.7]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.6...v0.2.7
 [0.2.4]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.1...v0.2.2
