@@ -3,7 +3,8 @@ import { logFetchError } from '@/lib/logger';
 
 type ApiResponse<T> = {
   success: boolean;
-  data: T;
+  data?: T;
+  error?: { message?: string; details?: string; code?: string };
 };
 
 /**
@@ -49,10 +50,14 @@ async function makeApiCall<T>(
         : await post<ApiResponse<T>>(endpoint, body);
 
     if (!response.data.success) {
-      throw new Error('API request failed');
+      const errorMessage =
+        response.data.error?.message ??
+        response.data.error?.details ??
+        'API request failed';
+      throw new Error(errorMessage);
     }
 
-    return response.data.data;
+    return response.data.data as T;
   } catch (error: unknown) {
     logFetchError(url, error);
     throw error;

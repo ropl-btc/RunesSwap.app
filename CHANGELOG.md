@@ -43,6 +43,7 @@
 - Quote display formatting now stays in Big.js to avoid precision loss; BTC balance display uses Big-based formatter.
 - PSBT confirmation error handling uses typed guards and proper 4xx responses instead of ad-hoc Response casting.
 - CI: pnpm is set up before the Node cache to keep pnpm caching effective.
+- Swap quotes now map "no orders" errors reliably and surface a friendly message instead of crashing.
 
 All notable changes to this project will be documented in this file.
 

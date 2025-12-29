@@ -164,18 +164,31 @@ export function useSwapQuote({
         let errorMessage =
           err instanceof Error ? err.message : 'Failed to fetch quote';
 
+        const lowerMessage = errorMessage.toLowerCase();
+
         if (
+          lowerMessage.includes('liquidity') ||
+          lowerMessage.includes('no liquidity')
+        ) {
+          errorMessage =
+            'No liquidity available for this trade. Try a different amount or rune.';
+        } else if (
+          errorMessage.includes('No orders available') ||
+          errorMessage.includes('No valid orders') ||
+          lowerMessage.includes('no marketplace found') ||
+          errorMessage.includes('404')
+        ) {
+          errorMessage =
+            'No orders available for this trade. Try a different amount or rune.';
+        } else if (
           errorMessage.includes('500') ||
           errorMessage.includes('Internal Server Error')
         ) {
           errorMessage =
             'Server error: The quote service is temporarily unavailable. Please try again later.';
-        } else if (errorMessage.includes('No valid orders')) {
-          errorMessage =
-            'No orders available for this trade. Try a different amount or rune.';
         } else if (
-          errorMessage.includes('timeout') ||
-          errorMessage.includes('network')
+          lowerMessage.includes('timeout') ||
+          lowerMessage.includes('network')
         ) {
           errorMessage =
             'Network error: Please check your connection and try again.';
@@ -196,6 +209,7 @@ export function useSwapQuote({
           type: 'FETCH_QUOTE_ERROR',
           error: errorMessage,
         });
+        setQuoteTimestamp(null);
       }
     }
   }, [
