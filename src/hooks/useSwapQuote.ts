@@ -166,22 +166,19 @@ export function useSwapQuote({
 
         const lowerMessage = errorMessage.toLowerCase();
 
-        if (
-          lowerMessage.includes('liquidity') ||
-          lowerMessage.includes('no liquidity')
-        ) {
+        if (lowerMessage.includes('liquidity')) {
           errorMessage =
             'No liquidity available for this trade. Try a different amount or rune.';
         } else if (
           lowerMessage.includes('no orders available') ||
           lowerMessage.includes('no valid orders') ||
           lowerMessage.includes('no marketplace found') ||
-          errorMessage.includes('404')
+          lowerMessage.includes('404')
         ) {
           errorMessage =
             'No orders available for this trade. Try a different amount or rune.';
         } else if (
-          errorMessage.includes('500') ||
+          lowerMessage.includes('500') ||
           lowerMessage.includes('internal server error')
         ) {
           errorMessage =
