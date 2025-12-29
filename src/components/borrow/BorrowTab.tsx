@@ -1,5 +1,6 @@
 'use client';
 
+import type { LaserEyesContextType } from '@omnisat/lasereyes';
 import Big from 'big.js';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -39,22 +40,9 @@ interface BorrowTabProps {
   /** The payment public key. */
   paymentPublicKey: string | null;
   /** Function to sign a PSBT. */
-  signPsbt: (
-    tx: string,
-    finalize?: boolean,
-    broadcast?: boolean,
-  ) => Promise<
-    | {
-        signedPsbtHex: string | undefined;
-        signedPsbtBase64: string | undefined;
-        txId?: string;
-      }
-    | undefined
-  >;
+  signPsbt: LaserEyesContextType['signPsbt'];
   /** Function to sign a message (for Liquidium auth). */
-  signMessage:
-    | ((message: string, address: string) => Promise<string>)
-    | undefined;
+  signMessage: LaserEyesContextType['signMessage'];
 }
 
 /**

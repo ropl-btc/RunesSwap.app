@@ -15,10 +15,15 @@ const config: Config = {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^.+\\.module\\.(css|scss)$': '<rootDir>/__mocks__/styleMock.js',
     '^.+\\.(css|scss)$': '<rootDir>/__mocks__/styleMock.js',
+    '^@omnisat/lasereyes$': '<rootDir>/__mocks__/lasereyes.ts',
   },
   maxWorkers: 1,
   testTimeout: 30000,
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  transformIgnorePatterns: [
+    '<rootDir>/node_modules/.pnpm/(?!(?:@omnisat\\+lasereyes|@omnisat\\+lasereyes-react|@omnisat\\+lasereyes-core)@)',
+    'node_modules/(?!.pnpm|@omnisat/lasereyes|@omnisat/lasereyes-react|@omnisat/lasereyes-core)',
+  ],
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

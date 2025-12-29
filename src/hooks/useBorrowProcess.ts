@@ -1,4 +1,5 @@
 //
+import type { LaserEyesContextType } from '@omnisat/lasereyes';
 import { useState } from 'react';
 
 import type {
@@ -11,17 +12,7 @@ import { parseAmount } from '@/utils/formatters';
 import { convertToRawAmount } from '@/utils/runeFormatting';
 
 interface UseBorrowProcessParams {
-  signPsbt: (
-    tx: string,
-    finalize?: boolean,
-    broadcast?: boolean,
-  ) => Promise<
-    | {
-        signedPsbtHex: string | undefined;
-        signedPsbtBase64: string | undefined;
-      }
-    | undefined
-  >;
+  signPsbt: LaserEyesContextType['signPsbt'];
   address: string;
   paymentAddress: string;
   publicKey: string;
