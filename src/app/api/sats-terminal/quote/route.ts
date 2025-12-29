@@ -40,10 +40,21 @@ export const POST = withApiHandler(
   {
     defaultErrorMessage: 'Failed to fetch quote',
     customErrorHandler: (error: unknown) => {
-      // Special handling for liquidity errors (maintain 404 status)
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      if (errorMessage.toLowerCase().includes('liquidity')) {
+      const errorDetails =
+        error &&
+        typeof error === 'object' &&
+        'details' in error &&
+        typeof (error as { details?: unknown }).details === 'string'
+          ? (error as { details?: string }).details
+          : '';
+      const combined = `${errorMessage} ${errorDetails} ${JSON.stringify(
+        error,
+      )}`.toLowerCase();
+
+      // Special handling for liquidity errors (maintain 404 status)
+      if (combined.includes('liquidity')) {
         return fail('No liquidity available', {
           status: 404,
           details: errorMessage,
@@ -51,7 +62,7 @@ export const POST = withApiHandler(
       }
 
       // Special handling for rate limiting
-      if (errorMessage.includes('Rate limit')) {
+      if (combined.includes('rate limit')) {
         return fail('Rate limit exceeded', {
           status: 429,
           details: 'Please try again later',
@@ -59,7 +70,7 @@ export const POST = withApiHandler(
       }
 
       // Handle unexpected token errors (HTML responses instead of JSON)
-      if (errorMessage.includes('Unexpected token')) {
+      if (combined.includes('unexpected token')) {
         return fail('API service unavailable', {
           status: 503,
           details:
@@ -69,9 +80,10 @@ export const POST = withApiHandler(
 
       // Map common sell/no-order conditions to 404 for clearer UX
       if (
-        errorMessage.includes('No marketplace found for your sell order') ||
-        errorMessage.includes('No valid orders') ||
-        errorMessage.toLowerCase().includes('no marketplace found')
+        combined.includes('no marketplace found for your sell order') ||
+        combined.includes('no valid orders') ||
+        combined.includes('no orders available') ||
+        combined.includes('no marketplace found')
       ) {
         return fail('No orders available for this trade', {
           status: 404,
