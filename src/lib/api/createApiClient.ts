@@ -57,7 +57,11 @@ async function makeApiCall<T>(
       throw new Error(errorMessage);
     }
 
-    return response.data.data as T;
+    if (response.data.data === undefined || response.data.data === null) {
+      throw new Error('API returned success but no data');
+    }
+
+    return response.data.data;
   } catch (error: unknown) {
     logFetchError(url, error);
     throw error;

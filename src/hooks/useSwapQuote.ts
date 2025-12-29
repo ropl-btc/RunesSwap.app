@@ -173,8 +173,8 @@ export function useSwapQuote({
           errorMessage =
             'No liquidity available for this trade. Try a different amount or rune.';
         } else if (
-          errorMessage.includes('No orders available') ||
-          errorMessage.includes('No valid orders') ||
+          lowerMessage.includes('no orders available') ||
+          lowerMessage.includes('no valid orders') ||
           lowerMessage.includes('no marketplace found') ||
           errorMessage.includes('404')
         ) {
@@ -182,7 +182,7 @@ export function useSwapQuote({
             'No orders available for this trade. Try a different amount or rune.';
         } else if (
           errorMessage.includes('500') ||
-          errorMessage.includes('Internal Server Error')
+          lowerMessage.includes('internal server error')
         ) {
           errorMessage =
             'Server error: The quote service is temporarily unavailable. Please try again later.';

@@ -1,4 +1,10 @@
 # Changelog
+## [0.2.8] - 2025-12-29
+
+### Fixed
+- Swap quote errors for missing orders/liquidity now resolve to friendly messages without crashing the UI.
+- API client now throws when a success response is missing expected data.
+
 ## [0.2.7] - 2025-12-29
 
 ### Added
@@ -208,7 +214,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Initial release: swap interface, price chart, core API routes and foundational UI.
-[Unreleased]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.7...HEAD
+[Unreleased]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.8...HEAD
+[0.2.8]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.7...v0.2.8
 [0.2.7]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.6...v0.2.7
 [0.2.4]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.2...v0.2.3
