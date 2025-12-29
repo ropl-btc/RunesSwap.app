@@ -16,6 +16,7 @@
 - Scoped Next.js ESLint dirs and minor next.config.ts tidy.
 - Reduced unnecessary quote requests and improved swap percentage helpers.
 - Upgraded Next.js and related ESLint config to 15.2.6.
+- Updated dependency toolchain/testing packages (eslint, @eslint/eslintrc, @commitlint/config-conventional, jest/@types/jest, jest-environment-jsdom) and @omnisat/lasereyes; removed ts-jest.
 
 ### Fixed
 - Logging consistency: replaced stray `console.*` with `logger` in APIs; reduced noisy logs.

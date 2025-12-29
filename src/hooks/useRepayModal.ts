@@ -1,3 +1,4 @@
+import type { LaserEyesContextType } from '@omnisat/lasereyes';
 import { useState } from 'react';
 
 import type { RepayLiquidiumLoanResponse } from '@/lib/api';
@@ -6,17 +7,7 @@ import type { LiquidiumLoanOffer } from '@/types/liquidium';
 
 interface Args {
   address: string | null;
-  signPsbt?: (
-    tx: string,
-    finalize?: boolean,
-    broadcast?: boolean,
-  ) => Promise<
-    | {
-        signedPsbtHex: string | undefined;
-        signedPsbtBase64: string | undefined;
-      }
-    | undefined
-  >;
+  signPsbt?: LaserEyesContextType['signPsbt'];
 }
 
 /**

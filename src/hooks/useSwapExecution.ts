@@ -1,3 +1,4 @@
+import type { LaserEyesContextType } from '@omnisat/lasereyes';
 import { useRef } from 'react';
 import {
   type ConfirmPSBTParams,
@@ -190,17 +191,7 @@ interface UseSwapExecutionArgs {
   paymentAddress: string | null;
   publicKey: string | null;
   paymentPublicKey: string | null;
-  signPsbt: (
-    tx: string,
-    finalize?: boolean,
-    broadcast?: boolean,
-  ) => Promise<
-    | {
-        signedPsbtHex: string | undefined;
-        signedPsbtBase64: string | undefined;
-      }
-    | undefined
-  >;
+  signPsbt: LaserEyesContextType['signPsbt'];
   assetIn: Asset | null;
   assetOut: Asset | null;
   quote: QuoteResponse | null;

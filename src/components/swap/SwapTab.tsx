@@ -1,3 +1,4 @@
+import type { LaserEyesContextType } from '@omnisat/lasereyes';
 import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useMemo, useState } from 'react';
 import { type QuoteResponse } from 'satsterminal-sdk';
@@ -41,18 +42,7 @@ interface SwapTabProps {
   /** The payment public key. */
   paymentPublicKey: string | null;
   /** Function to sign a PSBT. */
-  signPsbt: (
-    tx: string,
-    finalize?: boolean,
-    broadcast?: boolean,
-  ) => Promise<
-    | {
-        signedPsbtHex: string | undefined;
-        signedPsbtBase64: string | undefined;
-        txId?: string;
-      }
-    | undefined
-  >;
+  signPsbt: LaserEyesContextType['signPsbt'];
   /** Current Bitcoin price in USD. */
   btcPriceUsd: number | undefined;
   /** Whether Bitcoin price is loading. */
