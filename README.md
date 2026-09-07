@@ -77,11 +77,15 @@ Visit http://localhost:3000 to explore the app.
 # Build for production
 bun run build
 
-# Start the production server
+# Preview the production Worker locally
 bun run start
+
+# Build and deploy to Cloudflare Workers
+bun run deploy
 ```
 
-Deploy on Vercel or any Node.js‑capable host and configure the same environment variables.
+Production secrets are configured with `wrangler secret bulk`. See
+[Cloudflare migration](https://github.com/robin-liquidium/RunesSwap.app/blob/main/docs/cloudflare-migration.md) for domain cutover and rollback.
 
 ## How to Use
 1. **Connect Your Wallet**  
@@ -152,4 +156,4 @@ The pinned SatsTerminal core dependency has a one-line Bun patch replacing
 `node-fetch` with native `fetch` for Workers compatibility. SDK payloads and
 request frequency are unchanged. Recheck the patch when updating that SDK.
 
-See [deployment and rollback](docs/cloudflare-migration.md) for the domain cutover.
+See [deployment and rollback](https://github.com/robin-liquidium/RunesSwap.app/blob/main/docs/cloudflare-migration.md) for the domain cutover.
