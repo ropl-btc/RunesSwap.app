@@ -37,6 +37,15 @@ jobs:
               echo "The release version already exists in the base changelog." >&2
               exit 1
             fi
+            if ! awk -v heading="$FIRST_RELEASE" '
+              $0 == heading { in_release = 1; next }
+              in_release && /^## / { exit }
+              in_release && /^- [[:space:]]*[^[:space:]]/ { found = 1 }
+              END { exit !found }
+            ' CHANGELOG.md; then
+              echo "The release section must contain a nonempty changelog bullet." >&2
+              exit 1
+            fi
             exit 0
           fi
 

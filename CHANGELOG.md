@@ -10,7 +10,7 @@
 - Prevented config-only commits from failing when lint-staged passed unsupported Markdown and YAML files to Biome.
 
 ### Added
-- Automatic Cloudflare Worker deployment after successful main-branch validation, followed by GitHub release publication.
+- Automatic deployments from `main` through native Cloudflare Workers Builds, with GitHub releases published after Cloudflare reports a successful deployment.
 - Automatic PR reviews in the opencode workflow (runs on PR open/update, reviews with Kimi k3).
 - Add opencode GitHub workflow for automated PR reviews and `/oc` commands (Kimi k3).
 - Centralized QueryClient defaults and query key factories.

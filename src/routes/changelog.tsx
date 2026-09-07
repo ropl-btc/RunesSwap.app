@@ -7,7 +7,9 @@ import fileContents from '../../CHANGELOG.md?raw';
 function getCleanChangelog(raw: string): string {
   const lines = raw.split(/\r?\n/);
 
-  const startIdx = lines.findIndex((line) => /^## \[\d+\.\d+\.\d+\]/.test(line));
+  const startIdx = lines.findIndex((line) =>
+    /^## \[\d+\.\d+\.\d+\] - \d{4}-\d{2}-\d{2}$/.test(line),
+  );
   if (startIdx === -1) return 'No releases are currently available.';
   const sliced = lines.slice(startIdx);
 
