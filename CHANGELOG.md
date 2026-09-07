@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- Restored GitHub app access for automatic Cloudflare Worker deployments.
+
 ## [0.3.0] - 2026-09-07
 
 ### Fixed

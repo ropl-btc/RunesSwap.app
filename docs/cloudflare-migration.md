@@ -42,3 +42,5 @@ Automated checks can exercise validation, quotes, market data, routing, wallet m
 Feature PRs add notes under `Unreleased`. A release PR moves shipped notes into a dated version section and updates `package.json` to match. Keep an empty `Unreleased` section for subsequent work. The public changelog shows only dated releases. The changelog gate accepts either a new unreleased bullet or a new dated version section containing a nonempty bullet and matching an increased package version.
 
 Cloudflare manages deployment authentication through its native Git integration; no Cloudflare GitHub secret or account variable is required. Runtime service secrets stay on the Worker. Do not add them to GitHub or the build environment.
+
+The Cloudflare Workers and Pages GitHub app must include `robin-liquidium/RunesSwap.app` in its repository access. If Cloudflare shows a disconnected Git account warning, check that access first: a manually started build can still clone this public repository and deploy even when GitHub push events are not reaching Cloudflare.
