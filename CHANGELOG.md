@@ -15,6 +15,7 @@
 - Footer layout refreshed: dedicated footer button styles, consistent heights, tightened spacing, and Docs moved next to GitHub.
 
 ### Changed
+- Configured the Cloudflare Worker to serve `runesswap.app` and `www.runesswap.app`, preserving the apex redirect and retaining Vercel for rollback.
 - Replaced Vercel Analytics with Cloudflare Web Analytics, including client-side route tracking.
 - Switched BTC/USD pricing to mempool.space because CoinGecko rejects Worker requests, retaining the one-minute cache and last-known-price behavior.
 - Migrated the application from Next.js to TanStack Start and Cloudflare Workers, preserving tab URLs, wallet flows, swaps, borrowing, portfolio, charts, and documentation.
