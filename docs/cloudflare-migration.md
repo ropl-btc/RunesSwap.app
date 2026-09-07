@@ -6,6 +6,7 @@
 - Existing Vercel project: `quid-labs-inc/runes-swap-exe` (`prj_MEKgEPzIZkm1ZvikGHsDPFescSs5`). Keep it until Robin verifies the migration.
 - Existing public hostnames: `runesswap.app` redirects to `www.runesswap.app`.
 - Run `bun run ai-check`, then deploy and verify the workers.dev URL before attaching production domains.
+- Cloudflare Web Analytics replaces Vercel Analytics. Site ID: `d5422c3e655f400a811b7c5bb18f1d5a`. The public beacon token is embedded in the production document; SPA tracking is enabled by default. Automatic injection is disabled to avoid duplicate beacons. Verify collection under the production hostname after cutover.
 - `vercel.json` disables new Vercel Git deployments from this branch. Remove that temporary guard after deleting the Vercel project. Never deploy a Vercel preview or production build from the migrated branch. The existing Vercel deployment remains the rollback origin.
 
 ## DNS cutover

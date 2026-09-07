@@ -1,4 +1,5 @@
 import { createErrorResponse, handleApiError } from '@/lib/apiUtils';
+import { logApiError } from '@/lib/logger';
 
 /**
  * Handles known SatsTerminal API error cases
@@ -31,6 +32,7 @@ export function handleSatsTerminalError(error: unknown): Response | null {
   }
 
   if (errorMessage.includes('ReferenceError') || errorMessage.includes('apiKey is not defined')) {
+    logApiError('SatsTerminal', error);
     return createErrorResponse('External service error. Please try again later.', undefined, 500);
   }
 

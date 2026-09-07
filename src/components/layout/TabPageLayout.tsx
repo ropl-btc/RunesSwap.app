@@ -11,16 +11,19 @@ interface TabPageLayoutProps {
   preSelectedRune?: string | null;
 }
 
-/**
- * Shared page layout for all tab routes.
- *
- * Renders top navigation and the tab-specific interface content.
- */
+const loadingMessages: Record<ActiveTab, string> = {
+  swap: 'Loading swap interface...',
+  borrow: 'Loading borrow tab...',
+  runesInfo: 'Loading runes info...',
+  yourTxs: 'Loading transactions...',
+  portfolio: 'Loading portfolio...',
+};
+
 export default function TabPageLayout({ activeTab, preSelectedRune = null }: TabPageLayoutProps) {
   return (
     <div className={styles.mainContainer}>
       <TabNavigation />
-      <Suspense fallback={<Loading variant="progress" message="Loading application..." />}>
+      <Suspense fallback={<Loading variant="progress" message={loadingMessages[activeTab]} />}>
         <AppInterface activeTab={activeTab} preSelectedRune={preSelectedRune} />
       </Suspense>
     </div>

@@ -21,7 +21,7 @@ export const Route = createRootRoute({
       { name: 'robots', content: 'index,follow' },
       { property: 'og:type', content: 'website' },
       { property: 'og:locale', content: 'en_US' },
-      { property: 'og:url', content: 'https://runesswap.app' },
+      { property: 'og:url', content: 'https://www.runesswap.app' },
       { property: 'og:title', content: title },
       { property: 'og:description', content: description },
       { property: 'og:site_name', content: 'RunesSwap.app' },
@@ -63,6 +63,13 @@ function Document({ children }: { children: ReactNode }) {
       <body>
         {children}
         <Scripts />
+        {import.meta.env.PROD && (
+          <script
+            type="module"
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon='{"token":"b0a6014ed2eb41b6a34ddb6f700c60ac"}'
+          />
+        )}
       </body>
     </html>
   );

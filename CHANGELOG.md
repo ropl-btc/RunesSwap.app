@@ -15,13 +15,14 @@
 - Footer layout refreshed: dedicated footer button styles, consistent heights, tightened spacing, and Docs moved next to GitHub.
 
 ### Changed
+- Replaced Vercel Analytics with Cloudflare Web Analytics, including client-side route tracking.
 - Switched BTC/USD pricing to mempool.space because CoinGecko rejects Worker requests, retaining the one-minute cache and last-known-price behavior.
 - Migrated the application from Next.js to TanStack Start and Cloudflare Workers, preserving tab URLs, wallet flows, swaps, borrowing, portfolio, charts, and documentation.
 - Replaced framework-specific images, fonts, navigation, and HTTP responses with browser standards and TanStack routing.
 - Removed redundant query and static-data wrappers and mock-only tests; API tests now use real Request and Response objects.
 - Adapted SatsTerminal to native fetch and moved wallet SDK initialization to the browser for Workers compatibility.
 
-- Refreshed Next.js 16.3.4, Supabase, Bun 1.4.2, Biome, Jest, and development tooling to current stable releases; patched Browserslist and qs security advisories.
+- Refreshed Supabase, Bun 1.4.2, Biome, Jest, and development tooling; patched Browserslist and qs security advisories. Earlier Next.js updates below preceded the TanStack migration.
 - Updated the minimatch v3 compatibility pin to 3.1.5 while retaining the patched brace-expansion integration and glob regression coverage.
 - Refreshed React Query, Zod, Biome, Testing Library, Jest, Knip, lint-staged, and Node types to current stable releases; ignored incompatible minimatch major updates while its v3 compatibility regression test remains required.
 - Updated Next.js to its August 2026 security release and refreshed Bun, Supabase, React Query, Biome, Vite, and related types/tooling to current stable versions.

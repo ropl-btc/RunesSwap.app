@@ -6,9 +6,6 @@ import styles from '@/app/page.module.css';
 import Button from '@/components/ui/Button';
 import { logger } from '@/lib/logger';
 
-/**
- * Route-level error boundary for App Router segments.
- */
 export default function RouteError({ error, reset }: ErrorComponentProps) {
   useEffect(() => {
     logger.error(

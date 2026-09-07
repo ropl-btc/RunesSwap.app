@@ -90,7 +90,7 @@ bun run start
 
 ## Testing and Linting
 
-* Unit tests use **Jest** with the `ts-jest` preset:
+* Unit tests use **Jest** with `@swc/jest` and a jsdom environment that exposes native Request and Response objects:
 
   ```bash
   bun run test

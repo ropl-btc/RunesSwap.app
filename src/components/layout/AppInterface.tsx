@@ -1,7 +1,8 @@
-import React, { lazy, useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 
 import styles from '@/components/layout/AppInterface.module.css';
 import type { ActiveTab } from '@/components/layout/TabNavigation';
+import { Loading } from '@/components/loading/Loading';
 import { useSharedLaserEyes } from '@/context/LaserEyesContext';
 import useBtcPrice from '@/hooks/useBtcPrice';
 
@@ -117,11 +118,13 @@ export function AppInterface({ activeTab, preSelectedRune = null }: AppInterface
           <div className={styles.swapContainer}>{renderActiveTab()}</div>
           {isPriceChartVisible && (
             <div className={styles.priceChartContainer}>
-              <PriceChart
-                assetName={selectedAssetForActiveTab}
-                onClose={() => togglePriceChart(undefined, true)}
-                btcPriceUsd={btcPriceUsd}
-              />
+              <Suspense fallback={<Loading variant="progress" message="Loading chart..." />}>
+                <PriceChart
+                  assetName={selectedAssetForActiveTab}
+                  onClose={() => togglePriceChart(undefined, true)}
+                  btcPriceUsd={btcPriceUsd}
+                />
+              </Suspense>
             </div>
           )}
         </div>
