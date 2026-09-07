@@ -15,6 +15,7 @@
 - Footer layout refreshed: dedicated footer button styles, consistent heights, tightened spacing, and Docs moved next to GitHub.
 
 ### Changed
+- Refreshed Next.js 16.3.4, Supabase, Bun 1.4.2, Biome, Jest, and development tooling to current stable releases; patched Browserslist and qs security advisories.
 - Updated the minimatch v3 compatibility pin to 3.1.5 while retaining the patched brace-expansion integration and glob regression coverage.
 - Refreshed React Query, Zod, Biome, Testing Library, Jest, Knip, lint-staged, and Node types to current stable releases; ignored incompatible minimatch major updates while its v3 compatibility regression test remains required.
 - Updated Next.js to its August 2026 security release and refreshed Bun, Supabase, React Query, Biome, Vite, and related types/tooling to current stable versions.
