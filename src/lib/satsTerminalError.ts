@@ -1,11 +1,9 @@
-import type { NextResponse } from 'next/server';
-
 import { createErrorResponse, handleApiError } from '@/lib/apiUtils';
 
 /**
  * Handles known SatsTerminal API error cases
  */
-export function handleSatsTerminalError(error: unknown): NextResponse | null {
+export function handleSatsTerminalError(error: unknown): Response | null {
   const errorInfo = handleApiError(error, 'SatsTerminal error');
   const errorMessage = error instanceof Error ? error.message : String(error);
 
@@ -20,12 +18,20 @@ export function handleSatsTerminalError(error: unknown): NextResponse | null {
     return createErrorResponse('Rate limit exceeded', 'Please try again later', 429);
   }
 
-  if (errorMessage.includes('Unexpected token')) {
+  if (
+    errorMessage.includes('Unexpected token') ||
+    errorMessage.includes('invalid json response body') ||
+    errorMessage.includes('Service Unavailable')
+  ) {
     return createErrorResponse(
       'API service unavailable',
       'The SatsTerminal API is currently unavailable. Please try again later.',
       503,
     );
+  }
+
+  if (errorMessage.includes('ReferenceError') || errorMessage.includes('apiKey is not defined')) {
+    return createErrorResponse('External service error. Please try again later.', undefined, 500);
   }
 
   return null;

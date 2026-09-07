@@ -4,26 +4,26 @@ This file provides instructions for automated coding agents (Codex or Claude) wo
 
 ## Overview
 
-RunesSwap.app is a Next.js application written in **TypeScript**. It offers a swap and borrowing interface for Bitcoin Runes with a Windows‑98 style theme. The app integrates several external services:
+RunesSwap.app is a TanStack Start application written in **TypeScript**. It offers a swap and borrowing interface for Bitcoin Runes with a Windows‑98 style theme. The app integrates several external services:
 
 * **Ordiscan** for on‑chain UTXO and Rune data
 * **SatsTerminal** for swap execution and PSBT handling
 * **Liquidium** for borrowing and loan management
 * **Supabase** for storage of rune information and market data
-* **CoinGecko** for BTC price data
+* **mempool.space** for BTC price data
 * **mempool.space** for fetching recommended Bitcoin fee rates
 
-The main source code lives in `src/` and uses the Next.js App Router.
-API routes under `src/app/api` act as a thin backend to proxy and cache requests to the above services. Server data is fetched with React Query, and client state is handled by Zustand. Type definitions are organised under `src/types`.
+The main source code lives in `src/` and uses TanStack Router.
+API handlers under `src/server/api` act as a thin backend to proxy and cache requests to the above services. Server data is fetched with React Query, and client state is handled by Zustand. Type definitions are organised under `src/types`.
 
 ## Repository Layout
 
 ```text
 / (repo root)
 ├── src/                 # Application source code
-│   ├── app/             # Next.js pages and API routes
-│   │   ├── api/         # Serverless API endpoints
-│   │   ├── docs/        # Renders README.md
+│   ├── routes/          # TanStack Router pages and server route adapters
+│   ├── server/api/      # API business handlers
+│   ├── app/             # Shared providers, styles, and error UI
 │   │   ├── globals.css  # Global styles (Win98 theme)
 │   │   └── ...
 │   ├── components/      # React components (SwapTab, BorrowTab, etc.)
@@ -45,10 +45,10 @@ A `.env.example` file shows all environment variables needed for development. Im
 * `ORDISCAN_API_KEY`
 * `RUNES_FLOOR_API_KEY`
 * `LIQUIDIUM_API_KEY` (server-side only)
-* `NEXT_PUBLIC_SUPABASE_URL`
-* `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+* `SUPABASE_URL`
+* `SUPABASE_ANON_KEY`
 
-**Security Note:** Never use `NEXT_PUBLIC_` prefix for sensitive API keys as it exposes them to the client-side. Use server-side environment variables for authentication tokens.
+**Security Note:** Never use `VITE_` prefix for sensitive API keys as it exposes them to the client-side. Use server-side environment variables for authentication tokens.
 
 ## Numeric Precision
 
@@ -105,14 +105,14 @@ The pre-commit hook runs `lint-staged`; the pre-push hook runs the full `ai-chec
 
 ## Architecture Notes
 
-* Uses **Next.js App Router** for routing.
+* Uses **TanStack Router** file routes and TanStack Start server handlers.
 * API routes wrap external services and return standardized responses via helpers in `src/lib/apiUtils.ts`.
 * API client methods are organized into modules under `src/lib/api/`.
 * React components under `src/components` implement the swap, borrow, portfolio and info tabs.
 * State is managed with React Query (server data) and Zustand (client state); shared contexts live in `src/context`.
 * Path alias `@/*` resolves to `./src/*` (configured in `tsconfig.json` and Jest).
 * Styles use CSS Modules plus global variables for the Windows 98 theme.
-* The README is rendered through `src/app/docs` for in‑app documentation.
+* The README is rendered through `src/routes/docs.tsx` for in‑app documentation.
 
 ## Data Flows
 
@@ -120,7 +120,7 @@ The pre-commit hook runs `lint-staged`; the pre-push hook runs the full `ai-chec
 
 1. A UI component fetches data using React Query.
 2. The query calls a helper method from `src/lib/api/` modules (re-exported by `src/lib/api/index.ts`).
-3. The client sends a request to a Next.js API route under `src/app/api`.
+3. The client sends a request to a TanStack Start API route under `src/server/api`.
 4. The API route fetches data from Ordiscan, SatsTerminal, or Liquidium, optionally caching results in Supabase, and returns a standardized JSON response.
 5. The UI updates based on the React Query result.
 

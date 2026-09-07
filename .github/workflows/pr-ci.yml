@@ -21,11 +21,5 @@ jobs:
           bun-version: 1.4.2
       - name: Install
         run: bun ci
-      - name: Type Check
-        run: bun run type-check
-      - name: Lint
-        run: bun run lint
-      - name: Architecture Lint
-        run: bun run lint:architecture
-      - name: Test
-        run: bun run test
+      - name: Validate application and Worker build
+        run: bun run ai-check

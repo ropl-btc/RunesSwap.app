@@ -1,0 +1,30 @@
+import { fail, ok } from '@/lib/apiResponse';
+import { createLiquidiumClient } from '@/lib/liquidiumSdk';
+import { withApiHandler } from '@/lib/withApiHandler';
+
+// GET /api/liquidium/challenge?ordinalsAddress=...&paymentAddress=...
+export const GET = withApiHandler(
+  async (request: Request) => {
+    const searchParams = new URL(request.url).searchParams;
+    const ordinalsAddress = searchParams.get('ordinalsAddress');
+    const paymentAddress = searchParams.get('paymentAddress');
+    if (!ordinalsAddress || !paymentAddress) {
+      return fail('Missing addresses', {
+        status: 400,
+        details: 'Both ordinalsAddress and paymentAddress are required',
+      });
+    }
+    const walletParam = searchParams.get('wallet') || 'xverse';
+
+    const client = createLiquidiumClient();
+    const challenge = await client.authentication.postApiV1AuthPrepare({
+      requestBody: {
+        payment_address: paymentAddress,
+        ordinals_address: ordinalsAddress,
+        wallet: walletParam,
+      },
+    });
+    return ok(challenge);
+  },
+  { defaultErrorMessage: 'Failed to get Liquidium challenge' },
+);

@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import type React from 'react';
 
 /**
@@ -29,7 +28,7 @@ const RuneIcon: React.FC<RuneIconProps> = ({ src, alt, className, width = 24, he
   if (!isValid) return null;
 
   return (
-    <Image
+    <img
       src={src}
       alt={alt}
       className={className}

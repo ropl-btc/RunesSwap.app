@@ -1,7 +1,4 @@
-'use client';
-
-import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import type React from 'react';
 import { useRef, useState } from 'react';
 
@@ -108,8 +105,8 @@ function Layout({ children }: LayoutProps) {
       <div className={styles.window}>
         <div className={styles.titleBar}>
           <span className={styles.titleBarRow}>
-            <Link href="/swap" aria-label="Go to Swap tab">
-              <Image
+            <Link to="/swap" aria-label="Go to Swap tab">
+              <img
                 src="/icons/runesswap_logo.png"
                 alt="RunesSwap.app Logo"
                 width={18}
@@ -118,7 +115,7 @@ function Layout({ children }: LayoutProps) {
                   imageRendering: 'pixelated',
                   cursor: 'pointer',
                 }}
-                priority
+                fetchPriority="high"
               />
             </Link>
             <TitleText />

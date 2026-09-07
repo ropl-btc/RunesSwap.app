@@ -1,5 +1,3 @@
-import type { NextResponse } from 'next/server';
-
 import { createErrorResponse } from '@/lib/apiUtils';
 import { supabase } from '@/lib/supabase';
 import { safeArrayFirst } from '@/utils/typeGuards';
@@ -9,9 +7,9 @@ import { safeArrayFirst } from '@/utils/typeGuards';
  * Checks for existence and expiration.
  *
  * @param address - The wallet address to check.
- * @returns The JWT string if valid, or an error NextResponse.
+ * @returns The JWT string if valid, or an error Response.
  */
-export async function getLiquidiumJwt(address: string): Promise<string | NextResponse> {
+export async function getLiquidiumJwt(address: string): Promise<string | Response> {
   const { data, error } = await supabase
     .from('liquidium_tokens')
     .select('jwt, expires_at')

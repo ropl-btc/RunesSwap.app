@@ -1,4 +1,4 @@
-'use client';
+import type { ErrorComponentProps } from '@tanstack/react-router';
 
 import { useEffect } from 'react';
 
@@ -6,19 +6,14 @@ import styles from '@/app/page.module.css';
 import Button from '@/components/ui/Button';
 import { logger } from '@/lib/logger';
 
-interface ErrorProps {
-  error: Error & { digest?: string };
-  reset: () => void;
-}
-
 /**
  * Route-level error boundary for App Router segments.
  */
-export default function RouteError({ error, reset }: ErrorProps) {
+export default function RouteError({ error, reset }: ErrorComponentProps) {
   useEffect(() => {
     logger.error(
       'Unhandled route error',
-      { message: error.message, digest: error.digest, stack: error.stack },
+      error instanceof Error ? { message: error.message, stack: error.stack } : { error },
       'APP',
     );
   }, [error]);

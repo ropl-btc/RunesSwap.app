@@ -1,7 +1,4 @@
-'use client';
-
 import { useQuery } from '@tanstack/react-query';
-import Image from 'next/image';
 
 import { FormattedRuneAmount } from '@/components/formatters/FormattedRuneAmount';
 import { FormattedRuneName } from '@/components/formatters/FormattedRuneName';
@@ -56,7 +53,7 @@ function YourTxsTab({ connected, address }: YourTxsTabProps) {
         </div>
       ) : runeActivityError ? (
         <div className={`${styles.listboxError} ${styles.messageWithIcon}`}>
-          <Image
+          <img
             src="/icons/msg_error-0.png"
             alt="Error"
             className={styles.messageIcon}

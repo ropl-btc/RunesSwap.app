@@ -1,24 +1,7 @@
-import { NextResponse } from 'next/server';
 import type { ZodSchema } from 'zod';
+import { fail } from '@/lib/apiResponse';
 
 import { logger } from '@/lib/logger';
-
-/**
- * Creates a standardized success response object
- *
- * @param data - The data to include in the response
- * @param status - HTTP status code (default: 200)
- * @returns NextResponse with standardized format
- */
-export function createSuccessResponse<T>(data: T, status = 200): NextResponse {
-  return NextResponse.json(
-    {
-      success: true,
-      data,
-    },
-    { status },
-  );
-}
 
 /**
  * Creates a standardized error response object
@@ -26,9 +9,9 @@ export function createSuccessResponse<T>(data: T, status = 200): NextResponse {
  * @param message - Main error message
  * @param details - Optional detailed error information
  * @param status - HTTP status code (default: 500)
- * @returns NextResponse with standardized format
+ * @returns Response with standardized format
  */
-export function createErrorResponse(message: string, details?: string, status = 500): NextResponse {
+export function createErrorResponse(message: string, details?: string, status = 500): Response {
   // Avoid noisy logs during tests; still log in dev/prod
   if (process.env.NODE_ENV !== 'test') {
     const includeDetails = process.env.NODE_ENV !== 'production';
@@ -36,16 +19,7 @@ export function createErrorResponse(message: string, details?: string, status = 
     logger.error(`[API Error] ${message}${detailsPart}`);
   }
 
-  return NextResponse.json(
-    {
-      success: false,
-      error: {
-        message,
-        ...(details && { details }),
-      },
-    },
-    { status },
-  );
+  return fail(message, { status, ...(details ? { details } : {}) });
 }
 
 /**
@@ -121,7 +95,7 @@ export function handleApiError(
  * Validates request data (body or query) using a Zod schema.
  * Returns { success: true, data } or { success: false, errorResponse }.
  *
- * @param request - NextRequest object
+ * @param request - Request object
  * @param schema - Zod schema to validate against
  * @param source - 'body' (default) or 'query'
  */
@@ -129,7 +103,7 @@ export async function validateRequest<T>(
   request: Request,
   schema: ZodSchema<T>,
   source: 'body' | 'query' = 'body',
-): Promise<{ success: true; data: T } | { success: false; errorResponse: NextResponse }> {
+): Promise<{ success: true; data: T } | { success: false; errorResponse: Response }> {
   let rawData: unknown;
   try {
     if (source === 'body') {

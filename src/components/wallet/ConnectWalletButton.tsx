@@ -1,5 +1,3 @@
-'use client';
-
 import styles from '@/components/wallet/ConnectWalletButton.module.css';
 import WalletOptionsList from '@/components/wallet/WalletOptionsList';
 import { AVAILABLE_WALLETS, useWalletConnection } from '@/hooks/useWalletConnection';

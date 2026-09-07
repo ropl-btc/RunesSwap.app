@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "test": "NODE_OPTIONS=\"--max-old-space-size=4096\" jest --runInBand",
-    "dev": "next dev",
-    "build": "./scripts/run-next-build.sh",
-    "start": "next start",
+    "dev": "vite --port 3000",
+    "build": "vite build",
+    "start": "vite preview --port 3000",
     "lint": "biome lint .",
     "lint:architecture": "node scripts/lint-architecture.mjs",
     "lint:fix": "biome check --write .",
@@ -18,7 +18,8 @@
     "ai-check": "bun run lint && bun run lint:architecture && bun run format:check && bun run type-check && bun run knip && bun run test && bun run build",
     "pre-commit-check": "bun run type-check && bun run test",
     "prepare": "husky",
-    "gen:liquidium-sdk": "openapi -i liquidium-openapi/liquidium-instant-loan-api.yaml -o src/sdk/liquidium --client fetch --useOptions --useUnionTypes --exportSchemas true --name LiquidiumApi"
+    "gen:liquidium-sdk": "openapi -i liquidium-openapi/liquidium-instant-loan-api.yaml -o src/sdk/liquidium --client fetch --useOptions --useUnionTypes --exportSchemas true --name LiquidiumApi",
+    "deploy": "bun run build && wrangler deploy"
   },
   "engines": {
     "node": ">=22.0.0",
@@ -31,10 +32,10 @@
     "@satsterminal-sdk/swaps": "1.6.31",
     "@supabase/supabase-js": "^2.115.0",
     "@tanstack/react-query": "^5.102.8",
-    "@vercel/analytics": "^2.0.1",
+    "@tanstack/react-router": "^1.170.33",
+    "@tanstack/react-start": "^1.168.50",
     "big.js": "^7.0.1",
     "bitcoin-address-validation": "^3.0.0",
-    "next": "16.3.4",
     "ordiscan": "^1.4.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
@@ -47,7 +48,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.12",
-    "@next/bundle-analyzer": "^16.3.4",
+    "@cloudflare/vite-plugin": "^1.54.4",
+    "@swc/jest": "^0.2.39",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/big.js": "^7.0.0",
@@ -55,6 +57,7 @@
     "@types/node": "^26.4.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
     "base58-js": "^3.0.3",
     "brace-expansion": "5.0.9",
     "glob": "13.0.6",
@@ -66,7 +69,8 @@
     "minimatch": "3.1.5",
     "openapi-typescript-codegen": "^0.31.0",
     "typescript": "^7.0.2",
-    "vite": "8.2.2"
+    "vite": "8.2.2",
+    "wrangler": "^4.129.0"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,css,scss}": [
@@ -100,6 +104,8 @@
     "yaml": "2.9.0"
   },
   "patchedDependencies": {
-    "brace-expansion@5.0.9": "patches/brace-expansion@5.0.9.patch"
-  }
+    "brace-expansion@5.0.9": "patches/brace-expansion@5.0.9.patch",
+    "@satsterminal-sdk/core@1.6.31": "patches/@satsterminal-sdk%2Fcore@1.6.31.patch"
+  },
+  "type": "module"
 }

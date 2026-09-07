@@ -1,0 +1,12 @@
+diff --git a/dist/index.js b/dist/index.js
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -4,7 +4,7 @@
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.HttpClient = exports.DEFAULT_BASE_URL = void 0;
+-const node_fetch_1 = __importDefault(require("node-fetch"));
++const node_fetch_1 = { default: globalThis.fetch };
+ exports.DEFAULT_BASE_URL = 'https://api.satsterminal.com';
+ class HttpClient {
+     constructor(config) {

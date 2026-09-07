@@ -1,10 +1,11 @@
-'use client';
-
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-
+import { ClientOnly, Link, useLocation } from '@tanstack/react-router';
+import { createClientOnlyFn } from '@tanstack/react-start';
+import { lazy, Suspense } from 'react';
 import styles from '@/app/page.module.css';
-import ConnectWalletButton from '@/components/wallet/ConnectWalletButton';
+
+const ConnectWalletButton = lazy(
+  createClientOnlyFn(() => import('@/components/wallet/ConnectWalletButton')),
+);
 
 const TAB_ROUTES = [
   { tab: 'swap', href: '/swap', label: 'Swap' },
@@ -25,7 +26,7 @@ export type ActiveTab = (typeof TAB_ROUTES)[number]['tab'];
  * Active styling is derived from the current pathname.
  */
 export default function TabNavigation() {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
 
   return (
     <div className={styles.headerContainer}>
@@ -35,7 +36,7 @@ export default function TabNavigation() {
           return (
             <Link
               key={route.tab}
-              href={route.href}
+              to={route.href}
               className={`${styles.pageTabButton} ${isActive ? styles.pageTabActive : ''}`}
             >
               {route.label}
@@ -44,7 +45,11 @@ export default function TabNavigation() {
         })}
       </div>
       <div className={styles.connectButtonContainer}>
-        <ConnectWalletButton />
+        <ClientOnly>
+          <Suspense fallback={null}>
+            <ConnectWalletButton />
+          </Suspense>
+        </ClientOnly>
       </div>
     </div>
   );

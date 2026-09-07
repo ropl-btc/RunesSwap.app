@@ -2,7 +2,7 @@
 
 [![Release](https://img.shields.io/github/v/release/ropl-btc/RunesSwap.app)](https://github.com/ropl-btc/RunesSwap.app/releases)
 
-A Uniswap‑style swap interface for Bitcoin Runes, built with Next.js, TypeScript, and the SatsTerminal SDK, styled in a classic Windows 98 UI theme.
+A Uniswap‑style swap interface for Bitcoin Runes, built with TanStack Start, TypeScript, and the SatsTerminal SDK, styled in a classic Windows 98 UI theme.
 
 ## Features
 - Seamless on‑chain swapping of Bitcoin Runes via SatsTerminal SDK.
@@ -13,31 +13,34 @@ A Uniswap‑style swap interface for Bitcoin Runes, built with Next.js, TypeScri
 - Strict TypeScript safety, Biome linting/formatting, and Git hooks for code quality.
 
 ## Tech Stack
-- Next.js 16 (App Router) with React 19 Strict Mode
+- TanStack Start with TanStack Router, React 19, and Vite
 - TypeScript (strict)
 - CSS Modules & global CSS variables (Windows 98 theme)
 - SatsTerminal swaps SDK (`@satsterminal-sdk/swaps`) & Laser Eyes (`@omnisat/lasereyes`)
 - TanStack Query v5 & Zustand
-- Supabase (public URL/anon key client‑side only)
+- Supabase (server-side database access)
 - Ordiscan SDK for on‑chain data
 - Biome (lint + format), Husky + lint‑staged
 
 ## Getting Started
 ### Prerequisites
-- Bun v1.3+
+- Bun v1.4.2+
 - Node.js v22+ (for runtime/tooling compatibility where needed)
 
 ### Environment Variables
-Create a `.env.local` file in the project root with:
+Create a `.dev.vars` file for local Worker secrets:
 ```dotenv
-NEXT_PUBLIC_SUPABASE_URL=<your-supabase-url>
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-supabase-anon-key>
+SUPABASE_URL=<your-supabase-url>
+SUPABASE_ANON_KEY=<your-supabase-anon-key>
 ORDISCAN_API_KEY=<your-ordiscan-api-key>
 SATS_TERMINAL_API_KEY=<your-satsterminal-api-key>
 LIQUIDIUM_API_URL=<liquidium-server-url>
 LIQUIDIUM_API_KEY=<your-liquidium-api-key>
-NEXT_PUBLIC_QUOTE_MOCK_ADDRESS=34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo # optional: enables pre-connection quotes
 ```
+
+The optional `VITE_QUOTE_MOCK_ADDRESS` belongs in `.env.local` and is public.
+All other variables in `.env.example` belong in `.dev.vars`; never prefix service
+keys with `VITE_`.
 
 `LIQUIDIUM_API_URL` and `LIQUIDIUM_API_KEY` are used on the server only to
 authenticate with Liquidium's API. Never expose service keys to the client.
@@ -127,3 +130,26 @@ pre-commit and the full `bun run ai-check` pipeline on pre-push. Please ensure:
 ## License
 
 MIT © RunesSwap.app
+
+## Cloudflare deployment
+
+`bun run dev` runs the app in Cloudflare's local Workers runtime. `bun run build`
+builds the client assets and Worker; `bun run start` previews that build locally.
+`bun run ai-check` checks lint, architecture, formatting, types, unused code,
+unit tests, and the production build.
+
+Deploy with `bun run deploy`. Runtime secrets must be uploaded separately with
+`bunx wrangler secret bulk <private-json-file>`. Vite embeds only the public
+`VITE_QUOTE_MOCK_ADDRESS` setting. Local `.dev.vars` files and private secret
+exports must never be committed.
+
+User routes live in `src/routes`; API routes retain their `/api/...` URLs and
+standard JSON envelopes, with business handlers in `src/server/api`. README and
+changelog content is bundled at build time. Wallet SDK modules load only in the
+browser because they access browser APIs and generate random values on import.
+
+The pinned SatsTerminal core dependency has a one-line Bun patch replacing
+`node-fetch` with native `fetch` for Workers compatibility. SDK payloads and
+request frequency are unchanged. Recheck the patch when updating that SDK.
+
+See [deployment and rollback](docs/cloudflare-migration.md) for the domain cutover.

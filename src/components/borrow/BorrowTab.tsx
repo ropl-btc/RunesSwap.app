@@ -1,9 +1,6 @@
-'use client';
-
 import type { LaserEyesContextType } from '@omnisat/lasereyes';
+import { useNavigate } from '@tanstack/react-router';
 import Big from 'big.js';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import BorrowQuotesList from '@/components/borrow/BorrowQuotesList';
@@ -60,7 +57,7 @@ function BorrowTab({
   signPsbt,
   signMessage,
 }: BorrowTabProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [collateralAsset, setCollateralAsset] = useState<Asset | null>(null);
   const [collateralAmount, setCollateralAmount] = useState('');
   const [feeRate, setFeeRate] = useState(0);
@@ -251,7 +248,7 @@ function BorrowTab({
 
       {loanProcessError && (
         <div className={`errorText ${styles.messageWithIcon}`}>
-          <Image
+          <img
             src="/icons/msg_error-0.png"
             alt="Error"
             className={styles.messageIcon}
@@ -265,7 +262,7 @@ function BorrowTab({
       <BorrowSuccessMessage
         loanTxId={loanTxId}
         onViewPortfolio={() => {
-          router.push('/portfolio', { scroll: false });
+          void navigate({ to: '/portfolio', resetScroll: false });
         }}
         onStartAnother={() => {
           resetLoanProcess();

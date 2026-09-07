@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import type React from 'react';
 
 import type { SwapStep } from '@/components/swap/SwapButton';
@@ -48,7 +47,7 @@ const SwapStatusMessages: React.FC<SwapStatusMessagesProps> = ({
     {/* Display Swap Process Status */}
     {isSwapping && swapStep !== 'error' && swapStep !== 'success' && (
       <div className={`smallText ${styles.messageWithIcon}`} style={{ paddingTop: '0.5rem' }}>
-        <Image
+        <img
           src="/icons/windows_hourglass.png"
           alt="Processing"
           className={styles.messageIcon}
@@ -68,7 +67,7 @@ const SwapStatusMessages: React.FC<SwapStatusMessagesProps> = ({
     {swapError && (
       <>
         <div className={`errorText ${styles.messageWithIcon}`}>
-          <Image
+          <img
             src="/icons/msg_error-0.png"
             alt="Error"
             className={styles.messageIcon}
@@ -104,7 +103,7 @@ const SwapStatusMessages: React.FC<SwapStatusMessagesProps> = ({
         className={`smallText ${styles.messageWithIcon}`}
         style={{ paddingTop: '0.5rem', color: '#16a34a' }}
       >
-        <Image
+        <img
           src="/icons/check-0.png"
           alt="Success"
           className={styles.messageIcon}

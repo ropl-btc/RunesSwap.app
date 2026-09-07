@@ -1,6 +1,5 @@
-'use client';
-import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from '@tanstack/react-router';
+import { lazy, Suspense } from 'react';
 
 import LiquidiumLoansSection from '@/components/borrow/LiquidiumLoansSection';
 import styles from '@/components/portfolio/PortfolioTab.module.css';
@@ -12,9 +11,7 @@ import { useRepayModal } from '@/hooks/useRepayModal';
 import type { Asset } from '@/types/common';
 import { formatSatsToBtc } from '@/utils/formatters';
 
-const RepayModal = dynamic(() => import('@/components/borrow/RepayModal'), {
-  ssr: false,
-});
+const RepayModal = lazy(() => import('@/components/borrow/RepayModal'));
 
 /**
  * Main component for the Portfolio tab.
@@ -22,7 +19,7 @@ const RepayModal = dynamic(() => import('@/components/borrow/RepayModal'), {
  * Handles sorting, swapping, and loan repayment.
  */
 export default function PortfolioTab() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { address, paymentAddress, signMessage, signPsbt } = useSharedLaserEyes();
 
   const {
@@ -58,7 +55,7 @@ export default function PortfolioTab() {
   } = useRepayModal({ address, signPsbt });
 
   const handleSwap = (asset: Asset) => {
-    router.push(`/swap?rune=${encodeURIComponent(asset.name)}`, { scroll: false });
+    void navigate({ to: '/swap', search: { rune: asset.name }, resetScroll: false });
   };
 
   if (!address) {
@@ -134,23 +131,25 @@ export default function PortfolioTab() {
         onRepay={handleRepay}
       />
 
-      <RepayModal
-        open={repayModal.open}
-        repayAmount={
-          repayModal.loan
-            ? `${formatSatsToBtc(
-                repayModal.loan.loan_details.total_repayment_sats ??
-                  repayModal.loan.loan_details.principal_amount_sats *
-                    (1 + repayModal.loan.loan_details.discount.discount_rate),
-              )} BTC`
-            : '...'
-        }
-        psbtPreview={repayModal.repayInfo?.psbt?.slice(0, 32) || ''}
-        loading={repayModal.loading}
-        error={repayModal.error}
-        onCancel={handleRepayModalClose}
-        onConfirm={handleRepayModalConfirm}
-      />
+      <Suspense fallback={null}>
+        <RepayModal
+          open={repayModal.open}
+          repayAmount={
+            repayModal.loan
+              ? `${formatSatsToBtc(
+                  repayModal.loan.loan_details.total_repayment_sats ??
+                    repayModal.loan.loan_details.principal_amount_sats *
+                      (1 + repayModal.loan.loan_details.discount.discount_rate),
+                )} BTC`
+              : '...'
+          }
+          psbtPreview={repayModal.repayInfo?.psbt?.slice(0, 32) || ''}
+          loading={repayModal.loading}
+          error={repayModal.error}
+          onCancel={handleRepayModalClose}
+          onConfirm={handleRepayModalConfirm}
+        />
+      </Suspense>
     </div>
   );
 }

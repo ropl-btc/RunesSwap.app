@@ -1,10 +1,8 @@
-import { NextRequest } from 'next/server';
-
 import { apiGet } from '@/lib/api/createApiClient';
 
 // Request helpers
-export function createTestRequest(url: string, method: 'GET' | 'POST' = 'GET'): NextRequest {
-  return new NextRequest(url, { method });
+export function createTestRequest(url: string, method: 'GET' | 'POST' = 'GET'): Request {
+  return new Request(url, { method });
 }
 
 // Response validation helpers

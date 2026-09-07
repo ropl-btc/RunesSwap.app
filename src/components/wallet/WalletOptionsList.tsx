@@ -1,5 +1,4 @@
 import type { ProviderType } from '@omnisat/lasereyes';
-import Image from 'next/image';
 import type React from 'react';
 
 import styles from '@/components/wallet/ConnectWalletButton.module.css';
@@ -49,7 +48,7 @@ const WalletOptionsList: React.FC<WalletOptionsListProps> = ({
           <span>{name}</span>
           {disclaimer && (
             <div className={styles.warningIconContainer} title={`Warning: ${disclaimer}`}>
-              <Image
+              <img
                 src="/icons/msg_warning-0.png"
                 alt="Warning"
                 className={styles.warningIcon}
