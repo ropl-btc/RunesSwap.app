@@ -7,11 +7,10 @@ import fileContents from '../../CHANGELOG.md?raw';
 function getCleanChangelog(raw: string): string {
   const lines = raw.split(/\r?\n/);
 
-  // Find first version heading (e.g., "## [0.2.1] - 2025-08-23" or any H2)
-  let startIdx = lines.findIndex((l) => l.trim().startsWith('## '));
-  if (startIdx === -1) startIdx = 0;
-
-  // Slice from first H2 to end
+  const startIdx = lines.findIndex((line) =>
+    /^## \[\d+\.\d+\.\d+\] - \d{4}-\d{2}-\d{2}$/.test(line),
+  );
+  if (startIdx === -1) return 'No releases are currently available.';
   const sliced = lines.slice(startIdx);
 
   // Filter out reference-style link definitions at the bottom like: [0.2.1]: https://...
@@ -21,9 +20,7 @@ function getCleanChangelog(raw: string): string {
 }
 
 function ChangelogPage() {
-  const content = fileContents
-    ? getCleanChangelog(fileContents)
-    : 'No changelog is currently available.';
+  const content = getCleanChangelog(fileContents);
 
   return (
     <div className={styles.container}>

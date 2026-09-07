@@ -1,36 +1,35 @@
 name: Release from Changelog
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'CHANGELOG.md'
-  workflow_dispatch:
+  check_run:
+    types: [completed]
 
 permissions:
   contents: write
 
 jobs:
   changelog_release:
+    if: >-
+      github.event.check_run.conclusion == 'success' &&
+      github.event.check_run.app.slug == 'cloudflare-workers-and-pages' &&
+      github.event.check_run.name == 'Workers Builds: runesswap'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          ref: ${{ github.event.check_run.head_sha }}
+          persist-credentials: false
+
+      - name: Verify deployed commit belongs to main
+        run: git merge-base --is-ancestor HEAD origin/main
 
       - name: Extract latest version and notes
         id: extract
         run: |
           set -euo pipefail
-          # Ensure the top section is a version, not Unreleased
-          TOP_LINE=$(grep -m1 -E '^## \[' CHANGELOG.md || true)
-          if echo "$TOP_LINE" | grep -qE '^## \[Unreleased\]'; then
-            echo "Top CHANGELOG section is [Unreleased]; skipping release." >&2
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          VERSION_LINE=$(grep -m1 -E '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md || true)
+          VERSION_LINE=$(grep -m1 -E '^## \[[0-9]+\.[0-9]+\.[0-9]+\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$' CHANGELOG.md || true)
           if [ -z "${VERSION_LINE}" ]; then
             echo "No version section found; skipping."
             echo "skip=true" >> "$GITHUB_OUTPUT"
@@ -45,13 +44,13 @@ jobs:
             exit 0
           fi
 
-          awk -v v="$VERSION" '
-            $0 ~ "^## \\[" v "\\]" {found=1; next}
-            found && $0 ~ "^## \\[" { exit }
+          awk -v heading="$VERSION_LINE" '
+            $0 == heading {found=1; next}
+            found && /^## / { exit }
             found { print }
           ' CHANGELOG.md > RELEASE_NOTES.md
 
-          if [ ! -s RELEASE_NOTES.md ]; then
+          if ! grep -qE '^- [[:space:]]*[^[:space:]]' RELEASE_NOTES.md; then
             echo "No notes captured for $VERSION; skipping."
             echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
@@ -76,6 +75,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.extract.outputs.version }}
+          DEPLOYED_SHA: ${{ github.event.check_run.head_sha }}
         run: |
           set -euo pipefail
           TAG="v${VERSION}"
@@ -84,5 +84,5 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "$TITLE" --latest -F RELEASE_NOTES.md
           else
-            gh release create "$TAG" --title "$TITLE" --latest -F RELEASE_NOTES.md --target "${GITHUB_SHA}"
+            gh release create "$TAG" --title "$TITLE" --latest -F RELEASE_NOTES.md --target "${DEPLOYED_SHA}"
           fi
