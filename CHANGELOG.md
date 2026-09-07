@@ -2,11 +2,15 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-07
+
 ### Fixed
+- Aligned release checks with dated releases and kept unreleased notes out of the public changelog.
 - Hardened PR CI by restricting token permissions and disabling persisted checkout credentials before running repository scripts.
 - Prevented config-only commits from failing when lint-staged passed unsupported Markdown and YAML files to Biome.
 
 ### Added
+- Automatic Cloudflare Worker deployment after successful main-branch validation, followed by GitHub release publication.
 - Automatic PR reviews in the opencode workflow (runs on PR open/update, reviews with Kimi k3).
 - Add opencode GitHub workflow for automated PR reviews and `/oc` commands (Kimi k3).
 - Centralized QueryClient defaults and query key factories.
@@ -273,7 +277,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Initial release: swap interface, price chart, core API routes and foundational UI.
-[Unreleased]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.8...HEAD
+[Unreleased]: https://github.com/robin-liquidium/RunesSwap.app/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/robin-liquidium/RunesSwap.app/compare/v0.2.8...v0.3.0
 [0.2.8]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.7...v0.2.8
 [0.2.7]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.6...v0.2.7
 [0.2.4]: https://github.com/ropl-btc/RunesSwap.app/compare/v0.2.3...v0.2.4

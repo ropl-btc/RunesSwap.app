@@ -1,6 +1,6 @@
 {
   "name": "runesswap.app",
-  "version": "0.2.8",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "test": "NODE_OPTIONS=\"--max-old-space-size=4096\" jest --runInBand",

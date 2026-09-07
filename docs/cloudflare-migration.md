@@ -17,7 +17,7 @@ Hostinger is the domain registrar. Nameservers were changed to Cloudflare on 202
 
 The zone initially mirrored Vercel's apex/wildcard aliases and CAA records to preserve service during DNS activation. No MX or TXT records were present at migration inventory time.
 
-Both `runesswap.app` and `www.runesswap.app` are attached directly to the `runesswap` Worker and recorded in `wrangler.jsonc`. The apex Vercel CNAME was replaced; the wildcard record and CAA records remain. Future deployments use `bun run deploy` and retain both custom domains. Verify TLS, redirects, pages, static assets, and APIs after deployments.
+Both `runesswap.app` and `www.runesswap.app` are attached directly to the `runesswap` Worker and recorded in `wrangler.jsonc`. The apex Vercel CNAME was replaced; the wildcard record and CAA records remain. Pushes to `main` run `bun run ai-check` and then deploy the validated build with Wrangler in the Main Build workflow. Production runs are serialized. GitHub releases are published only after that workflow succeeds, using its deployed commit. Manual deployments use `bun run deploy`; both paths retain the custom domains. Verify TLS, redirects, pages, static assets, and APIs after deployments.
 
 ## Rollback
 
@@ -36,3 +36,9 @@ A registrar-level rollback can restore Vercel's original nameservers while the V
 ## Verification boundaries
 
 Automated checks can exercise validation, quotes, market data, routing, wallet menus, and mocked signing flows. Actual wallet signatures, swaps, borrowing, and repayment require Robin's final verification. Do not delete Vercel until that verification is complete.
+
+## Releases
+
+Feature PRs add notes under `Unreleased`. A release PR moves shipped notes into a dated version section and updates `package.json` to match. Keep an empty `Unreleased` section for subsequent work. The public changelog shows only dated releases. The changelog gate accepts either a new unreleased bullet or a new version section matching a changed package version.
+
+The Main Build workflow uses the repository secret `CLOUDFLARE_API_TOKEN` and variable `CLOUDFLARE_ACCOUNT_ID`. Runtime service secrets stay on the Worker. Do not add them to GitHub or the build environment.
