@@ -13,11 +13,11 @@
 
 Cloudflare zone: `e6a9636304c6b3f1c370f8fbcdc5754b`.
 Nameservers: `carlane.ns.cloudflare.com`, `quinton.ns.cloudflare.com`.
-The registrar must replace `ns1.vercel-dns.com` and `ns2.vercel-dns.com` with those nameservers.
+Hostinger is the domain registrar. Nameservers were changed to Cloudflare on 2026-09-07, and Cloudflare activated the zone.
 
-The pending Cloudflare zone initially mirrors Vercel's apex/wildcard aliases and CAA records, so nameserver activation can happen before application cutover. No MX or TXT records were present at migration inventory time.
+The zone initially mirrored Vercel's apex/wildcard aliases and CAA records to preserve service during DNS activation. No MX or TXT records were present at migration inventory time.
 
-Once the zone is active and the Worker is verified, replace the apex Vercel CNAME with a Worker custom domain, add `www.runesswap.app` as another custom domain, and record both routes in `wrangler.jsonc`. Preserve the wildcard record and CAA records. Verify TLS, redirects, all pages, static assets, and APIs through both public hostnames.
+Both `runesswap.app` and `www.runesswap.app` are attached directly to the `runesswap` Worker and recorded in `wrangler.jsonc`. The apex Vercel CNAME was replaced; the wildcard record and CAA records remain. Future deployments use `bun run deploy` and retain both custom domains. Verify TLS, redirects, pages, static assets, and APIs after deployments.
 
 ## Rollback
 

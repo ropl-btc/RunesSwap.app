@@ -6,5 +6,9 @@
   "compatibility_date": "2026-09-07",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
+  "routes": [
+    { "pattern": "runesswap.app", "custom_domain": true },
+    { "pattern": "www.runesswap.app", "custom_domain": true }
+  ],
   "observability": { "enabled": true }
 }
