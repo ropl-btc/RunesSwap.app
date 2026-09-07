@@ -1,5 +1,3 @@
-'use client';
-
 import type { LaserEyesContextType } from '@omnisat/lasereyes';
 import { createContext, useContext } from 'react';
 

@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!src/sdk/liquidium", "!CLAUDE.md", "!GEMINI.md"]
+    "includes": ["**", "!src/sdk/liquidium", "!CLAUDE.md", "!GEMINI.md", "!src/routeTree.gen.ts"]
   },
   "formatter": {
     "enabled": true,

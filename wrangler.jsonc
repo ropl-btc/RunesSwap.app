@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "runesswap",
+  "account_id": "81b27ab7c6fe3a3b3a0e6d31f7d2a381",
+  "main": "src/server.ts",
+  "compatibility_date": "2026-09-07",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "observability": { "enabled": true }
+}

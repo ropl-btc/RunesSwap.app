@@ -1,5 +1,3 @@
-'use client';
-
 import { Loading } from '@/components/loading';
 import { useRuneInfo } from '@/hooks/useRuneInfo';
 import { formatRuneAmount } from '@/utils/runeFormatting';

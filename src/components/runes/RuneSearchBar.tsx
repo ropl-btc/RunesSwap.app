@@ -1,6 +1,3 @@
-'use client';
-
-import Image from 'next/image';
 import type React from 'react';
 
 import RuneIcon from '@/components/runes/RuneIcon';
@@ -40,7 +37,7 @@ const RuneSearchBar: React.FC<RuneSearchBarProps> = ({ onRuneSelect, selectedRun
     <div className={styles.searchAndResultsContainer}>
       <div className={styles.searchContainerRunesInfo}>
         <div className={styles.searchWrapper}>
-          <Image
+          <img
             src="/icons/magnifying_glass-0.png"
             alt="Search"
             className={styles.searchIconEmbedded}
@@ -68,7 +65,7 @@ const RuneSearchBar: React.FC<RuneSearchBarProps> = ({ onRuneSelect, selectedRun
           )}
           {currentRunesError && (
             <div className={`${styles.listboxError} ${styles.messageWithIcon}`}>
-              <Image
+              <img
                 src="/icons/msg_error-0.png"
                 alt="Error"
                 className={styles.messageIcon}

@@ -97,7 +97,7 @@ describe('serverUtils', () => {
   });
 
   describe('getSatsTerminalClient', () => {
-    it('should create enhanced SatsTerminal client with API key', () => {
+    it('should create SatsTerminal client with API key', () => {
       // Set up environment variable
       process.env.SATS_TERMINAL_API_KEY = 'test-sats-terminal-key';
 

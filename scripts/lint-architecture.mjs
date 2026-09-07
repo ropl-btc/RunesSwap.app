@@ -75,6 +75,7 @@ function checkSize(filePath, content) {
 }
 
 for (const filePath of listFiles()) {
+  if (filePath === 'src/routeTree.gen.ts') continue;
   const absPath = path.join(ROOT, filePath);
   const content = fs.readFileSync(absPath, 'utf8');
   checkForbiddenPatterns(filePath, content);

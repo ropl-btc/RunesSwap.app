@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 
 import styles from '@/app/page.module.css';
 
@@ -11,7 +11,7 @@ export default function NotFound() {
       <h1 className="heading">Page Not Found</h1>
       <p>The page you requested does not exist.</p>
       <div className={styles.backToHome}>
-        <Link href="/swap">Go to Swap</Link>
+        <Link to="/swap">Go to Swap</Link>
       </div>
     </div>
   );

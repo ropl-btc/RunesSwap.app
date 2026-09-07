@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useRef, useState } from 'react';
 
 import styles from '@/components/layout/Layout.module.css';

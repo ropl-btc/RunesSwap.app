@@ -53,3 +53,12 @@ next-env.d.ts
 # Other
 /todo.md
 .cursor/mcp.json
+
+# Cloudflare / Vite
+/dist/
+/.wrangler/
+/.tanstack/
+.dev.vars*
+.playwright-cli/
+.env*
+!.env.example

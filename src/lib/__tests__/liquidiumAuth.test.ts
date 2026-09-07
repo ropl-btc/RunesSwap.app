@@ -32,14 +32,14 @@ describe('getLiquidiumJwt', () => {
   it('returns 500 on DB error', async () => {
     limit.mockResolvedValueOnce({ data: null, error: { message: 'db fail' } });
     const res = await getLiquidiumJwt('addr');
-    // @ts-expect-error - NextResponse has .status at runtime in tests
+    // @ts-expect-error - Response has .status at runtime in tests
     expect(res.status).toBe(500);
   });
 
   it('returns 401 when missing token', async () => {
     limit.mockResolvedValueOnce({ data: [], error: null });
     const res = await getLiquidiumJwt('addr');
-    // @ts-expect-error - NextResponse has .status at runtime in tests
+    // @ts-expect-error - Response has .status at runtime in tests
     expect(res.status).toBe(401);
   });
 
@@ -50,7 +50,7 @@ describe('getLiquidiumJwt', () => {
       error: null,
     });
     const res = await getLiquidiumJwt('addr');
-    // @ts-expect-error - NextResponse has .status at runtime in tests
+    // @ts-expect-error - Response has .status at runtime in tests
     expect(res.status).toBe(401);
   });
 

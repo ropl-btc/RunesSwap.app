@@ -1,5 +1,4 @@
 import Big from 'big.js';
-import Image from 'next/image';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import {
@@ -91,7 +90,7 @@ const PriceChart: React.FC<PriceChartProps> = ({
           justifyContent: 'center',
         }}
       >
-        <Image
+        <img
           src={HOURGLASS_SRC}
           alt="Loading..."
           width={48}

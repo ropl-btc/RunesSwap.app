@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import type React from 'react';
 import type { ReactNode } from 'react';
 
@@ -157,7 +156,7 @@ const InputArea: React.FC<InputAreaProps> = ({
         className={`${styles.errorText} ${styles.messageWithIcon}`}
         style={{ paddingTop: '0.25rem', width: '100%' }}
       >
-        <Image
+        <img
           src="/icons/msg_error-0.png"
           alt="Error"
           className={styles.messageIcon}

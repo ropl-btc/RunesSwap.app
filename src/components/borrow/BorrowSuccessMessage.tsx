@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import type React from 'react';
 
 import styles from '@/components/borrow/BorrowTab.module.css';
@@ -29,7 +28,7 @@ const BorrowSuccessMessage: React.FC<BorrowSuccessMessageProps> = ({
   if (!loanTxId) return null;
   return (
     <div className={`${styles.messageWithIcon} ${styles.successMessage}`}>
-      <Image
+      <img
         src="/icons/check-0.png"
         alt="Success"
         className={styles.messageIcon}

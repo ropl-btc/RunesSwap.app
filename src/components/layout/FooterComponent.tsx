@@ -1,7 +1,4 @@
-'use client';
-
-import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 
 import styles from '@/components/layout/AppInterface.module.css';
 import { formatUsd } from '@/utils/formatters';
@@ -36,14 +33,14 @@ function FooterComponent({ btcPriceUsd, isBtcPriceLoading, btcPriceError }: Foot
         <span>BTC Price: N/A</span>
       )}
       <div className={styles.socialLinks}>
-        <Link href="/changelog" className={styles.footerButton} title="Changelog">
+        <Link to="/changelog" className={styles.footerButton} title="Changelog">
           Changelog
         </Link>
-        <Link href="/legal" className={styles.footerButton} title="Legal">
+        <Link to="/legal" className={styles.footerButton} title="Legal">
           Legal
         </Link>
-        <Link href="/docs" className={styles.footerIconButton} title="Documentation">
-          <Image src="/icons/help_book_big-0.png" alt="Documentation" width={16} height={16} />
+        <Link to="/docs" className={styles.footerIconButton} title="Documentation">
+          <img src="/icons/help_book_big-0.png" alt="Documentation" width={16} height={16} />
         </Link>
         <a
           href="https://github.com/ropl-btc/RunesSwap.app"
@@ -52,7 +49,7 @@ function FooterComponent({ btcPriceUsd, isBtcPriceLoading, btcPriceError }: Foot
           title="GitHub"
           className={styles.socialLink}
         >
-          <Image src="/icons/github-mark.svg" alt="GitHub" width={16} height={16} />
+          <img src="/icons/github-mark.svg" alt="GitHub" width={16} height={16} />
         </a>
         <a
           href="https://twitter.com/robin_liquidium"
@@ -61,7 +58,7 @@ function FooterComponent({ btcPriceUsd, isBtcPriceLoading, btcPriceError }: Foot
           title="X (Twitter)"
           className={styles.socialLink}
         >
-          <Image src="/icons/x-logo.svg" alt="X (Twitter)" width={16} height={16} />
+          <img src="/icons/x-logo.svg" alt="X (Twitter)" width={16} height={16} />
         </a>
       </div>
     </div>

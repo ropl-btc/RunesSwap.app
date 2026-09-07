@@ -4,7 +4,7 @@ const DEFAULT_READONLY_ADDRESS = '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo';
  * Resolves address used for quote calls when wallet is not connected.
  */
 export function getEffectiveQuoteAddress(address: string | null): string {
-  const mockAddress = process.env.NEXT_PUBLIC_QUOTE_MOCK_ADDRESS;
+  const mockAddress = import.meta.env.VITE_QUOTE_MOCK_ADDRESS;
   return address || (mockAddress ? String(mockAddress) : undefined) || DEFAULT_READONLY_ADDRESS;
 }
 
@@ -17,7 +17,7 @@ export function buildQuoteRequestKey(
   assetOutId: string,
   address: string | null,
 ): string {
-  const mockAddress = process.env.NEXT_PUBLIC_QUOTE_MOCK_ADDRESS;
+  const mockAddress = import.meta.env.VITE_QUOTE_MOCK_ADDRESS;
   const addressKey = address || (mockAddress ? 'mock' : 'default');
   return `${debouncedInputAmount}-${assetInId}-${assetOutId}-${addressKey}`;
 }
